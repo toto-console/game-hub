@@ -35,6 +35,7 @@ class TrustedRedirect(HTTPRedirectHandler):
         trusted_url(newurl)
         return super().redirect_request(req,fp,code,msg,headers,newurl)
 def get(url,limit=1048576):
+    trusted_url(url)
     u=urlparse(url)
     if u.scheme!='https' or u.hostname not in ('api.github.com','github.com') or u.username:raise ValueError('Untrusted release URL')
     with build_opener(TrustedRedirect()).open(Request(url,headers={'User-Agent':'GameHub-Updater','Accept':'application/vnd.github+json' if u.hostname=='api.github.com' else 'application/octet-stream'}),timeout=20) as r:
@@ -50,8 +51,8 @@ def validate_package(data,digest,expected):
         seen=set();total=0
         for f in z.infolist():
             name=f.orig_filename;p=PurePosixPath(name);total+=f.file_size
-            if not name.startswith(PREFIX) or any(x in ('', '.', '..') or x.endswith((' ', '.')) or x.split('.')[0].upper() in ('CON','PRN','AUX','NUL',*[f'COM{i}' for i in range(1,10)],*[f'LPT{i}' for i in range(1,10)]) for x in name.rstrip('/').split('/')) or '\\' in name or ':' in name or name.lower() in seen or stat.S_ISLNK(f.external_attr>>16):raise ValueError('Unsafe package path')
-            seen.add(name.lower())
+            if any(ord(c)<32 for c in name) or not name.startswith(PREFIX) or any(x in ('', '.', '..') or x.endswith((' ', '.')) or x.split('.')[0].upper() in ('CON','PRN','AUX','NUL',*[f'COM{i}' for i in range(1,10)],*[f'LPT{i}' for i in range(1,10)]) for x in name.rstrip('/').split('/')) or '\\' in name or ':' in name or name.rstrip('/').lower() in seen or stat.S_ISLNK(f.external_attr>>16):raise ValueError('Unsafe package path')
+            seen.add(name.rstrip('/').lower())
         if total>100_000_000 or len(seen)>2000 or z.testzip():raise ValueError('Invalid package archive')
         package=json.loads(z.read(PREFIX+'package.json'));plugin=json.loads(z.read(PREFIX+'plugin.json'))
         if package.get('version')!=expected or plugin.get('name')!='Game Base Social' or package.get('remote_binary') or plugin.get('flags'):raise ValueError('Unexpected package identity or privileges')

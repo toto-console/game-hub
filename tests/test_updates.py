@@ -33,7 +33,7 @@ class UpdatesTest(unittest.TestCase):
         self.assertRaises(ValueError,u.validate_package,self.data,'0'*64,'1.1.0')
         self.assertRaises(ValueError,u.validate_package,self.data,self.digest,'2.0.0')
     def test_unsafe_paths(self):
-        for name in ['../escape','other-plugin/main.py',u.PREFIX+'../escape',u.PREFIX+'CON.txt',u.PREFIX+'a./b',u.PREFIX+'MAIN.PY',u.PREFIX+'a:b',u.PREFIX+'a\\b']:
+        for name in ['../escape','other-plugin/main.py',u.PREFIX+'../escape',u.PREFIX+'CON.txt',u.PREFIX+'a./b',u.PREFIX+'MAIN.PY',u.PREFIX+'a:b',u.PREFIX+'a\\b',u.PREFIX+'a\x00b']:
             with self.subTest(name=name):
                 data=package((name,'bad'));self.assertRaises(ValueError,u.validate_package,data,hashlib.sha256(data).hexdigest(),'1.1.0')
     def test_redirect_rejected_before_fetch(self):
