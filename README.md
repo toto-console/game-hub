@@ -4,6 +4,12 @@ PS5-inspired Home, Welcome widgets, Library, Control Center, Game News, Friends,
 
 **Experimental Windows-first pre-release. Not affiliated with Sony, Valve or Decky.** No game artwork, music packs, account data or game saves are distributed.
 
+## Preview
+
+![Game Hub social panel with fictional sample data](docs/social-preview.jpg)
+
+Screenshot of the included browser preview, not a live Steam account. Home uses each user's own Steam artwork.
+
 ## Download
 
 Open [Releases](https://github.com/toto-console/game-hub/releases) and download **Game-Hub-0.13.0-dev.38-decky.zip** from the newest pre-release. The automatic GitHub “Source code” archives are **not installable plugins**. Compare the file's SHA-256 with `SHA256SUMS.txt` from the same release.

@@ -25,12 +25,11 @@ jobs:
       - run: python -m unittest discover -s tests -p test_updates.py
       - run: python scripts/package-public.py
       - run: python scripts/release-manifest.py
+      - run: |
+          mkdir artifacts
+          cp ../Game-Hub-*-decky.zip ../Game-Hub-*-source.zip ../game-hub-update.json ../SHA256SUMS.txt artifacts/
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: validated-build
-          path: |
-            ../Game-Hub-*-decky.zip
-            ../Game-Hub-*-source.zip
-            ../game-hub-update.json
-            ../SHA256SUMS.txt
+          path: artifacts/*
           if-no-files-found: error
