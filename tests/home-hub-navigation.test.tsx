@@ -8,7 +8,7 @@ const launch=vi.hoisted(()=>vi.fn());
 vi.mock('@decky/ui',async()=>{const React=await import('react');return {Navigation:{Navigate:vi.fn()},Focusable:React.forwardRef(({children,'flow-children':flow,...p}:any,ref:any)=><div {...p} ref={ref}>{children}</div>)};});
 vi.mock('../src/library-live',()=>({useLibraryRevision:()=>0}));
 vi.mock('../src/themedeck-adapter',()=>({useSoundtrackScope:vi.fn(),highlightSoundtrack:vi.fn()}));
-vi.mock('../src/home/WelcomeHub',()=>({WelcomeIcon:()=>null,WelcomeHub:({back}:any)=><div className="gh-welcome"><button className="ghw-widget" data-welcome-entry="true" onKeyDown={e=>{if(e.key==='Escape'||e.key==='ArrowUp')back();}}>Welcome achievements</button></div>}));
+vi.mock('../src/home/WelcomeHub',()=>({WelcomeIcon:()=>null,WelcomeHub:({back,onContentFocus}:any)=><div className="gh-welcome"><button className="ghw-widget" data-welcome-entry="true" onFocus={onContentFocus} onKeyDown={e=>{if(e.key==='Escape'||e.key==='ArrowUp')back();}}>Welcome achievements</button></div>}));
 vi.mock('../src/home/StorePreview',()=>({StorePreview:()=>null}));
 vi.mock('../src/home/upstream/InfoCards',()=>({ActionCards:()=>null,GameCards:()=>null}));
 vi.mock('../src/home/GameDetail',()=>({GameDetail:({back}:any)=><div className="gh-home-details"><div className="gh-home-summary"><button className="gh-detail-control" onKeyDown={e=>{if(e.key==='ArrowUp')back();}}>Achievements</button></div></div>}));
@@ -30,14 +30,14 @@ it.each(['keyboard','controller'])('Down enters Play and summaries without launc
 });
 
 it('Welcome receives Down and returns to its own tile without exposing game controls',()=>{
- const v=render(<HomeTab goTab={()=>{}}/>);const tile=v.getByText('Welcome');fireEvent.focus(tile);
+ const v=render(<HomeTab goTab={()=>{}}/>);const tile=v.getByRole('button',{name:'Welcome'});fireEvent.focus(tile);
  expect(v.queryByText('Play')).toBeNull();expect(v.queryByText('Favorite app regression')).toBeNull();
- fireEvent.keyDown(tile,{key:'ArrowDown'});expect(document.activeElement).toBe(v.getByText('Welcome achievements'));
+ fireEvent.keyDown(tile,{key:'ArrowDown'});expect(document.activeElement).toBe(v.getByText('Welcome achievements'));expect(v.container.querySelector('.gh-home-game-heading')?.getAttribute('data-visible')).toBe('true');
  fireEvent.keyDown(document.activeElement!,{key:'Escape'});expect(document.activeElement).toBe(tile);
  const game=v.getAllByText('Selected game').find(e=>e.classList.contains('ghd-tile'))!;fireEvent.focus(game);expect(v.queryByText('Welcome achievements')).toBeNull();expect(v.getByText('Play')).toBeTruthy();
 });
-it('starts a fresh Home on Welcome instead of recent games',()=>{const v=render(<HomeTab goTab={()=>{}}/>);expect(v.getByText('Welcome achievements')).toBeTruthy();expect(v.queryByText('Play')).toBeNull();expect(v.getByText('Welcome').classList.contains('ghd-selected')).toBe(true);});
+it('starts a fresh Home on Welcome instead of recent games',()=>{const v=render(<HomeTab goTab={()=>{}}/>);expect(v.getByText('Welcome achievements')).toBeTruthy();expect(v.queryByText('Play')).toBeNull();expect(v.getByRole('button',{name:'Welcome'}).classList.contains('ghd-selected')).toBe(true);});
 
 
 it('keeps an opted-in Welcome wallpaper when selecting a game',async()=>{welcomeSettings.mockResolvedValue({wallpaperScope:'home',background:'local',image:'data:image/png;base64,AAAA'});const v=render(<HomeTab goTab={()=>{}}/>);await waitFor(()=>expect(v.container.querySelector('.ghd-backdrop')).toBeNull());const game=v.getAllByText('Selected game').find(e=>e.classList.contains('ghd-tile'))!;act(()=>game.focus());expect(v.container.querySelector('.ghw-background img')?.getAttribute('src')).toBe('data:image/png;base64,AAAA');expect(v.getByText('Play')).toBeTruthy();});
-it('keeps the same saved wallpaper node while leaving and returning to Welcome',async()=>{welcomeSettings.mockResolvedValue({wallpaperScope:'welcome',background:'local',image:'data:image/png;base64,AAAA'});const v=render(<HomeTab goTab={()=>{}}/>);await waitFor(()=>expect(v.container.querySelector('.ghw-background img')).toBeTruthy());const image=v.container.querySelector('.ghw-background img')!;const game=v.getAllByText('Selected game').find(e=>e.classList.contains('ghd-tile'))!;act(()=>game.focus());expect(v.container.querySelector('.ghw-background img')).toBe(image);expect(image.parentElement?.hidden).toBe(true);act(()=>v.getByText('Welcome').focus());expect(v.container.querySelector('.ghw-background img')).toBe(image);expect(image.parentElement?.hidden).toBe(false);});
+it('keeps the same saved wallpaper node while leaving and returning to Welcome',async()=>{welcomeSettings.mockResolvedValue({wallpaperScope:'welcome',background:'local',image:'data:image/png;base64,AAAA'});const v=render(<HomeTab goTab={()=>{}}/>);await waitFor(()=>expect(v.container.querySelector('.ghw-background img')).toBeTruthy());const image=v.container.querySelector('.ghw-background img')!;const game=v.getAllByText('Selected game').find(e=>e.classList.contains('ghd-tile'))!;act(()=>game.focus());expect(v.container.querySelector('.ghw-background img')).toBe(image);expect(image.parentElement?.hidden).toBe(true);act(()=>v.getByRole('button',{name:'Welcome'}).focus());expect(v.container.querySelector('.ghw-background img')).toBe(image);expect(image.parentElement?.hidden).toBe(false);});

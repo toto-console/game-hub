@@ -372,18 +372,18 @@ export function HomeTab({ goTab,active=true }: { goTab: GoTab;active?:boolean })
   return (
     <>
       <style>{homeHubCSS}</style>
-      {pickedApp&&<div className="gh-home-game-heading" data-visible={active&&expanded&&!lowered} aria-hidden={!active||!expanded||lowered}>
-        <span className="gh-home-game-thumb"><Art sources={[...portraitUrls(pickedApp),...landscapeUrls(pickedApp)]} fallback={<span aria-hidden="true">{pickedApp.display_name.slice(0,1)}</span>}/></span>
-        <span className="gh-home-game-name">{pickedApp.display_name}</span>
+      {(pickedApp||welcomeSelected)&&<div className="gh-home-game-heading" data-visible={active&&expanded&&!lowered} aria-hidden={!active||!expanded||lowered}>
+        <span className={`gh-home-game-thumb${welcomeSelected?' gh-home-welcome-thumb':''}`}>{welcomeSelected?<WelcomeIcon/>:pickedApp&&<Art sources={[...portraitUrls(pickedApp),...landscapeUrls(pickedApp)]} fallback={<span aria-hidden="true">{pickedApp.display_name.slice(0,1)}</span>}/>}</span>
+        <span className="gh-home-game-name">{welcomeSelected?'Welcome':pickedApp?.display_name}</span>
       </div>}
       {!globalWallpaper&&<Backdrop app={welcomeSelected?initialApp:backdrop} dim={lowered} />}
-      {wallpaper&&wallpaper.background!=='existing'&&<WelcomeBackground home hidden={!globalWallpaper&&!welcomeSelected} settings={wallpaper} app={recents.find(a=>a.app_type!==APP_TYPE_SHORTCUT)}/>}
+      {wallpaper&&wallpaper.background!=='existing'&&<WelcomeBackground home active={active} hidden={!globalWallpaper&&!welcomeSelected} settings={wallpaper} app={recents.find(a=>a.app_type!==APP_TYPE_SHORTCUT)}/>}
       <div hidden={globalWallpaper} className={`gh-store-backdrop ${storeSelected?'gh-store-visible':''}`}>{storeHero&&<img key={storeHero} src={storeHero} alt=""/>}</div>
       <style>{`.ghd-store-hero{justify-content:flex-start;padding-top:6vh;padding-bottom:3vh}.gh-store-backdrop{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity 300ms ease;background:linear-gradient(120deg,#030911,#102e4c);overflow:hidden}.gh-store-backdrop.gh-store-visible{opacity:1}.gh-store-backdrop img{animation:gh-store-art-in 300ms ease; width:100%;height:100%;object-fit:cover}.gh-store-backdrop:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#010714df,transparent 85%),linear-gradient(0deg,#020914b8,transparent 60%)}.ghd-tile-action .ghd-action{background:#25272d}.ghd-tile-accent .ghd-action{background:linear-gradient(135deg,#349be5,#0874cd)}.ghd-tile:active .ghd-action-icon{opacity:.8}@keyframes gh-store-art-in{from{opacity:0}to{opacity:1}}`}</style>
-      <Focusable className={`ghd-scroller ${lowered ? "ghd-lowered" : ""}`} ref={scroller} data-game-hub={pickedApp?true:undefined} data-expanded={expanded} flow-children="column">
+      <Focusable className={`ghd-scroller ${lowered ? "ghd-lowered" : ""}`} ref={scroller} data-game-hub={pickedApp?true:undefined} data-welcome-hub={welcomeSelected?true:undefined} data-expanded={expanded} flow-children="column">
         <div className="ghd-top-space" />
         <TopRow recents={recents} goTab={goTab} onTopRow={onTopRow} />
-        {welcomeSelected&&<WelcomeHub initialSettings={wallpaper} backgroundManaged onSettings={updateWallpaper} active={active} app={recents.find(a=>a.app_type!==APP_TYPE_SHORTCUT)} favorite={favorites[0]} back={()=>{toTop();focusControl(selectedEl.current);}}/>}
+        {welcomeSelected&&<WelcomeHub onContentFocus={()=>{if(active){setExpanded(true);setLowered(false);}}} initialSettings={wallpaper} backgroundManaged onSettings={updateWallpaper} active={active} app={recents.find(a=>a.app_type!==APP_TYPE_SHORTCUT)} favorite={favorites[0]} back={()=>{toTop();focusControl(selectedEl.current);}}/>}
         {!welcomeSelected&&<div className={`ghd-hero ${storeSelected?"ghd-store-hero":""}`}>
           {storeSelected?<StorePreview onHero={setStoreHero} onFocus={toTop}/>:<GameInfo pick={pick} onFocus={pickedApp?enterPlay:toTop} />}
         </div>}

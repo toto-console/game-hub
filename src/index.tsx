@@ -1,4 +1,5 @@
-import {startNavigationAudio} from './native-navigation-audio';
+import {connectBackAudio} from './back-audio';
+import {startNavigationAudio,playSound} from './native-navigation-audio';
 import {startUpdateChecks} from './software-updates';
 import {connectWelcome} from './home/welcome-services';
 import {connectDesktopCenterFallback} from './desktop-center-fallback';
@@ -248,6 +249,7 @@ export default definePlugin(()=>{
         open:()=>center.showDesktopFallback(),isOpen:()=>center.getSnapshot()
       });
     },[context]);
+    useLayoutEffect(()=>{const doc=marker.current?.ownerDocument;if(doc)return connectBackAudio(doc,()=>settings.enabled,playSound);},[]);
     useLayoutEffect(()=>{const doc=marker.current?.ownerDocument;if(doc)return connectFocusGloss(doc,()=>settings.enabled&&settings.motion);},[s.motion,s.enabled]);
     useLayoutEffect(()=>bindWhenReady(()=>{const doc=marker.current?.ownerDocument;return Router.WindowStore?.SteamUIWindows.find(w=>w.BrowserWindow?.document===doc) as OverlayWindow|undefined;},instance=>{
       if(instance&&instance===Router.WindowStore?.GamepadUIMainWindowInstance){attachMain();setContext('main');return;}

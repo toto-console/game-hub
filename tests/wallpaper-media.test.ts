@@ -1,0 +1,6 @@
+import {it,expect} from 'vitest';
+import {validWallpaper,wallpaperType} from '../src/home/wallpaper-media';
+import {sanitizeSettings} from '../src/home/welcome-layout';
+it('preserves animated image/video preferences in both wallpaper scopes',()=>{for(const mime of ['image/gif','image/apng','image/webp','video/mp4','video/webm','video/ogg'])for(const wallpaperScope of ['welcome','home']){const image=`data:${mime};base64,YQ==`;expect(validWallpaper(image)).toBe(true);expect(sanitizeSettings({background:'local',image,wallpaperScope,animateWallpaper:false})).toMatchObject({image,wallpaperScope,animateWallpaper:false});}});
+it('keeps old still wallpapers compatible and rejects unsafe or oversized data',()=>{expect(sanitizeSettings({image:'data:image/png;base64,YQ=='}).image).toBeTruthy();for(const value of ['file:///C:/a.gif','https://example.com/a.gif','data:image/svg+xml;base64,YQ==','data:video/mp4;base64,'+'A'.repeat(7000000)])expect(validWallpaper(value)).toBe(false);});
+it('accepts supported files even when Windows omits the MIME type and rejects excessive sizes',()=>{expect(wallpaperType({name:'Loop.WEBM',size:1000,type:''})).toBe('video/webm');expect(()=>wallpaperType({name:'large.gif',size:5000001,type:''})).toThrow('5 MB');expect(()=>wallpaperType({name:'movie.exe',size:1000,type:'video/mp4'})).toThrow('Choose');});

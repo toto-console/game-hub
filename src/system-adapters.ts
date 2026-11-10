@@ -1,5 +1,5 @@
 import {safeAvatar} from './model';
-export type TrayRow={id:string;title:string;detail:string;source:string;kind:string;time:number;unread?:boolean;conversation?:string;avatar?:string;plugin?:string;clear?:()=>void};
+export type TrayRow={id:string;title:string;detail:string;source:string;kind:string;time:number;unread?:boolean;conversation?:string;avatar?:string;artwork?:string;plugin?:string;clear?:()=>void};
 type Notice={notificationID?:string;nNotificationID?:string;rtCreated:number;bNewIndicator?:boolean;eType:number;decky?:boolean;data?:Record<string,unknown>};
 type Group={notifications:Notice[]};
 type Store={GetNotificationsInTray():[Group[],unknown];RemoveGroupFromTray?(g:Group):void};
@@ -9,22 +9,33 @@ export function readTray():TrayRow[]{
  const store=host.NotificationStore;if(!store?.GetNotificationsInTray)throw Error('Steam tray unavailable');const groups=store.GetNotificationsInTray()[0];if(!Array.isArray(groups))throw Error('Steam tray format unavailable');
  return groups.flatMap((group,gi)=>group.notifications.map((n,ni)=>{
   const field=(key:string)=>{try{const v=n.data?.[key];return typeof v==='function'?v.call(n.data):v;}catch{return undefined;}};
-  const sender=String(field('steamid_sender')??''),offset=/^\d{17}$/.test(sender)?BigInt(sender)-76561197960265728n:0n,account=offset>0n&&offset<=0xffffffffn?Number(offset):0;
+  const sender=String(field('steamid_sender')??field('steamid')??''),offset=/^\d{17}$/.test(sender)?BigInt(sender)-76561197960265728n:0n,account=offset>0n&&offset<=0xffffffffn?Number(offset):0;
   const synthetic=host.DeckyPluginLoader?.toaster?.__steamcordSafe===2&&account>=0xde000000&&account<=0xde0fffff;
   const friend=account&&!synthetic?host.g_FriendsUIApp?.FriendStore.GetFriendIfCached(account):undefined;
   let persona=friend?.persona;if(synthetic){try{persona=host.friendStore?.GetFriendState({GetAccountID:()=>account,ConvertTo64BitString:()=>sender,BIsValid:()=>true})?.m_persona;}catch{}}
   const g=String(field('chat_group_id')??''),c=String(field('chat_id')??''),cls=String(field('getClassName')??'');
-  const conversation=!synthetic&&/GroupChatMessage/.test(cls)&&/^[1-9]\d*$/.test(g)&&/^[1-9]\d*$/.test(c)?`group:${g}:${c}`:!synthetic&&/FriendChatMessage/.test(cls)&&friend?.is_friend?`friend:${account}`:undefined;
+  const conversation=!synthetic&&/GroupChatMessage/.test(cls)&&/^[1-9]\d*$/.test(g)&&/^[1-9]\d*$/.test(c)?`group:${g}:${c}`:!synthetic&&/Friend(?:Chat)?Message/.test(cls)&&friend?.is_friend?`friend:${account}`:undefined;
   const source=n.decky?'Decky':synthetic?'Plugin alert via Steamcord':'Steam';
-  const kind=n.decky||synthetic?'Plugin alert':conversation?.startsWith('group:')?'Group message':conversation?'Message':/FriendRequest/.test(cls)?'Friend request':/Invite/.test(cls)?'Invitation':/Achievement/.test(cls)?'Achievement':`Steam alert · type ${n.eType}`;
-  const title=text(field('title'))||persona?.m_strPlayerName||kind;
+  const kind=n.decky||synthetic?'Plugin alert':conversation?.startsWith('group:')?'Group message':conversation?'Message':/FriendRequest/.test(cls)?'Friend request':/Invite/.test(cls)?'Invitation':/Achievement/.test(cls)?'Achievement':/FriendMessage/.test(cls)?'Message':'Steam notification';
+  let rollup:Record<string,unknown>={};
+  try{const item=field('item') as {body_data?:unknown}|undefined;if(typeof item?.body_data==='string'&&item.body_data.length<32768){const parsed=JSON.parse(item.body_data);if(parsed&&typeof parsed==='object'&&!Array.isArray(parsed))rollup=parsed;}}catch{/* Unknown Steam payload: use the generic notification fallback. */}
+  const appid=Number(field('appid')??field('app_id')??rollup.app_id??rollup.appid);
+  const app=Number.isInteger(appid)&&appid>0?(window as any).appStore?.GetAppOverviewByAppID?.(appid):undefined;
+  const title=text(field('title'))||persona?.m_strPlayerName||text(app?.display_name)||kind;
+  const artwork=safeNoticeArtwork(field('icon'))??(app?.appid?`https://cdn.akamai.steamstatic.com/steam/apps/${appid}/header.jpg`:undefined);
   // Never collect Steam private message bodies; synthetic plugin alerts have no
   // real Steam conversation. Original plugin text is displayed only in memory.
   const detail=n.decky||synthetic?text(field('body'))||'No further text exposed by the plugin':conversation?'Open conversation in Game Hub':'No supported in-Game-Hub action exposed for this entry';
   const id=String(n.notificationID??n.nNotificationID??`${n.eType}:${n.rtCreated}:${gi}:${ni}`);
   const time=n.rtCreated>1e12?n.rtCreated:Math.max(0,n.rtCreated)*1000;
-  return {id:`tray:${id}`,title,detail,source,kind,time,unread:n.bNewIndicator,conversation,avatar:safeAvatar(persona?.avatar_url_medium),
+  return {id:`tray:${id}`,title,detail,source,kind,time,unread:n.bNewIndicator,conversation,avatar:safeAvatar(field('icon'))??safeAvatar(persona?.avatar_url_medium),artwork,
    clear:typeof store.RemoveGroupFromTray==='function'?()=>{const current=store.GetNotificationsInTray()[0].find(v=>v===group||(n.notificationID??n.nNotificationID)!=null&&v.notifications.some(x=>String(x.notificationID??x.nNotificationID)===id));if(!current)return;store.RemoveGroupFromTray!(current);if(store.GetNotificationsInTray()[0].includes(current))throw Error('Steam did not remove this tray group.');}:undefined};
  }));
 }
 export function openDeckyPlugin(name:string,native:()=>void){const loader=(window as unknown as {DeckyPluginLoader?:{plugins:{name:string}[];deckyState:{setActivePlugin(name:string):void}}}).DeckyPluginLoader;if(!loader?.plugins.some(p=>p.name===name))throw Error('This plugin is not loaded. Use original Decky.');loader.deckyState.setActivePlugin(name);native();}
+
+export function safeNoticeArtwork(value:unknown):string|undefined{
+ if(typeof value!=='string')return;
+ const avatar=safeAvatar(value);if(avatar)return avatar;
+ try{const u=new URL(value);if(u.protocol==='https:'&&!u.username&&!u.password&&(!u.port||u.port==='443')&&['cdn.akamai.steamstatic.com','cdn.cloudflare.steamstatic.com','shared.akamai.steamstatic.com','shared.cloudflare.steamstatic.com','community.akamai.steamstatic.com'].includes(u.hostname))return u.href;}catch{}
+}

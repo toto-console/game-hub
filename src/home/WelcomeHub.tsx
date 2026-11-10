@@ -1,3 +1,4 @@
+import {readWallpaper,wallpaperAccept} from './wallpaper-media';
 import {callable} from '@decky/api';
 
 import {Focusable,Navigation} from '@decky/ui';
@@ -6,7 +7,7 @@ import {useEffect,useRef,useState,type ReactNode} from 'react';
 
 import {MdEmojiEvents,MdSportsEsports,MdStorage,MdFavorite,MdShoppingBag,MdNewspaper,MdGroup,MdChat,MdAccessibility,MdPhotoLibrary} from 'react-icons/md';
 
-import {focusControl} from '../navigation';
+import {focusControl,focusNavigation,playSelectionSound} from '../navigation';
 
 import {motionAllowed} from '../focus-motion';
 
@@ -31,16 +32,19 @@ export function WelcomeIcon(){return <svg width="1em" height="1em" viewBox="0 0 
 
 function Control({children,onClick,onFocus,className='',id}:{children:ReactNode;onClick:()=>void;onFocus?:(el:HTMLElement)=>void;className?:string;id?:string}){
 
- const ref=useFocusHook(onFocus);return <Focusable ref={ref} role="button" tabIndex={0} data-gh-control data-welcome-control={id} className={`ghw-control ${className}`} focusClassName="ghd-focused" noFocusRing onActivate={onClick} onClick={onClick} onFocus={e=>onFocus?.(e.currentTarget)}>{children}</Focusable>;
+ const select=()=>{playSelectionSound();onClick();};
+ const ref=useFocusHook(onFocus);return <Focusable ref={ref} role="button" tabIndex={0} data-gh-control data-welcome-control={id} className={`ghw-control ${className}`} focusClassName="ghd-focused" noFocusRing onActivate={select} onClick={select} onFocus={e=>onFocus?.(e.currentTarget)}>{children}</Focusable>;
 
 }
 
-export function WelcomeHub({active,app,favorite,back,onSettings,initialSettings,backgroundManaged=false}:{active:boolean;app?:App;favorite?:App;back:()=>void;onSettings?:(settings:WelcomeSettings)=>void;initialSettings?:WelcomeSettings;backgroundManaged?:boolean}){
+export function WelcomeHub({active,app,favorite,back,onSettings,initialSettings,backgroundManaged=false,onContentFocus}:{active:boolean;onContentFocus?:()=>void;app?:App;favorite?:App;back:()=>void;onSettings?:(settings:WelcomeSettings)=>void;initialSettings?:WelcomeSettings;backgroundManaged?:boolean}){
 
  const [settings,setSettings]=useState(()=>initialSettings??defaults()),[ready,setReady]=useState(!!initialSettings),[error,setError]=useState(''),[editing,setEditing]=useState(false),[moving,setMoving]=useState<WidgetId>(),[draft,setDraft]=useState<Cell[]>(),[selection,setSelection]=useState<WidgetId>(welcomeReturn??'achievements');
 
  const root=useRef<HTMLDivElement>(null),file=useRef<HTMLInputElement>(null),latest=useRef(settings),saving=useRef(Promise.resolve());latest.current=settings;
 
+ const importRevision=useRef(0);
+ useEffect(()=>()=>{importRevision.current++;},[]);
  const data=useWelcomeData(active,app),cells=draft??settings.cells;
 
  const connected=data.friends.kind==='ready',online=connected?data.friends.friends.filter(f=>f.state!=='offline'):[];
@@ -53,7 +57,7 @@ export function WelcomeHub({active,app,favorite,back,onSettings,initialSettings,
 
  const persist=(next:WelcomeSettings)=>{if(!ready)return;next=sanitizeSettings(next);setSettings(next);onSettings?.(next);latest.current=next;setError('');saving.current=saving.current.then(async()=>{if(!await saveSettings(next))throw Error('Save failed');}).catch(()=>setError('Layout applies for this session; saving failed. Please try again.'));};
 
- const focus=(id:WidgetId)=>{setSelection(id);focusControl(root.current?.querySelector<HTMLElement>(`[data-widget="${id}"]`));};
+ const focus=(id:WidgetId,navigation=false)=>{setSelection(id);(navigation?focusNavigation:focusControl)(root.current?.querySelector<HTMLElement>(`[data-widget="${id}"]`));};
 
  const reveal=(el:HTMLElement)=>{const view=root.current?.querySelector<HTMLElement>('.ghw-viewport');if(!view)return;const a=el.getBoundingClientRect(),b=view.getBoundingClientRect();if(a.left<b.left+8)view.scrollBy({left:a.left-b.left-8,behavior:motionAllowed(el)?'smooth':'auto'});else if(a.right>b.right-8)view.scrollBy({left:a.right-b.right+8,behavior:motionAllowed(el)?'smooth':'auto'});};
 
@@ -109,9 +113,9 @@ export function WelcomeHub({active,app,favorite,back,onSettings,initialSettings,
 
   if(cancel){stop();if(state.moving){setMoving(undefined);setDraft(undefined);setEditing(true);requestAnimationFrame(()=>focusControl(el.querySelector<HTMLElement>('.ghw-editor .ghw-control')));}else if(state.editing)closeEditor();else state.back();return;}
 
-  if(state.editing&&!state.moving){if(e.type==='vgp_onok'||k.key==='Enter'){stop();if(!k.repeat&&!d?.is_repeat)target.closest<HTMLElement>('.ghw-control')?.click();return;}if(direction!==undefined){stop();const nodes=Array.from(el.querySelectorAll<HTMLElement>('.ghw-editor .ghw-control'));const current=target.closest<HTMLElement>('.ghw-control');if(!current)return;const a=current.getBoundingClientRect(),dx=direction===11?-1:direction===12?1:0,dy=direction===9?-1:direction===10?1:0;const candidates=nodes.filter(n=>n!==current).map(n=>({n,r:n.getBoundingClientRect()})).filter(({r})=>dx?(r.left+r.width/2-a.left-a.width/2)*dx>1:(r.top+r.height/2-a.top-a.height/2)*dy>1);const score=(r:DOMRect)=>{const x=Math.abs(r.left+r.width/2-a.left-a.width/2),y=Math.abs(r.top+r.height/2-a.top-a.height/2);return dx?x+y*5:y+x*3;};candidates.sort((b,c)=>score(b.r)-score(c.r));if(candidates[0]){focusControl(candidates[0].n);candidates[0].n.scrollIntoView({block:'nearest'});}}return;}
+  if(state.editing&&!state.moving){if(e.type==='vgp_onok'||k.key==='Enter'){stop();if(!k.repeat&&!d?.is_repeat)target.closest<HTMLElement>('.ghw-control')?.click();return;}if(direction!==undefined){stop();const nodes=Array.from(el.querySelectorAll<HTMLElement>('.ghw-editor .ghw-control'));const current=target.closest<HTMLElement>('.ghw-control');if(!current)return;const a=current.getBoundingClientRect(),dx=direction===11?-1:direction===12?1:0,dy=direction===9?-1:direction===10?1:0;const candidates=nodes.filter(n=>n!==current).map(n=>({n,r:n.getBoundingClientRect()})).filter(({r})=>dx?(r.left+r.width/2-a.left-a.width/2)*dx>1:(r.top+r.height/2-a.top-a.height/2)*dy>1);const score=(r:DOMRect)=>{const x=Math.abs(r.left+r.width/2-a.left-a.width/2),y=Math.abs(r.top+r.height/2-a.top-a.height/2);return dx?x+y*5:y+x*3;};candidates.sort((b,c)=>score(b.r)-score(c.r));if(candidates[0]){focusNavigation(candidates[0].n);candidates[0].n.scrollIntoView({block:'nearest'});}}return;}
 
-  if(state.moving&&(e.type==='vgp_onok'||k.key==='Enter')){stop();if(!k.repeat&&!d?.is_repeat){persist({...latest.current,preset:'Custom',cells:state.cells});setMoving(undefined);setDraft(undefined);}return;}
+  if(state.moving&&(e.type==='vgp_onok'||k.key==='Enter')){stop();if(!k.repeat&&!d?.is_repeat){playSelectionSound();persist({...latest.current,preset:'Custom',cells:state.cells});setMoving(undefined);setDraft(undefined);}return;}
   if(direction===undefined)return;
 
 
@@ -120,7 +124,7 @@ export function WelcomeHub({active,app,favorite,back,onSettings,initialSettings,
   const dx=direction===11?-1:direction===12?1:0,dy=direction===9?-1:direction===10?1:0;
 
   if(state.moving){const old=state.cells.find(c=>c.id===state.moving)!;const next=arrange(state.cells,old.id,{x:old.x+dx*4,y:old.y+dy});setDraft(next);setError('');requestAnimationFrame(()=>{const item=el.querySelector<HTMLElement>(`[data-widget="${old.id}"]`);if(item)reveal(item);});return;}
-  const next=neighbor(state.cells,state.selection,dx,dy);if(next)focus(next);else if(direction===9)state.back();
+  const next=neighbor(state.cells,state.selection,dx,dy);if(next)focus(next,true);else if(direction===9)state.back();
 
  };for(const name of ['keydown','vgp_ondirection','vgp_oncancel','vgp_onmenu','vgp_onok','gh-welcome-edit'])el.ownerDocument.addEventListener(name,handle,true);return()=>{for(const name of ['keydown','vgp_ondirection','vgp_oncancel','vgp_onmenu','vgp_onok','gh-welcome-edit'])el.ownerDocument.removeEventListener(name,handle,true);};},[active,ready]);
 
@@ -160,11 +164,11 @@ export function WelcomeHub({active,app,favorite,back,onSettings,initialSettings,
 
  return <div ref={root} className="gh-welcome" data-motion={!settings.reducedMotion} data-large={settings.largeText} data-contrast={settings.contrast}>
 
-  <style>{welcomeCSS}</style>{!backgroundManaged&&<WelcomeBackground settings={settings} app={app}/>}
+  <style>{welcomeCSS}</style>{!backgroundManaged&&<WelcomeBackground settings={settings} app={app} active={active}/>}
 
   <div className="ghw-viewport" inert={editing}><div className="ghw-grid" style={{gridTemplateColumns:`repeat(${Math.max(12,...cells.map(c=>c.x+c.w))}, calc((27.3vw - 3 * 1.3vw) / 4))`}}>
 
-  {cells.map(c=><Widget key={c.id} entry={c.id===firstWidget(cells)} cell={c} selected={selection===c.id} onFocus={el=>{setSelection(c.id);reveal(el);}} activate={()=>{if(moving){persist({...settings,preset:'Custom',cells});setMoving(undefined);setDraft(undefined);}else go(c.id);}}>{content(c.id)}</Widget>)}
+  {cells.map(c=><Widget key={c.id} entry={c.id===firstWidget(cells)} cell={c} selected={selection===c.id} onFocus={el=>{onContentFocus?.();setSelection(c.id);reveal(el);}} activate={()=>{if(moving){persist({...settings,preset:'Custom',cells});setMoving(undefined);setDraft(undefined);}else go(c.id);}}>{content(c.id)}</Widget>)}
 
   </div></div>
 
@@ -172,7 +176,7 @@ export function WelcomeHub({active,app,favorite,back,onSettings,initialSettings,
 
   {error&&<div className="ghw-error" role="status">{error}</div>}
 
-  {editing&&<Focusable className="ghw-editor" role="dialog" aria-modal="true" aria-label="Edit Welcome widgets" flow-children="column"><h2>Customize Welcome</h2><div className="ghw-editor-scroll"><div className="ghw-editor-row">{['PS5 Reference Layout','Social','Gaming','Minimal','Custom'].map(p=><Control key={p} onClick={()=>{if(p==='Custom'&&!settings.custom){setError('Save a custom arrangement first.');return;}persist({...settings,preset:p,cells:p==='Custom'?settings.custom!:preset(p)});}}>{p}</Control>)}</div><p>{settings.preset} · Select a widget, then move, resize or hide it.</p><div className="ghw-editor-row">{WIDGETS.map(id=><Control key={id} className={selection===id?'ghw-chosen':''} onClick={()=>setSelection(id)}>{TITLES[id]}{settings.cells.some(c=>c.id===id)?' ✓':''}</Control>)}</div><div className="ghw-editor-row"><Control onClick={beginMove}>Move {TITLES[selection]}</Control><Control onClick={resize}>Resize</Control><Control onClick={()=>{const found=settings.cells.some(c=>c.id===selection);if(found&&settings.cells.length===1){setError('Keep at least one widget visible.');return;}persist({...settings,preset:'Custom',cells:found?settings.cells.filter(c=>c.id!==selection):insert(settings.cells,selection)});}}>Show / Hide</Control><Control onClick={()=>persist({...settings,preset:'Custom',custom:settings.cells.map(c=>({...c}))})}>Save custom arrangement</Control></div><h3>Background</h3><div className="ghw-editor-row">{(['abstract','existing','game'] as const).map(b=><Control key={b} onClick={()=>persist({...settings,background:b})}>{b==='abstract'?'Abstract sculpture':b==='game'?'Recent game artwork':'Existing Home background'}</Control>)}<Control onClick={()=>file.current?.click()}>Choose local image</Control></div><input ref={file} type="file" accept="image/png,image/jpeg,image/webp" hidden onChange={e=>{const f=e.target.files?.[0];if(!f)return;if(f.size>5_000_000||!['image/png','image/jpeg','image/webp'].includes(f.type)){setError('Choose a PNG, JPEG or WebP image under 5 MB.');return;}const reader=new FileReader();reader.onload=()=>persist({...latest.current,background:'local',image:String(reader.result)});reader.onerror=()=>setError('The image could not be read.');reader.readAsDataURL(f);}}/><h3>Wallpaper placement</h3><div className="ghw-editor-row">{(['welcome','home'] as const).map(scope=><Control key={scope} className={settings.wallpaperScope===scope?'ghw-chosen':''} onClick={()=>persist({...settings,wallpaperScope:scope})}>{scope==='welcome'?'Welcome only':'Welcome + entire Home screen'}{settings.wallpaperScope===scope?' (selected)':''}</Control>)}</div><h3>Welcome accessibility</h3><div className="ghw-editor-row"><Control onClick={()=>persist({...settings,largeText:!settings.largeText})}>Larger text: {settings.largeText?'On':'Off'}</Control><Control onClick={()=>persist({...settings,contrast:!settings.contrast})}>High contrast: {settings.contrast?'On':'Off'}</Control><Control onClick={()=>persist({...settings,reducedMotion:!settings.reducedMotion})}>Reduced motion: {settings.reducedMotion?'On':'Off'}</Control></div><p>Friend activity previews show current playing presence only. Shared achievements, acquisitions and wishlist events remain in Steam’s privacy-controlled Activity view.</p></div><Control onClick={closeEditor}>Done</Control></Focusable>}
+  {editing&&<Focusable className="ghw-editor" role="dialog" aria-modal="true" aria-label="Edit Welcome widgets" flow-children="column"><h2>Customize Welcome</h2><div className="ghw-editor-scroll"><div className="ghw-editor-row">{['PS5 Reference Layout','Social','Gaming','Minimal','Custom'].map(p=><Control key={p} onClick={()=>{if(p==='Custom'&&!settings.custom){setError('Save a custom arrangement first.');return;}persist({...settings,preset:p,cells:p==='Custom'?settings.custom!:preset(p)});}}>{p}</Control>)}</div><p>{settings.preset} · Select a widget, then move, resize or hide it.</p><div className="ghw-editor-row">{WIDGETS.map(id=><Control key={id} className={selection===id?'ghw-chosen':''} onClick={()=>setSelection(id)}>{TITLES[id]}{settings.cells.some(c=>c.id===id)?' ✓':''}</Control>)}</div><div className="ghw-editor-row"><Control onClick={beginMove}>Move {TITLES[selection]}</Control><Control onClick={resize}>Resize</Control><Control onClick={()=>{const found=settings.cells.some(c=>c.id===selection);if(found&&settings.cells.length===1){setError('Keep at least one widget visible.');return;}persist({...settings,preset:'Custom',cells:found?settings.cells.filter(c=>c.id!==selection):insert(settings.cells,selection)});}}>Show / Hide</Control><Control onClick={()=>persist({...settings,preset:'Custom',custom:settings.cells.map(c=>({...c}))})}>Save custom arrangement</Control></div><h3>Background</h3><div className="ghw-editor-row">{(['abstract','existing','game'] as const).map(b=><Control key={b} onClick={()=>persist({...settings,background:b})}>{b==='abstract'?'Abstract sculpture':b==='game'?'Recent game artwork':'Existing Home background'}</Control>)}<Control onClick={()=>file.current?.click()}>Choose image or animated wallpaper</Control><Control onClick={()=>persist({...settings,animateWallpaper:settings.animateWallpaper===false})}>Wallpaper animation: {settings.animateWallpaper===false?'Off':'On'}</Control></div><p>GIF, animated WebP/APNG, MP4, WebM and Ogg video · up to 5 MB. Videos loop silently; codec support depends on Steam.</p><input ref={file} type="file" accept={wallpaperAccept} hidden onChange={e=>{const f=e.target.files?.[0];e.target.value='';if(!f)return;const revision=++importRevision.current;setError('Loading wallpaper…');void readWallpaper(f).then(image=>{if(revision===importRevision.current)persist({...latest.current,background:'local',image});}).catch(error=>{if(revision===importRevision.current)setError(error instanceof Error?error.message:'Wallpaper could not load.');});}}/><h3>Wallpaper placement</h3><div className="ghw-editor-row">{(['welcome','home'] as const).map(scope=><Control key={scope} className={settings.wallpaperScope===scope?'ghw-chosen':''} onClick={()=>persist({...settings,wallpaperScope:scope})}>{scope==='welcome'?'Welcome only':'Welcome + entire Home screen'}{settings.wallpaperScope===scope?' (selected)':''}</Control>)}</div><h3>Welcome accessibility</h3><div className="ghw-editor-row"><Control onClick={()=>persist({...settings,largeText:!settings.largeText})}>Larger text: {settings.largeText?'On':'Off'}</Control><Control onClick={()=>persist({...settings,contrast:!settings.contrast})}>High contrast: {settings.contrast?'On':'Off'}</Control><Control onClick={()=>persist({...settings,reducedMotion:!settings.reducedMotion})}>Reduced motion: {settings.reducedMotion?'On':'Off'}</Control></div><p>Friend activity previews show current playing presence only. Shared achievements, acquisitions and wishlist events remain in Steam’s privacy-controlled Activity view.</p></div><Control onClick={closeEditor}>Done</Control></Focusable>}
 
  </div>;
 
@@ -180,7 +184,8 @@ export function WelcomeHub({active,app,favorite,back,onSettings,initialSettings,
 
 function Widget({cell:c,entry,children,onFocus,activate,selected}:{cell:Cell;entry:boolean;children:ReactNode;onFocus:(el:HTMLElement)=>void;activate:()=>void;selected:boolean}){
 
- const ref=useFocusHook(onFocus);return <Focusable ref={ref} role="button" tabIndex={0} data-gh-control data-widget={c.id} data-welcome-entry={entry?true:undefined} preferredFocus={entry} aria-label={TITLES[c.id]} className={`ghw-widget ghw-${c.id}`} data-size={c.h} focusClassName="ghd-focused" noFocusRing style={{gridColumn:`${c.x+1} / span ${c.w}`,gridRow:`${c.y+1} / span ${c.h}`}} onActivate={activate} onClick={activate} onFocus={e=>onFocus(e.currentTarget)}><div className="ghw-title">{icons[c.id]}<span>{TITLES[c.id]}</span></div>{children}</Focusable>;
+ const select=()=>{playSelectionSound();activate();};
+ const ref=useFocusHook(onFocus);return <Focusable ref={ref} role="button" tabIndex={0} data-gh-control data-widget={c.id} data-welcome-entry={entry?true:undefined} preferredFocus={entry} aria-label={TITLES[c.id]} className={`ghw-widget ghw-${c.id}`} data-size={c.h} focusClassName="ghd-focused" noFocusRing style={{gridColumn:`${c.x+1} / span ${c.w}`,gridRow:`${c.y+1} / span ${c.h}`}} onActivate={select} onClick={select} onFocus={e=>onFocus(e.currentTarget)}><div className="ghw-title">{icons[c.id]}<span>{TITLES[c.id]}</span></div>{children}</Focusable>;
 
 }
 

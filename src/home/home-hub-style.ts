@@ -2,6 +2,8 @@ export const homeHubCSS=`
 .gh-home-game-heading{position:absolute;z-index:4;top:2.3vh;left:4vw;height:5.4vh;max-width:55vw;display:flex;align-items:center;gap:1.1vw;pointer-events:none;opacity:0;visibility:hidden;transform:translateY(8px);transition:opacity 240ms ease,transform 280ms cubic-bezier(.2,.75,.25,1),visibility 0s 280ms}
 .gh-home-game-heading[data-visible=true]{opacity:1;visibility:visible;transform:none;transition:opacity 240ms ease,transform 280ms cubic-bezier(.2,.75,.25,1),visibility 0s}
 .gh-home-game-thumb{width:4.4vh;height:4.4vh;flex-shrink:0;border-radius:.45vh;overflow:hidden;background:#192334;display:grid;place-items:center}
+.gh-home-welcome-thumb{background:#25272d;color:#fff;font-size:3.4vh}
+.ghd-scroller[data-welcome-hub][data-expanded=true] .ghd-home-row{opacity:0;pointer-events:none;transform:translateY(-2vh);transition:opacity 240ms ease,transform 280ms ease}
 .gh-home-game-thumb img{width:100%;height:100%;object-fit:cover;object-position:center}
 .gh-home-game-name{font-size:clamp(14px,2vh,44px);font-weight:400;line-height:1.2;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 5px #0009}
 .ghd-root.ghd-tab-games>.ghd-tabbar{transition:opacity 180ms ease,visibility 0s 180ms}

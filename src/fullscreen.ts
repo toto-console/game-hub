@@ -21,3 +21,8 @@ export function controlCenterHeaders(modules:unknown){
     `html[data-game-hub-center="open"] body ${s}{visibility:hidden!important;pointer-events:none!important;}`
   ).join('\n')};
 }
+
+/** Home and Library own their header independently of the Control Center lifecycle. */
+export function homeHeaderCSS(modules:unknown):string {
+ return headerClasses(modules).map(c=>`body:has(.gh-home-module) .${c}{display:none!important;visibility:hidden!important;pointer-events:none!important;}`).join('\n');
+}

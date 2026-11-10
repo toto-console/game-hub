@@ -2,6 +2,9 @@ import {useEffect, useRef} from 'react';
 
 export type KeyboardBridge = { visible:()=>boolean; hide:()=>void; subscribe:(fn:(open:boolean)=>void)=>()=>void };
 let navigationSound=()=>{};
+let selectionSound=()=>{};
+export function setSelectionSound(play:()=>void){selectionSound=play;}
+export function playSelectionSound(){selectionSound();}
 export function setNavigationSound(play:()=>void){navigationSound=play;}
 export function focusControl(element:HTMLElement|null|undefined,nativeFirst=false) {
   if(!element?.isConnected)return;

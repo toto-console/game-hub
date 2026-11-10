@@ -3,7 +3,7 @@ export const welcomeCSS=`
 .ghw-background{position:fixed;inset:0;z-index:-1;overflow:hidden;background:radial-gradient(ellipse at 78% 48%,#7d858a 0%,#454b4f 43%,#171b20 80%)}
 .ghw-background.ghw-home-background{position:absolute;z-index:0;pointer-events:none}
 .ghw-background:after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,#080c10c9,transparent 72%),linear-gradient(180deg,#11151acc,transparent 35%)}
-.ghw-background>img{width:100%;height:100%;object-fit:cover}.ghw-existing{background:transparent}.ghw-existing .ghw-sculpture{display:none}
+.ghw-background>img,.ghw-background>video,.ghw-background>canvas{width:100%;height:100%;object-fit:cover}.ghw-existing{background:transparent}.ghw-existing .ghw-sculpture{display:none}
 .ghw-sculpture{position:absolute;right:-5%;top:40%;width:65vw;height:60vw;border-radius:50%;background:linear-gradient(145deg,#c3cbd1,#66717a 55%,#28313a);box-shadow:inset 0 2vw 4vw #e5ecf04d;transform:rotate(-12deg)}
 .ghw-sculpture i{position:absolute;top:-8vw;left:29vw;width:7vw;height:7vw;border:1.2vw solid #abb6c1;border-radius:50%;box-shadow:inset .4vw .4vw .4vw #fff5,.4vw .4vw .8vw #252d39}
 .ghw-sculpture b{position:absolute;top:-16vw;left:30vw;width:6vw;height:6vw;border:.8vw solid #aab4bc;transform:rotate(32deg);box-shadow:.4vw .4vw .6vw #2226}

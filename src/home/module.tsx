@@ -1,3 +1,4 @@
+import {homeHeaderCSS} from '../fullscreen';
 import {footerSelector} from '../center-footer';
 import {NATIVE_LIBRARY_RECOVERY,GAME_HUB_LIBRARY,openNativeLibraryRecovery} from './native-library';
 import {callable,routerHook} from '@decky/api';
@@ -26,7 +27,7 @@ function Dashboard({tab}:{tab:'games'|'library'}){
  const c=useSyncExternalStore(subscribe,()=>config),d=c.dashboard;
  const dashboardFooterCSS=footerSelector(classMap).split(',').filter(Boolean).map(selector=>`body:has(.gh-home-module) ${selector}{display:none!important}`).join('\n');
  const vars={'--ghd-accent':accentColor(d.accent),'--ghd-focus':d.focus==='white'?'#fff':accentColor(d.accent),'--ghd-radius':`${d.radius}px`,'--ghd-user-scale':c.tileScale,'--ghd-user-gap':`${c.gap}vh`} as CSSProperties;
- return <div className="gh-home-module" data-motion={c.motion} data-background={d.background} style={vars}><style>{dashboardFooterCSS}</style><style>{`.gh-home-module{position:absolute;inset:0}.gh-home-module .ghd-root{font-family:inherit}.gh-home-module .ghd-row-anchor{--ghd-gap:var(--ghd-user-gap);--ghd-slot:calc(10vh * var(--ghd-user-scale));--ghd-big:calc(15.5vh * var(--ghd-user-scale))}.gh-home-module[data-background=gradient] .ghd-backdrop,.gh-home-module[data-background=dark] .ghd-backdrop{display:none}.gh-home-module[data-background=dark] .ghd-root{background:#04060c}.gh-home-module[data-motion=false] *{animation:none!important;transition:none!important}@media(prefers-reduced-motion:reduce){.gh-home-module *{animation:none!important;transition:none!important}}`}</style><Ps5Shell initialTab={tab}/></div>;
+ return <div className="gh-home-module" data-motion={c.motion} data-background={d.background} style={vars}><style>{dashboardFooterCSS}{homeHeaderCSS(classMap)}</style><style>{`.gh-home-module{position:absolute;inset:0}.gh-home-module .ghd-root{font-family:inherit}.gh-home-module .ghd-row-anchor{--ghd-gap:var(--ghd-user-gap);--ghd-slot:calc(10vh * var(--ghd-user-scale));--ghd-big:calc(15.5vh * var(--ghd-user-scale))}.gh-home-module[data-background=gradient] .ghd-backdrop,.gh-home-module[data-background=dark] .ghd-backdrop{display:none}.gh-home-module[data-background=dark] .ghd-root{background:#04060c}.gh-home-module[data-motion=false] *{animation:none!important;transition:none!important}@media(prefers-reduced-motion:reduce){.gh-home-module *{animation:none!important;transition:none!important}}`}</style><Ps5Shell initialTab={tab}/></div>;
 }
 function sync(){
  setCurrentSettings({...config.dashboard,palette:false,controlCenter:false});

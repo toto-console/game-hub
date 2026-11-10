@@ -1,7 +1,8 @@
+import {validWallpaper} from './wallpaper-media';
 export const WIDGETS=['achievements','controller','storage','favorites','store','news','friends','wishlist','activity','messages','accessibility'] as const;
 export type WidgetId=typeof WIDGETS[number];
 export type Cell={id:WidgetId;x:number;y:number;w:number;h:number};
-export type WelcomeSettings={version:1;preset:string;cells:Cell[];custom?:Cell[];background:'abstract'|'game'|'existing'|'local';wallpaperScope:'welcome'|'home';image?:string;largeText:boolean;contrast:boolean;reducedMotion:boolean};
+export type WelcomeSettings={version:1;preset:string;cells:Cell[];custom?:Cell[];background:'abstract'|'game'|'existing'|'local';wallpaperScope:'welcome'|'home';image?:string;animateWallpaper?:boolean;largeText:boolean;contrast:boolean;reducedMotion:boolean};
 export const TITLES:Record<WidgetId,string>={achievements:'Achievements',controller:'Accessories',storage:'PC Storage',favorites:'Favorites',store:'Steam Store',news:'News',friends:'Friends Online',wishlist:'Wishlist',activity:'Friend Activity',messages:'Messages',accessibility:'Accessibility'};
 const cell=(id:WidgetId,x:number,y:number,h=1):Cell=>({id,x,y,w:4,h});
 export function preset(name='PS5 Reference Layout'):Cell[]{
@@ -10,7 +11,7 @@ export function preset(name='PS5 Reference Layout'):Cell[]{
  if(name==='Minimal')return [cell('friends',0,0),cell('controller',4,0),cell('storage',8,0)];
  return [cell('achievements',0,0,2),cell('controller',0,2),cell('storage',4,0),cell('favorites',4,1,2),cell('store',8,0,2),cell('news',8,2),cell('friends',12,0),cell('wishlist',12,1,2),cell('activity',16,0,2),cell('messages',16,2),cell('accessibility',20,0)];
 }
-export const defaults=():WelcomeSettings=>({version:1,preset:'PS5 Reference Layout',cells:preset(),background:'abstract',wallpaperScope:'welcome',largeText:false,contrast:false,reducedMotion:false});
+export const defaults=():WelcomeSettings=>({version:1,preset:'PS5 Reference Layout',cells:preset(),background:'abstract',wallpaperScope:'welcome',animateWallpaper:true,largeText:false,contrast:false,reducedMotion:false});
 export function overlaps(a:Cell,b:Cell){return a.x<b.x+b.w&&a.x+a.w>b.x&&a.y<b.y+b.h&&a.y+a.h>b.y;}
 export function fits(c:Cell,cells:Cell[]){return c.x>=0&&c.x+c.w<=28&&c.y>=0&&c.y+c.h<=3&&!cells.some(o=>o.id!==c.id&&overlaps(c,o));}
 /** Place the edited card first, then preserve/reflow its neighbors without losing widgets. */
@@ -39,7 +40,7 @@ export function sanitizeSettings(raw:any):WelcomeSettings{
  const d=defaults();if(!raw||typeof raw!=='object')return d;
  const cells:Cell[]=[];
  for(const c of Array.isArray(raw.cells)?raw.cells.slice(0,11):d.cells){if(!WIDGETS.includes(c?.id)||cells.some(x=>x.id===c.id)||![c.x,c.y,c.w,c.h].every(Number.isInteger)||c.w!==4||c.h<1||c.h>3||c.x%4||!fits(c,cells))continue;cells.push({id:c.id,x:c.x,y:c.y,w:4,h:c.h});}
- return {...d,...(Array.isArray(raw.custom)&&raw.custom.length?{custom:sanitizeSettings({cells:raw.custom}).cells}:{}),preset:['PS5 Reference Layout','Social','Gaming','Minimal','Custom'].includes(raw.preset)?raw.preset:d.preset,cells:cells.length?cells:d.cells,background:['abstract','game','existing','local'].includes(raw.background)?raw.background:'abstract',wallpaperScope:raw.wallpaperScope==='home'?'home':'welcome',image:typeof raw.image==='string'&&raw.image.length<7_000_000&&/^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(raw.image)?raw.image:undefined,largeText:raw.largeText===true,contrast:raw.contrast===true,reducedMotion:raw.reducedMotion===true};
+ return {...d,...(Array.isArray(raw.custom)&&raw.custom.length?{custom:sanitizeSettings({cells:raw.custom}).cells}:{}),preset:['PS5 Reference Layout','Social','Gaming','Minimal','Custom'].includes(raw.preset)?raw.preset:d.preset,cells:cells.length?cells:d.cells,background:['abstract','game','existing','local'].includes(raw.background)?raw.background:'abstract',wallpaperScope:raw.wallpaperScope==='home'?'home':'welcome',image:validWallpaper(raw.image)?raw.image:undefined,animateWallpaper:raw.animateWallpaper!==false,largeText:raw.largeText===true,contrast:raw.contrast===true,reducedMotion:raw.reducedMotion===true};
 }
 export function neighbor(cells:Cell[],id:WidgetId,dx:number,dy:number):WidgetId|undefined{
  const a=cells.find(c=>c.id===id);if(!a)return cells[0]?.id;

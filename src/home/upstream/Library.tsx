@@ -9,7 +9,7 @@ import {GameTile,FOCUSED_CLASS} from './components';
 import {readLibrary,isInstalled,lastPlayed,SHORTCUT,type LibraryApp} from '../../library-data';
 import {useLibraryRevision} from '../../library-live';
 import {type Transfer} from '../../downloads';
-import {focusControl,focusNavigation} from '../../navigation';
+import {focusControl,focusNavigation,playSelectionSound} from '../../navigation';
 
 type Sort='recent'|'az'|'za'|'playtime'|'installed'|'added';
 const sorts:{id:Sort;name:string}[]=[{id:'recent',name:'Recently Played'},{id:'az',name:'Name A–Z'},{id:'za',name:'Name Z–A'},{id:'playtime',name:'Playtime'},{id:'installed',name:'Install Status'}];
@@ -45,7 +45,7 @@ export function LibraryTab({initialView='installed',back}:{initialView?:string;b
  const key=`${tab}:${effective}:${sort}`;
  const state=useRef({menu,key,list,tab});state.current={menu,key,list,tab};
  const remember=useCallback(()=>{const g=grid.current;if(!g)return;const previous=memories.get(state.current.key);const selected=g.querySelector<HTMLElement>('.ghd-focused')?.closest<HTMLElement>('[data-library-id]');memories.set(state.current.key,{id:selected?Number(selected.dataset.libraryId):previous?.id,top:g.scrollTop});},[]);
- const openGame=useCallback((a:LibraryApp)=>{remember();detailAppId=a.appid;setSelectedGame(a);},[remember]);
+ const openGame=useCallback((a:LibraryApp)=>{playSelectionSound();remember();detailAppId=a.appid;setSelectedGame(a);},[remember]);
  useEffect(()=>{try{sessionStorage.setItem(preferenceKey,JSON.stringify({filter,sort,tab}));}catch{}},[filter,sort,tab]);
  useLayoutEffect(()=>{
   if(selectedGame)return;
