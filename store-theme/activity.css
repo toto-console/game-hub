@@ -1,0 +1,20 @@
+/* Friend Activity only. Native Steam feed, actions and controller navigation remain intact. */
+html[data-gh-activity] body{background:radial-gradient(ellipse at 75% 0%,#244564 0,transparent 58%),linear-gradient(145deg,#14273d,#080f20 80%)!important;background-attachment:fixed!important;color:#f0f4fc!important}
+html[data-gh-activity] .responsive_page_template_content,html[data-gh-activity] .responsive_page_content{background:transparent!important}
+html[data-gh-activity] .blotter_page_title{color:#f8faff!important;font-weight:400!important;letter-spacing:.01em;text-shadow:0 2px 20px #b6d8ff22}
+html[data-gh-activity] .blotter_block,html[data-gh-activity] .blotter_status_entry,html[data-gh-activity] .blotter_eventsblock{border-radius:22px!important;background:linear-gradient(135deg,#293e58e8,#111e33f0)!important;border:1px solid #aec8ec29!important;box-shadow:inset 0 1px 0 #ffffff19,0 12px 35px #0003!important;overflow:hidden}
+html[data-gh-activity] .blotter_block{margin-bottom:30px!important}
+html[data-gh-activity] .blotter_status_entry{padding:20px!important;box-sizing:border-box}
+html[data-gh-activity] .blotter_author_block,html[data-gh-activity] .blotter_control_container,html[data-gh-activity] .blotter_comment_thread,html[data-gh-activity] .blotter_group_announcement_header{background:transparent!important;border:0!important}
+html[data-gh-activity] .blotter_author_block{padding:14px!important}
+html[data-gh-activity] .blotter_screenshot_image img,html[data-gh-activity] .blotter_screenshot_gallery_image,html[data-gh-activity] .blotter_screenshot_gallery_image_selected{border-radius:14px!important}
+html[data-gh-activity] .playerAvatar,html[data-gh-activity] .avatarMedium,html[data-gh-activity] .blotter_poststatus_avatar,html[data-gh-activity] .blotter_rollup_avatar,html[data-gh-activity] .blotter_playerAvatarSmall,html[data-gh-activity] .blotter_avatar_holder,html[data-gh-activity] .blotter_author_block>a:first-child{border-radius:50%!important;overflow:hidden}
+html[data-gh-activity] .playerAvatar img,html[data-gh-activity] .avatarMedium img,html[data-gh-activity] .blotter_poststatus_avatar img,html[data-gh-activity] .blotter_rollup_avatar img,html[data-gh-activity] .blotter_playerAvatarSmall img,html[data-gh-activity] .blotter_avatar_holder img,html[data-gh-activity] .blotter_author_block img{border-radius:50%!important;object-fit:cover}
+html[data-gh-activity] .commentthread_textarea,html[data-gh-activity] .commentthread_entry_quotebox{border-radius:14px!important;background:#0c192bc9!important;color:#f3f7ff!important;border-color:#a9caef30!important}
+html[data-gh-activity] .blotter_appselect,html[data-gh-activity] .blotter_control_container a,html[data-gh-activity] .btn_grey_white_innerfade,html[data-gh-activity] button{border-radius:12px!important;background:linear-gradient(#3d5572,#24394f)!important;color:#fff!important}
+html[data-gh-activity] a{color:#d4e7ff}
+html[data-gh-activity] .gpfocus,html[data-gh-activity] :focus-visible{outline:2px solid #fff!important;outline-offset:3px!important;box-shadow:0 0 20px #d4e8ff40!important;scroll-margin:50px 30px}
+html[data-gh-activity][data-gh-store-motion=true]{scroll-behavior:smooth}
+html[data-gh-activity][data-gh-store-motion=true] a,html[data-gh-activity][data-gh-store-motion=true] button{transition:background-color 160ms ease,box-shadow 160ms ease,outline-color 160ms ease}
+@media(prefers-reduced-motion:reduce){html[data-gh-activity]{scroll-behavior:auto!important}html[data-gh-activity] *{transition:none!important;animation:none!important}}
+html[data-gh-activity] .gh-activity-focus{outline:3px solid #fff!important;outline-offset:4px;border-radius:12px;box-shadow:0 0 18px #c4e4ff55!important;scroll-margin:50px 30px}

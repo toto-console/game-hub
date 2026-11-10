@@ -1,0 +1,10 @@
+import {it,expect,vi} from 'vitest';
+import {parseAchievements,readGameAchievements} from '../src/achievements';
+it('reads complete locked/unlocked lists, keeps hidden cards, deduplicates identity',()=>{
+ const rows=[{strID:'earned',strName:'Earned',bAchieved:true,rtUnlocked:123},{strID:'locked',strName:'Locked',bAchieved:false,flCurrentProgress:2,flMaxProgress:5},{strID:'secret',strName:'Spoiler',strDescription:'Secret',bHidden:true,bAchieved:false},{strID:'earned',bAchieved:true}];
+ const result=parseAchievements(JSON.stringify({result:1,data:{rgAchievements:rows}}));
+ expect(result.total).toBe(3);expect(result.done).toBe(1);expect(result.achievements[1]).toMatchObject({name:'Locked',current:2,max:5});expect(result.achievements[2]).toMatchObject({name:'Hidden achievement',done:false});
+});
+it('distinguishes a successful empty list from broken or failed responses',async()=>{expect(parseAchievements({result:1,data:{rgAchievements:[]}}).achievementState).toBe('empty');expect(()=>parseAchievements({result:2,data:{rgAchievements:[]}})).toThrow();expect(()=>parseAchievements({})).toThrow();expect((await readGameAchievements({},1,false)).achievementState).toBe('unavailable');});
+it('uses the exact app identity and skips non-Steam shortcuts',async()=>{const get=vi.fn(async()=>({result:1,data:{rgAchievements:[{strID:'a',bAchieved:true}]}}));const host={SteamClient:{Apps:{GetMyAchievementsForApp:get}}};expect((await readGameAchievements(host,1796470,false)).total).toBe(1);expect(get).toHaveBeenCalledWith('1796470');expect((await readGameAchievements(host,4000000000,true)).achievementState).toBe('unsupported');expect(get).toHaveBeenCalledTimes(1);});
+it('times out without an indefinite spinner and clears its timer',async()=>{vi.useFakeTimers();try{const request=readGameAchievements({SteamClient:{Apps:{GetMyAchievementsForApp:()=>new Promise(()=>{})}}},1,false);await vi.advanceTimersByTimeAsync(5000);expect((await request).achievementState).toBe('unavailable');expect(vi.getTimerCount()).toBe(0);}finally{vi.useRealTimers();}});

@@ -1,0 +1,9 @@
+import {useEffect,useState} from 'react';
+export type MediaPin={id:number;label?:string;icon?:string;background?:string};
+export const MEDIA_KEY='game-hub.media-pins.v1',MEDIA_EVENT='game-hub:media-pins';
+export function artworkURL(value:string):string|undefined{const s=value.trim();if(!s)return undefined;try{const u=new URL(s);if(u.protocol==='https:'&&!u.username&&!u.password)return u.href;}catch{}throw Error('Use an HTTPS image URL, or leave blank to use Steam artwork.');}
+export function normalizePins(value:unknown):MediaPin[]{if(!Array.isArray(value))return [];const seen=new Set<number>();return value.flatMap(p=>{if(!p||!Number.isSafeInteger(p.id)||p.id<=0||seen.has(p.id))return [];seen.add(p.id);const art=(s:unknown)=>{try{return typeof s==='string'?artworkURL(s):undefined;}catch{return undefined;}};return [{id:p.id,label:typeof p.label==='string'?p.label.slice(0,120):undefined,icon:art(p.icon),background:art(p.background)}];}).slice(0,100);}
+export function loadMediaPins():MediaPin[]{try{return normalizePins(JSON.parse(localStorage.getItem(MEDIA_KEY)??'[]'));}catch{return [];}}
+export function saveMediaPins(pins:MediaPin[]){localStorage.setItem(MEDIA_KEY,JSON.stringify(normalizePins(pins)));window.dispatchEvent(new Event(MEDIA_EVENT));}
+export function moveMediaPin(pins:MediaPin[],id:number,delta:number){const next=[...pins],i=next.findIndex(p=>p.id===id),j=i+delta;if(i>=0&&j>=0&&j<next.length)[next[i],next[j]]=[next[j],next[i]];return next;}
+export function useMediaPins(){const [pins,setPins]=useState(loadMediaPins);useEffect(()=>{const refresh=()=>setPins(loadMediaPins());window.addEventListener(MEDIA_EVENT,refresh);window.addEventListener('storage',refresh);return()=>{window.removeEventListener(MEDIA_EVENT,refresh);window.removeEventListener('storage',refresh);};},[]);return pins;}

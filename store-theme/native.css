@@ -1,0 +1,43 @@
+/* Opt-in Store-only cosmetics. Native dimensions, order, scrolling and controls remain authoritative. */
+html[data-gh-store] {
+  --ghs-night:#071226;--ghs-panel:#101d32;--ghs-white:#f5f7fc;--ghs-muted:#b9c6d9;
+  --ghs-small:9px;--ghs-card:16px;--ghs-feature:20px;--ghs-menu:14px;--ghs-banner:22px;
+}
+html[data-gh-store] body {background:radial-gradient(ellipse at 80% 0,#15385c 0,transparent 55%),var(--ghs-night)!important;color:var(--ghs-white)}
+html[data-gh-store] .responsive_page_template_content {background:transparent!important}
+html[data-gh-store] :is(.home_cluster_ctn,.game_page_background,.game_page_background .page_top_area) {background-color:transparent!important}
+html[data-gh-store] :is(.home_title,.home_page_content h2,.apphub_AppName) {color:var(--ghs-white)!important}
+/* Round cards without clipping native tooltips, options menus or outer focus rings. */
+html[data-gh-store] :is(.store_main_capsule,.store_capsule,.sale_capsule,.special,.home_smallcap,.tab_row_item,.search_result_row,.wishlist_row) {border-radius:var(--ghs-card)!important}
+html[data-gh-store] .store_main_capsule {border-radius:var(--ghs-feature)!important}
+html[data-gh-store] .store_main_capsule .info {border-radius:0 0 var(--ghs-feature) var(--ghs-feature);background-color:var(--ghs-panel)!important}
+html[data-gh-store] :is(.main_capsule,.tab_item_header,.capsule_image_ctn) {border-radius:var(--ghs-card)!important;overflow:clip}
+html[data-gh-store] .store_main_capsule .main_capsule {border-radius:var(--ghs-feature) var(--ghs-feature) 0 0!important}
+html[data-gh-store] :is(.store_capsule,.sale_capsule,.home_smallcap,.search_result_row,.wishlist_row) > img {border-radius:inherit}
+html[data-gh-store] :is(.tab_row_capsule,.game_header_image_full) {border-radius:var(--ghs-card)!important}
+html[data-gh-store] :is(.home_page_takeunder,.home_page_takeover_sizer,.home_marketing_message,.specials_target) {border-radius:var(--ghs-banner)!important}
+html[data-gh-store] :is(.home_page_takeunder,.home_marketing_message) img {border-radius:var(--ghs-banner)!important}
+/* Cosmetic controls: no padding/width/height/position/transform changes. */
+html[data-gh-store] :is(.btnv6_blue_hoverfade,.btnv6_green_white_innerfade,.btn_medium,.btn_small,.btn_addtocart,.btn_blue_steamui,.btn_green_steamui) {border-radius:999px!important}
+html[data-gh-store] :is(.btnv6_blue_hoverfade,.btnv6_green_white_innerfade,.btn_addtocart) > span {border-radius:inherit!important}
+html[data-gh-store] [data-featuretarget="store-menu-v7"] :is(a,button) {border-radius:var(--ghs-small)!important}
+html[data-gh-store] :is(#searchform,#store_search,.searchbar) :is(input,select,button) {border-radius:var(--ghs-small)!important}
+html[data-gh-store] :is(.store_nav,.popup_menu,.popup_body,.dropdown_container,.dropdown_list,[role="menu"],[role="listbox"]) {border-radius:var(--ghs-menu)!important;background-color:var(--ghs-panel)!important}
+html[data-gh-store] :is(.game_area_purchase_game,.game_area_purchase_game_wrapper,.game_area_dlc_section,.game_area_dlc_row,.review_box,.user_reviews_summary_row,.discount_block,.game_details) {border-radius:var(--ghs-card)!important}
+html[data-gh-store] :is(.game_area_purchase_game,.game_area_purchase_game_wrapper,.game_area_dlc_section,.review_box,.wishlist_row) {background-color:var(--ghs-panel)!important}
+html[data-gh-store] #search_resultsRows .search_result_row {background-color:#13233b!important;color:var(--ghs-white)!important}
+html[data-gh-store] :is(.discount_pct,.discount_prices) {border-radius:var(--ghs-small)!important}
+/* Native React Store widgets: semantic controls only, no hashed layout classes. */
+html[data-gh-store] :is(#application_root,[data-featuretarget="gamehighlight-gamepadcarousel"]) :is(button,[role="button"],input[type="search"],[role="menu"]) {border-radius:var(--ghs-menu)!important}
+html[data-gh-store] [data-featuretarget="gamehighlight-gamepadcarousel"] img {border-radius:var(--ghs-card)!important}
+html[data-gh-store] [data-featuretarget="gamehighlight-gamepadcarousel"] [data-trailer-player] video {object-fit:contain!important;border-radius:var(--ghs-card)}
+html[data-gh-store] [data-featuretarget="gamehighlight-gamepadcarousel"] img[alt^="Screenshot"] {object-fit:contain!important}
+html[data-gh-store] :is(:fullscreen,:fullscreen *) {border-radius:0!important}
+/* Native focus ownership is unchanged. The shared reflection measures this radius. */
+html[data-gh-store] .responsive_page_template_content :is(a,button,[role="button"],input,select):is(.gpfocus,:focus-visible) {outline:2px solid #fff!important;outline-offset:2px;box-shadow:0 0 12px #e1f3ff16!important}
+html[data-gh-store] [data-focusring="true"] {border-radius:var(--ghs-card)!important}
+html[data-gh-store-background="false"] body {background:var(--ghs-night)!important}
+html[data-gh-store-subtle="true"] {--ghs-panel:#142033}
+@media(prefers-reduced-motion:reduce) {
+  html[data-gh-store] .gh-focus-reflection {display:none!important}
+}

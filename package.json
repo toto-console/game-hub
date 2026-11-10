@@ -1,0 +1,39 @@
+{
+  "name": "game-base-decky",
+  "version": "0.13.0-dev.38",
+  "type": "module",
+  "license": "MIT",
+  "description": "PS5-inspired Steam interface for Decky Loader. Experimental Windows-first release.",
+  "scripts": {
+    "build": "npm run typecheck && node scripts/build-store.mjs && rollup -c",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "preview:build": "vite build --config vite.config.ts",
+    "lint": "eslint src tests preview scripts *.ts *.js",
+    "package": "python scripts/package-public.py"
+  },
+  "dependencies": {
+    "@decky/api": "1.1.3",
+    "tslib": "2.8.1",
+    "react-icons": "5.3.0"
+  },
+  "devDependencies": {
+    "@decky/rollup": "1.0.2",
+    "@decky/ui": "4.12.1",
+    "@eslint/js": "9.39.1",
+    "@playwright/test": "1.56.1",
+    "@testing-library/react": "16.3.0",
+    "@types/node": "22.10.2",
+    "@types/react": "19.1.1",
+    "@types/react-dom": "19.1.1",
+    "eslint": "9.39.1",
+    "jsdom": "26.1.0",
+    "react": "19.1.1",
+    "react-dom": "19.1.1",
+    "rollup": "4.53.3",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.46.4",
+    "vite": "6.4.1",
+    "vitest": "3.2.4"
+  }
+}

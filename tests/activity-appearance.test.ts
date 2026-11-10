@@ -1,0 +1,3 @@
+import {it,expect} from 'vitest';
+import {activityURL,themedStoreURL} from '../src/store-appearance';
+it('themes only genuine Friend Activity routes',()=>{for(const u of ['https://steamcommunity.com/my/home/','https://steamcommunity.com/id/example/home','https://steamcommunity.com/profiles/76561198000000000/home?l=english']){expect(activityURL(u)).toBe(true);expect(themedStoreURL(u)).toBe(true);}for(const u of ['https://steamcommunity.com/login/home','https://steamcommunity.com/id/example/edit','https://steamcommunity.com/id/example/home?token=secret','https://other.test/my/home','https://user@steamcommunity.com/my/home'])expect(activityURL(u)).toBe(false);});

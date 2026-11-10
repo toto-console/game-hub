@@ -1,0 +1,4 @@
+import {FaSteam} from 'react-icons/fa';
+/** Original shopping-bag geometry; Steam mark from the existing react-icons Font Awesome dependency. */
+export function StoreBag(){return <svg viewBox="0 0 64 64" width="1em" height="1em" aria-hidden="true"><path d="M14 22h36l4 35H10z" fill="#fff"/><path d="M23 24V15a9 9 0 0 1 18 0v9" fill="none" stroke="#fff" strokeWidth="4"/><path d="M16 25h32l3 29H13z" fill="#269ee6"/><g transform="translate(20 29)"><FaSteam size={25} color="white"/></g></svg>;}
+export function LibraryIcon(){return <svg viewBox="0 0 40 40" width="1em" height="1em" fill="currentColor" aria-hidden="true"><path d="M7 7h6v6H7zm8 0h6v6h-6zm8 0h6v6h-6zM7 15h6v6H7zm8 0h6v6h-6zm8 0h6v4h-6zM7 23h6v6H7z"/><path d="M21 21c-4 0-5 3-6 8l-1 4c0 2 2 3 4 1l3-3h9l3 3c2 2 4 1 4-1l-1-4c-1-5-2-8-6-8z"/><path d="M21 24v5m-2.5-2.5h5" stroke="#262830" strokeWidth="1.8"/><circle cx="30" cy="25" r="1.2" fill="#262830"/><circle cx="33" cy="28" r="1.2" fill="#262830"/></svg>;}

@@ -1,0 +1,31 @@
+import manifest from '../package.json';
+import {SoftwareUpdate} from './SoftwareUpdate';
+import {openMediaManager} from './MediaManager';
+import {GameMusicSettings} from './GameMusicSettings';
+import {HomePreferences} from './home/module';
+import {useEffect,useLayoutEffect,useRef,useState} from 'react';
+import type {Controls} from './Panel';
+import {defaults,type Settings} from './settings';
+import {focusControl} from './navigation';
+export function CenterSettings({controls,settings,save,close,native,notificationSettings,decky,audio,controller,hub}:{controls:Controls;settings:Settings;save:(s:Settings)=>void;close:()=>void;native:()=>void;notificationSettings:()=>void;decky:()=>void;audio:()=>void;controller:()=>void;hub:()=>void}){
+ const {Button,Group}=controls,root=useRef<HTMLDivElement>(null),position=useRef({column:0,index:0});const [category,setCategory]=useState(0);
+ const labels=['Game Hub','Notifications','Voice / Audio','Controller / Navigation','Appearance','Decky / Shortcuts','About','Home Dashboard','Integrations','Media','Software Update'];
+ const toggle=(key:keyof Settings)=>()=>save({...settings,[key]:!settings[key]});
+ const option=(name:string,key:keyof Settings)=>({name:`${name} · ${settings[key]?'On':'Off'}`,run:toggle(key)});
+ const rows=[
+  [option('Enable Game Hub','enabled'),option('Friends shortcut','friendsEntry'),option('Live friends','liveFriends'),option('Messages','messages'),option('Party','party'),{name:'Open Game Hub settings',run:hub}],
+  [option('Do Not Disturb · Game Hub popups only','quietPreviews'),option('Notification previews','notificationPreview'),option('Notification popups','notificationToasts'),option('Long popups · 8s instead of 4s','longToasts'),option('Friend online · requires Live friends','friendOnlineAlerts'),option('Friend game activity · requires Live friends','friendGameAlerts'),option('Group message alerts','groupAlerts'),option('Available friend requests','friendRequestAlerts'),option('Available Steam invitations','inviteAlerts'),option('Plugin updates','pluginAlerts'),option('Unread message previews','messageAlerts'),option('Incoming voice previews','voiceAlerts'),{name:'Open Steam notification settings',run:notificationSettings}],
+  [{name:'Steam voice and microphone settings',run:audio}],
+  [{name:'Steam controller settings',run:controller}],
+  [option('Ambient lighting','ambientLight'),option('Control Center blur','glassBlur'),option('Animations','motion'),option('Control Center replacement','controlCenter')],
+  [{name:'Decky Loader',run:decky},{name:'Original Steam settings',run:native}],
+  [{name:'Restore Game Hub defaults',run:()=>save({...defaults})}]
+ ][category]??[];
+ const focus=(column:number,index:number)=>{const nodes=root.current?.querySelectorAll<HTMLElement>(`[data-settings-column="${column}"] .gcc-utility`);if(!nodes?.length)return;const n=Math.max(0,Math.min(nodes.length-1,index));position.current={column,index:n};focusControl(nodes[n]);const box=nodes[n].closest<HTMLElement>('[data-settings-column]');if(box){const a=nodes[n].getBoundingClientRect(),b=box.getBoundingClientRect();if(a.bottom>b.bottom)box.scrollTop+=a.bottom-b.bottom;else if(a.top<b.top)box.scrollTop-=b.top-a.top;}};
+ useLayoutEffect(()=>{const f=requestAnimationFrame(()=>focus(0,0));return()=>cancelAnimationFrame(f);},[]);
+ useEffect(()=>{const el=root.current;if(!el)return;const handle=(e:Event)=>{const key=e as KeyboardEvent;const detail=(e as CustomEvent).detail;const dir=e.type==='vgp_ondirection'?({9:'up',10:'down',11:'left',12:'right'} as Record<number,string>)[detail?.button]:({ArrowUp:'up',ArrowDown:'down',ArrowLeft:'left',ArrowRight:'right'} as Record<string,string>)[key.key];const back=e.type==='vgp_oncancel'||key.key==='Escape';if(controls.keyboard?.visible())return;if(!dir&&!back)return;if((dir==='left'||dir==='right')&&(e.target as HTMLElement).closest('[role=slider],input[type=range]'))return;e.preventDefault();e.stopImmediatePropagation();const p=position.current;if(back){if(key.repeat||detail?.is_repeat)return;if(p.column===1)focus(0,category);else close();}else if(dir==='left')focus(0,category);else if(dir==='right')focus(1,0);else focus(p.column,p.index+(dir==='up'?-1:1));};
+ const track=(e:Event)=>{const target=(e.target as HTMLElement).closest<HTMLElement>('.gcc-utility'),column=target?.closest<HTMLElement>('[data-settings-column]');if(!target||!column)return;const index=Array.from(column.querySelectorAll('.gcc-utility')).indexOf(target);const c=Number(column.dataset.settingsColumn);position.current={column:c,index};if(c===0)setCategory(index);};
+ for(const name of ['keydown','vgp_ondirection','vgp_oncancel'])el.addEventListener(name,handle,true);for(const name of ['focusin','vgp_onfocus'])el.addEventListener(name,track,true);
+ return()=>{for(const name of ['keydown','vgp_ondirection','vgp_oncancel'])el.removeEventListener(name,handle,true);for(const name of ['focusin','vgp_onfocus'])el.removeEventListener(name,track,true);};},[category,close]);
+ return <div ref={root} className="gcc-settings"><h1>Settings</h1><div className="gcc-settings-columns"><div data-settings-column="0"><Group className="gcc-vertical-list">{labels.map((name,i)=><Button key={name} className={`gcc-utility gcc-setting-row${category===i?' gcc-category-active':''}`} onClick={()=>{setCategory(i);requestAnimationFrame(()=>focus(1,0));}}>{name}</Button>)}</Group></div><div data-settings-column="1"><h2>{labels[category]}</h2>{category===10&&<SoftwareUpdate controls={controls} decky={decky}/>}{category===8&&<><h3>ThemeDeck Game Soundtracks</h3><GameMusicSettings controls={controls}/></>}{category===9&&<Button className="gcc-utility gcc-setting-row" onClick={()=>openMediaManager()}>Manage Apps</Button>}{category===7&&<HomePreferences controls={controls} close={close}/>}{category===6&&<p>Game Hub {manifest.version} · Steam / Decky integration</p>}<Group className="gcc-vertical-list">{rows.map(row=><Button key={row.name.split(' · ')[0]} className="gcc-utility gcc-setting-row" onClick={row.run}>{row.name}</Button>)}</Group><p>Changes apply to Game Hub. Steam controls open their native settings.</p></div></div><p className="gcc-settings-help">↑ ↓ Navigate · → Options · ← Categories · B / Esc Back</p><Button className="gcc-utility" onClick={close}>Back to Control Center</Button></div>;
+}

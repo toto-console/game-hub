@@ -1,0 +1,19 @@
+import {describe,it,expect} from 'vitest';
+import {defaults,preset,sanitizeSettings,overlaps,insert,neighbor,fits,arrange,firstWidget} from '../src/home/welcome-layout';
+describe('Welcome layout and persistence',()=>{
+ for(const name of ['PS5 Reference Layout','Social','Gaming','Minimal'])it(`${name} has no overlap and accessible neighbors`,()=>{const cells=preset(name);for(const a of cells){expect(fits(a,cells)).toBe(true);for(const b of cells)if(a!==b)expect(overlaps(a,b)).toBe(false);}expect(new Set(cells.map(c=>c.id)).size).toBe(cells.length);});
+ it('navigates mixed-sized cards spatially',()=>{const c=preset();expect(neighbor(c,'achievements',0,1)).toBe('controller');expect(neighbor(c,'storage',0,1)).toBe('favorites');expect(neighbor(c,'store',0,1)).toBe('news');expect(neighbor(c,'achievements',-1,0)).toBeUndefined();expect(neighbor(c,'achievements',1,0)).toBe('storage');});
+ it('rejects overlapping, out-of-range, duplicate and unknown saved widgets',()=>{const c=defaults();const result=sanitizeSettings({...c,cells:[c.cells[0],c.cells[0],{id:'store',x:0,y:0,w:4,h:1},{id:'friends',x:28,y:0,w:4,h:1},{id:'evil',x:4,y:0,w:4,h:1}]});expect(result.cells).toEqual([c.cells[0]]);});
+ it('round-trips settings without changing existing cells',()=>{const s={...defaults(),background:'local',image:'data:image/png;base64,AAAA',largeText:true,reducedMotion:true};expect(sanitizeSettings(JSON.parse(JSON.stringify(s)))).toEqual(s);});
+ it('rejects executable and remote background inputs',()=>{for(const image of ['javascript:alert(1)','file:///secret','https://untrusted.test/image','data:image/svg+xml;base64,AAAA'])expect(sanitizeSettings({image}).image).toBeUndefined();});
+ it('adds hidden widgets only in unoccupied positions',()=>{const c=preset('Minimal'),n=insert(c,'achievements',2);expect(n).toHaveLength(c.length+1);expect(fits(n.at(-1)!,n)).toBe(true);expect(insert(n,'achievements')).toBe(n);});
+ it('preserves a saved custom preset after selecting another preset',()=>{const custom=preset('Minimal');const result=sanitizeSettings({...defaults(),preset:'Social',cells:preset('Social'),custom});expect(result.custom).toEqual(custom);expect(result.cells).toEqual(preset('Social'));});
+ it('rejects resizing through another widget',()=>{const c=preset();expect(fits({...c[0],h:3},c)).toBe(false);});
+});
+
+it('moves activity into occupied space and preserves every widget without overlap',()=>{const cells=preset();const moved=arrange(cells,'activity',{x:0,y:1});expect(moved.find(c=>c.id==='activity')).toMatchObject({x:0,y:1,h:2});expect(moved.map(c=>c.id)).toEqual(cells.map(c=>c.id));for(const c of moved)expect(fits(c,moved)).toBe(true);});
+it('shrinks a moved card at the bottom and reflows a larger resize',()=>{let cells=arrange(preset(),'activity',{x:0,y:2});expect(cells.find(c=>c.id==='activity')?.h).toBe(1);cells=arrange(cells,'activity',{h:3,y:0});expect(cells.find(c=>c.id==='activity')?.h).toBe(3);for(const c of cells)expect(fits(c,cells)).toBe(true);});
+it('repeated movements never drop cards or overlap',()=>{let cells=preset();for(let n=0;n<100;n++){const c=cells[n%cells.length];cells=arrange(cells,c.id,{x:(n%7)*4,y:n%3,h:n%3+1});expect(cells).toHaveLength(11);for(const a of cells)expect(fits(a,cells)).toBe(true);}});
+it('defaults old preferences to Welcome-only and persists entire Home choice',()=>{expect(sanitizeSettings({}).wallpaperScope).toBe('welcome');expect(sanitizeSettings({...defaults(),wallpaperScope:'home'}).wallpaperScope).toBe('home');});
+
+it('enters top-left Friends even when the saved array starts with a far-right card',()=>{const cells=[{id:'activity',x:16,y:0,w:4,h:2},{id:'storage',x:0,y:1,w:4,h:1},{id:'friends',x:0,y:0,w:4,h:1}] as any;expect(firstWidget(cells)).toBe('friends');expect(firstWidget([...cells].reverse())).toBe('friends');expect(firstWidget([])).toBeUndefined();});

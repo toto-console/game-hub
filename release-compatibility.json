@@ -1,0 +1,4 @@
+{
+  "targets": [],
+  "reason": "Windows 11 x64 local load checks use an unidentified Decky dev build. No exact loader/platform update installation has been certified. SteamOS, Bazzite and Windows 10 are untested."
+}

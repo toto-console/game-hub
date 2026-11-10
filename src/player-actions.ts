@@ -1,0 +1,12 @@
+type Persona={m_unGamePlayedAppID:number;connect_string?:string;is_in_valid_lobby?:boolean;m_game_lobby_id?:string;is_in_joinable_game?:boolean};
+type Player={accountid:number;is_friend:boolean;is_blocked?:boolean;persona:Persona};
+type Host={g_FriendsUIApp?:{ChatStore:{CMInterface:{logged_on:boolean}};FriendStore:{self:Player;GetFriendIfCached(id:number):Player|undefined;InviteToGame(p:Player,app:number,connection:string):void;InviteToLobby(p:Player,app:number,lobby:string):void}};SteamClient?:{URL?:{ExecuteSteamURL(url:string):void}}};
+export interface PlayerActions {available(id:string):{invite:boolean;join:boolean};invite(id:string):string;join(id:string):string}
+export function createPlayerActions(host:unknown):PlayerActions{
+ const h=host as Host;
+ const read=(id:string)=>{if(!/^7656119\d{10}$/.test(id))throw Error('Invalid Steam friend.');const a=h.g_FriendsUIApp,p=a?.FriendStore.GetFriendIfCached(Number(BigInt(id)-76561197960265728n));if(!a||!a.ChatStore.CMInterface.logged_on||!p?.is_friend||p.is_blocked)throw Error('This Steam friend is unavailable.');return {a,p};};
+ const joinable=(p:Persona)=>!!p.is_in_joinable_game&&p.m_unGamePlayedAppID>0&&!!((p.is_in_valid_lobby&&p.m_game_lobby_id)||p.connect_string);
+ return {available(id){try{const {a,p}=read(id),self=a.FriendStore.self.persona;return {invite:self.m_unGamePlayedAppID>0&&!!(self.is_in_valid_lobby&&self.m_game_lobby_id&&typeof a.FriendStore.InviteToLobby==='function'||self.connect_string&&typeof a.FriendStore.InviteToGame==='function'),join:joinable(p.persona)&&typeof h.SteamClient?.URL?.ExecuteSteamURL==='function'};}catch{return {invite:false,join:false};}},
+ invite(id){const {a,p}=read(id),self=a.FriendStore.self.persona;if(!this.available(id).invite)throw Error('Game invitations are unavailable for your current game.');if(self.is_in_valid_lobby&&self.m_game_lobby_id)a.FriendStore.InviteToLobby(p,self.m_unGamePlayedAppID,self.m_game_lobby_id);else a.FriendStore.InviteToGame(p,self.m_unGamePlayedAppID,self.connect_string!);return 'Invitation requested through Steam; delivery is not confirmed.';},
+ join(id){const {p}=read(id);if(!this.available(id).join)throw Error('This friend has no supported joinable session.');const g=p.persona,url=g.is_in_valid_lobby&&g.m_game_lobby_id?`steam://joinlobby/${g.m_unGamePlayedAppID}/${g.m_game_lobby_id}/${id}`:`steam://rungame/${g.m_unGamePlayedAppID}/${id}/${encodeURIComponent(g.connect_string!)}`;h.SteamClient!.URL!.ExecuteSteamURL(url);return 'Join request opened in Steam.';}}
+}

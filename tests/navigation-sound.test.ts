@@ -1,0 +1,6 @@
+import {it,expect,vi,afterEach} from 'vitest';
+import {focusNavigation,focusControl} from '../src/navigation';
+afterEach(()=>{document.body.innerHTML='';vi.restoreAllMocks();});
+it('requests Steam controller focus before DOM fallback, preserving native sound eligibility',()=>{const node=document.createElement('button');document.body.append(node);const calls:string[]=[];node.addEventListener('vgp_requestfocus',e=>{calls.push('steam');expect((e as CustomEvent).detail.source).toBe(1);expect(document.activeElement).not.toBe(node);});node.addEventListener('focus',()=>calls.push('dom'));focusNavigation(node);expect(calls).toEqual(['steam','dom']);focusNavigation(node);expect(calls).toEqual(['steam','dom']);});
+it('does not duplicate focus after Steam handles the request',()=>{const node=document.createElement('button');document.body.append(node);const spy=vi.spyOn(node,'focus');node.addEventListener('vgp_requestfocus',()=>node.focus());focusNavigation(node);expect(spy).toHaveBeenCalledOnce();});
+it('restoration retains its original quiet DOM-first behavior',()=>{const node=document.createElement('button');document.body.append(node);const calls:string[]=[];node.addEventListener('focus',()=>calls.push('dom'));node.addEventListener('vgp_requestfocus',()=>calls.push('steam'));focusControl(node);expect(calls).toEqual(['dom','steam']);});

@@ -1,0 +1,17 @@
+node_modules/
+dist/
+__pycache__/
+*.pyc
+*.log
+.env
+.env.*
+*.zip
+*.mkv
+*.mp4
+demo/
+*-preview/
+screenshots/
+LOCAL-EVIDENCE.json
+VISUAL-RESULTS.json
+preview/*snapshot.json
+preview/current-*
