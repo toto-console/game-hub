@@ -1,6 +1,6 @@
 {
   "name": "game-base-decky",
-  "version": "0.13.0-dev.46",
+  "version": "0.13.0-dev.47",
   "type": "module",
   "license": "MIT",
   "description": "PS5-inspired Steam interface for Decky Loader. Experimental Windows-first release.",

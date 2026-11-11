@@ -22,7 +22,7 @@ Open [Releases](https://github.com/toto-console/game-hub/releases) and download 
 | Windows 10 | Not tested. |
 | SteamOS (LCD / OLED) and Bazzite | Experimental source compatibility only. No device or installation validation. Not supported as verified platforms. |
 
-Core backend paths use Decky's directory variables. Windows-specific Store/Friend Activity presentation and controller battery collection are guarded. ThemeDeck's current bridge is Windows/version-specific and remains unavailable elsewhere. Linux has no Windows helper installer. This release does not supply or install Decky itself.
+Core backend paths use Decky's directory variables. Store/Friend Activity presentation checks the existing local CEF connection on either platform; XInput controller battery collection remains Windows-only. ThemeDeck's current bridge is Windows/version-specific and remains unavailable elsewhere. Linux has no Windows helper installer. This release does not supply or install Decky itself.
 
 ## Windows installation
 
@@ -44,7 +44,7 @@ Use **Back Up Current Version and Settings** before manual updates. The UI shows
 
 ## Development and releases
 
-Node 22, Python 3.11+, `npm ci`, `npm run build`, `npm test`, then `python -m unittest discover -s tests -p test_updates.py` and `python scripts/package-public.py`. The source archive contains build inputs and notices, not node_modules or private previews.
+Node 22, Python 3.11+, `npm ci`, `npm run build`, `npm test`, then `python -m unittest discover -s tests -p 'test_*.py'` and `python scripts/package-public.py`. The source archive contains build inputs and notices, not node_modules or private previews.
 
 CI validates pull requests and main. The release workflow requires a deliberate **Run workflow** with a version tag and `publish=true`, then repeats mandatory validation before publishing assets. For this first release all versions are pre-releases. Compatibility metadata is maintained in `release-compatibility.json`; do not add environments without evidence. There is no official Decky Store listing yet; submission requires the upstream plugin database review process.
 
@@ -53,3 +53,10 @@ See [CHANGELOG](CHANGELOG.md), [release notes](RELEASE-NOTES.md), [updater valid
 ## License and visuals
 
 Original code: MIT. Derived PS5 Dashboard code retains its upstream MIT notice; other licenses are listed in THIRD-PARTY-NOTICES.md. Artwork is fetched from Steam at runtime. Public preview images, when supplied, use synthetic sample data; personal screenshots and copyrighted game images are excluded from this release.
+
+
+## Steam Deck / Bazzite loading failures
+
+Use the named **Game-Hub-VERSION-decky.zip** release asset, not GitHub's automatic **Source code (zip)** download. The automatic source download is not a built plugin. Older named `-source.zip` assets also lacked `dist/index.js`; from dev.47 onward the named source package includes the matching compiled interface as a safeguard.
+
+“Failed to fetch dynamically imported module” means Decky could not load the plugin module; it does not by itself prove a SteamUI API mismatch. Confirm the installed plugin has `dist/index.js`, record Game Hub/Decky/Steam versions and the full failed URL, and inspect Decky's log for the corresponding request. Do not delete settings or reset Steam data. Reinstall the named `-decky.zip` through Decky and restart Steam when idle if the failed module remains cached. If it persists, submit the full error and versions. Linux is still experimental; see [device test checklist](docs/LINUX-TESTING.md).

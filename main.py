@@ -36,8 +36,6 @@ class Plugin:
             raise ValueError('Unknown update action')
 
     async def store_appearance(self, url: str, options: dict) -> dict:
-        if os.name != 'nt':
-            return {'applied': False, 'reason': 'Store appearance currently supports Windows only'}
         try:
             if self.store_appearance_adapter is None:
                 from store_appearance import StoreAppearance
@@ -112,14 +110,11 @@ class Plugin:
 
     async def welcome_system(self) -> dict:
         def read():
-            import shutil
+            from platform_storage import storage_snapshot
             result = {}
-            try:
-                drive = os.path.abspath(os.sep) if os.name != "nt" else os.environ.get("SystemDrive", "C:") + "\\"
-                usage = shutil.disk_usage(drive)
-                result["storage"] = {"free": usage.free, "total": usage.total, "label": "Windows drive" if os.name == "nt" else "System drive"}
-            except OSError:
-                pass
+            storage = storage_snapshot(getattr(decky, "DECKY_USER_HOME", None), decky.DECKY_PLUGIN_SETTINGS_DIR)
+            if storage is not None:
+                result["storage"] = storage
             if os.name == "nt":
                 import ctypes
                 class Battery(ctypes.Structure):

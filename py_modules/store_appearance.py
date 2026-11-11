@@ -1,4 +1,4 @@
-"""Windows native Store presentation. No catalog, account or process APIs."""
+"""Capability-detected native Steam Store presentation. No catalog, account or process APIs."""
 import asyncio
 import json
 import re

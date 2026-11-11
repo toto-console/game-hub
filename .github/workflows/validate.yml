@@ -22,7 +22,7 @@ jobs:
       - run: npm ci
       - run: npm run build
       - run: npm test
-      - run: python -m unittest discover -s tests -p test_updates.py
+      - run: python -m unittest discover -s tests -p 'test_*.py'
       - run: python scripts/package-public.py
       - run: python scripts/release-manifest.py
       - run: |
@@ -33,3 +33,15 @@ jobs:
           name: validated-build
           path: artifacts/*
           if-no-files-found: error
+
+  backend-platforms:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - uses: actions/setup-python@a26af69be951a213d495a4c3e4e4022e16d87065
+        with:
+          python-version: '3.11'
+      - run: python -m unittest discover -s tests -p 'test_*.py'

@@ -7,7 +7,7 @@ from gamehub_updates import validate_package, version as semver
 version=json.loads((root/'package.json').read_text(encoding='utf8'))['version'];semver(version)
 docs=['README.md','CHANGELOG.md','RELEASE-NOTES.md','UPDATE-VALIDATION.md','LICENSE','THIRD-PARTY-NOTICES.md']
 runtime=[root/n for n in ['dist/index.js','main.py','package.json','plugin.json',*docs]]
-source=[root/n for n in ['main.py','package.json','package-lock.json','plugin.json','rollup.config.js','tsconfig.json','vitest.config.ts','vite.config.ts','eslint.config.js','.gitignore','release-compatibility.json',*docs]]
+source=[root/n for n in ['dist/index.js','main.py','package.json','package-lock.json','plugin.json','rollup.config.js','tsconfig.json','vitest.config.ts','vite.config.ts','eslint.config.js','.gitignore','release-compatibility.json',*docs]]
 for folder in ['py_modules','licenses','third_party','store-theme']:
  files=[p for p in (root/folder).rglob('*') if p.is_file() and '__pycache__' not in p.parts]
  runtime+=files;source+=files
@@ -28,5 +28,5 @@ for label,files in [('decky',runtime),('source',source)]:
    z.writestr(info,data)
  with zipfile.ZipFile(dest) as z:assert z.testzip() is None
  digest=hashlib.sha256(dest.read_bytes()).hexdigest()
- if label=='decky':validate_package(dest.read_bytes(),digest,version)
+ validate_package(dest.read_bytes(),digest,version)
  print(dest.name,digest)

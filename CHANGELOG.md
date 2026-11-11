@@ -1,3 +1,9 @@
+## 0.13.0-dev.47
+
+Named source ZIP now includes the compiled frontend and passes the same package integrity checks as the runtime ZIP, preventing an unbuilt named source package from causing a missing-module failure. GitHub automatic source archives remain development-only.
+
+Experimental Linux preparation: home-filesystem storage reporting, capability-based Store/Activity styling, and Windows/Ubuntu backend regression jobs. Device testing remains outstanding.
+
 # Changelog
 
 ## 0.13.0-dev.38 — experimental public pre-release
