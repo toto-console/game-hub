@@ -1,3 +1,4 @@
+import {T} from "./i18n";
 import {useEffect,useMemo,useRef,useState} from 'react';
 import {DialogButton,Focusable,ModalRoot,Navigation,TextField,showModal} from '@decky/ui';
 import {readLibrary,SHORTCUT,isInstalled} from './library-data';
@@ -18,7 +19,7 @@ export function MediaManager({initial='all',initialId,close}:{initial?:'all'|'ch
  const run=(fn:()=>void)=>{try{fn();setError('');}catch(e){setError(e instanceof Error?e.message:'Could not save your Media preferences.');}};
  const button=(text:string,fn:()=>void)=><DialogButton key={text} className="gh-media-control" onClick={()=>run(fn)}>{text}</DialogButton>;
  return <Focusable ref={root} className="gh-media-manager" flow-children="column" onCancelButton={e=>{e.stopPropagation();back();}}><style>{`.gh-media-manager{background:linear-gradient(125deg,#152639,#080e18);color:white;padding:28px;border-radius:20px;max-height:80vh;overflow:auto;min-width:55vw;display:flex;flex-direction:column;gap:12px}.gh-media-control{border-radius:12px!important;text-align:left!important;background:#ffffff12!important;color:white!important;min-height:44px}.gh-media-control.gpfocus,.gh-media-control:focus{outline:2px solid white}.gh-media-manager label{display:block;margin-top:10px}`}</style>
- <h2>{page==='choose'?'Choose from Steam Library':page==='edit'?'App Settings':page==='manage'?'Manage Apps':page==='confirm'?'Add to Media Home':'Media Apps'}</h2>
+ <h2>{page==='choose'?'Choose from Steam Library':page==='edit'?'App Settings':page==='manage'?<T text="Manage Apps"/>:page==='confirm'?'Add to Media Home':'Media Apps'}</h2>
  {error&&<p role="alert">{error}</p>}
  {page==='all'&&<>{button('+ Add App',()=>setPage('add'))}{button('Manage Apps',()=>setPage('manage'))}</>}
  {page==='add'&&<>{button('Choose from Steam Library',()=>setPage('choose'))}{button('Add Non-Steam Application',()=>setPage('nonsteam'))}{button('Manage Media Shortcuts',()=>setPage('manage'))}</>}

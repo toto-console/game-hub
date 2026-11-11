@@ -20,7 +20,7 @@ export function createNotificationStore(bridge:SocialBridge,getSettings:()=>Sett
    for(const c of inbox.conversations){if(!c.unread||!s.messages||!(c.kind==='group'?s.groupAlerts:s.messageAlerts))continue;rows.push({id:`chat:${c.id}`,conversation:c.id,title:c.name,detail:`${c.unread} unread ${c.unread===1?'message':'messages'}`,kind:c.kind==='group'?'Group message':'Message',source:'Steam conversations',time:c.time*1000,unread:true,avatar:c.avatar});}
   }else issues.push('Steam conversations unavailable');}catch{issues.push('Steam conversations unavailable');}
   try{for(const n of readTray()){
-   const existing=n.conversation?rows.find(r=>r.conversation===n.conversation):undefined;if(existing){existing.clear=n.clear;continue;}
+   const existing=n.conversation?rows.find(r=>r.conversation===n.conversation):undefined;if(existing){existing.clear=n.clear;existing.avatar=n.avatar??existing.avatar;existing.artwork=n.artwork??existing.artwork;if(n.detail&&n.detail!=='Open conversation in Game Hub')existing.detail=n.detail;continue;}
    if(n.kind==='Message'&&(!s.messages||!s.messageAlerts)||n.kind==='Group message'&&(!s.messages||!s.groupAlerts)||n.kind==='Plugin alert'&&!s.pluginAlerts||n.kind==='Friend request'&&!s.friendRequestAlerts||n.kind==='Invitation'&&!s.inviteAlerts)continue;
    rows.push(n);
   }}catch{issues.push('Steam tray unavailable');}

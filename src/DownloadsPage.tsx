@@ -1,3 +1,4 @@
+import {T} from "./i18n";
 import {downloadSource,useDownloadsSnapshot,useDownloadTick} from './downloads-live';
 import {useEffect,useLayoutEffect,useRef,useState} from 'react';
 import type {Controls} from './Panel';
@@ -35,7 +36,7 @@ export function DownloadsPage({controls,back,native,motion,initialAppId}:{initia
  const size=(row:Transfer)=>row.total?`${row.bytes!==undefined?formatBytes(row.bytes)+' / ':''}${formatBytes(row.total)}`:'';
  return <div ref={root} className="gcc-settings gcd-page" data-motion={motion} aria-label="Downloads and uploads"><style>{downloadsCSS}</style>
   <header className="gcd-status"><time>{clock.toLocaleTimeString([], {hour:'numeric',minute:'2-digit',hour12:true})}</time><span>{clock.toLocaleDateString([], {weekday:'short',month:'short',day:'numeric'})}</span></header>
-  <div className="gcd-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2"><path d="M12 2v13m-5-5 5 5 5-5M3 16v5h18v-5"/></svg><h1>Downloads / Uploads</h1></div>
+  <div className="gcd-title"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2"><path d="M12 2v13m-5-5 5 5 5-5M3 16v5h18v-5"/></svg><h1><T text="Downloads / Uploads"/></h1></div>
   <div className="gcd-scroll"><Group className="gcd-list">
    {!snapshot.ready?<div className="gcd-empty"><h2>Download information unavailable</h2><p>Steam’s local download queue could not be read. You can use the native downloads page below.</p></div>:sections.map(section=>{const list=snapshot.rows.filter(r=>r.section===section.key);if(!list.length&&(section.key==='active'||section.key==='completed'))return null;return <section key={section.key} aria-label={section.title}>
     <h2>{section.title} <span>({list.length})</span></h2>
@@ -49,6 +50,6 @@ export function DownloadsPage({controls,back,native,motion,initialAppId}:{initia
    <p className="gcd-source-note">Local Steam transfers. Cloud sync, workshop and media uploads may not all be reported here.</p>
   </Group></div>
   <div className="gcd-notice" role="status">{notice}</div>
-  <footer className="gcd-footer"><span>↑ ↓ Navigate · ← → Actions · A Select · B / Esc Back</span><Group horizontal><div data-download-row="back"><Button className="gcc-utility gcd-control gcd-footer-button" onClick={close}>Back</Button></div><div data-download-row="native"><Button className="gcc-utility gcd-control gcd-footer-button" onClick={native}>Open Steam downloads</Button></div></Group></footer>
+  <footer className="gcd-footer"><span>↑ ↓ Navigate · ← → Actions · A Select · B / Esc Back</span><Group horizontal><div data-download-row="back"><Button className="gcc-utility gcd-control gcd-footer-button" onClick={close}><T text="Back"/></Button></div><div data-download-row="native"><Button className="gcc-utility gcd-control gcd-footer-button" onClick={native}>Open Steam downloads</Button></div></Group></footer>
  </div>;
 }

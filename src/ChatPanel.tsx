@@ -1,3 +1,4 @@
+import {T} from "./i18n";
 import {useProfileState,useProfileRef,useProfileFocus,returningFromProfile} from './profile-return';
 import {useMessageNavigation,type MessagePosition} from './message-navigation';
 import {useEffect,useLayoutEffect,useRef,useState} from 'react';
@@ -158,7 +159,7 @@ export function ConversationView({compact=false,presence,social,onParty,item,acc
   sendAction.current=()=>void send();
   return <section ref={root} className="gbs-chat-thread" aria-label={`Messages with ${item.name}`}><header className="gbs-chat-title"><ChatAvatar item={item}/><div><h2>{item.name}</h2><small>{compact?(presence??item.subtitle):item.subtitle}</small></div></header>
 
-    {compact?<Button className="gbs-button gq-chat-back" onClick={onClose}>← Back to Messages</Button>:<aside className="gbs-chat-sidebar">{item.kind==='group'&&social.groups&&<><Button className="gbs-button gbs-chat-action" onClick={()=>{const id=item.id.split(':')[1];void social.groups!.start(id).then(()=>onParty?.(id),e=>{if(alive.current)setError(e instanceof Error?e.message:'Steam could not start group voice.');});}}>Start Group Voice Chat</Button><Button className="gbs-button gbs-chat-action" onClick={()=>onParty?.(item.id.split(':')[1])}>Group Members &amp; Invites</Button><Button className="gbs-button gbs-chat-action" onClick={()=>onParty?.(item.id.split(':')[1])}>Open Party / Group Details</Button></>}{profile&&<Button className="gbs-button gbs-chat-action" onClick={()=>{try{profile();}catch{setError('Profile unavailable.');}}}><span aria-hidden="true">◎</span> View profile</Button>}<Button className="gbs-button gbs-chat-action" onClick={onClose}><span aria-hidden="true">←</span> All messages</Button><p className="gbs-note">{item.kind==='friend'?'Direct message':'Group conversation'} · Steam</p></aside>}
+    {compact?<Button className="gbs-button gq-chat-back" onClick={onClose}>← Back to Messages</Button>:<aside className="gbs-chat-sidebar">{item.kind==='group'&&social.groups&&<><Button className="gbs-button gbs-chat-action" onClick={()=>{const id=item.id.split(':')[1];void social.groups!.start(id).then(()=>onParty?.(id),e=>{if(alive.current)setError(e instanceof Error?e.message:'Steam could not start group voice.');});}}>Start Group Voice Chat</Button><Button className="gbs-button gbs-chat-action" onClick={()=>onParty?.(item.id.split(':')[1])}>Group Members &amp; Invites</Button><Button className="gbs-button gbs-chat-action" onClick={()=>onParty?.(item.id.split(':')[1])}>Open Party / Group Details</Button></>}{profile&&<Button className="gbs-button gbs-chat-action" onClick={()=>{try{profile();}catch{setError('Profile unavailable.');}}}><span aria-hidden="true">◎</span> <T text="View profile"/></Button>}<Button className="gbs-button gbs-chat-action" onClick={onClose}><span aria-hidden="true">←</span> All messages</Button><p className="gbs-note">{item.kind==='friend'?'Direct message':'Group conversation'} · Steam</p></aside>}
 
     <History className="gbs-chat-history" historyRef={scroll} tabIndex={-1} aria-label="Message history" onScroll={()=>{const e=scroll.current;if(e)pinned.current=!root.current?.ownerDocument.activeElement?.closest('[data-message-id]')&&e.scrollHeight-e.scrollTop-e.clientHeight<72;}}>
 
@@ -176,7 +177,7 @@ export function ConversationView({compact=false,presence,social,onParty,item,acc
 
     {error&&<div className="gbs-chat-error" role="alert">{error} {!sending&&<Button className="gbs-button" onClick={()=>void load()}>Reload</Button>}</div>}
 
-    <div ref={composer} className="gbs-composer-host"><Group className="gbs-composer" horizontal><Input value={draft} onConfirm={confirm} label={`Message ${item.name}`} placeholder="Enter a message" disabled={sending||!thread?.canSend} onChange={v=>setDraft(v.slice(0,4000))}/><Button className="gbs-button gbs-send" disabled={sending||!draft.trim()||!thread?.canSend} onClick={()=>void send()}>{sending?'Sending…':'Send'}</Button></Group></div>
+    <div ref={composer} className="gbs-composer-host"><Group className="gbs-composer" horizontal><Input value={draft} onConfirm={confirm} label={`Message ${item.name}`} placeholder="Enter a message" disabled={sending||!thread?.canSend} onChange={v=>setDraft(v.slice(0,4000))}/><Button className="gbs-button gbs-send" disabled={sending||!draft.trim()||!thread?.canSend} onClick={()=>void send()}>{sending?'Sending…':<T text="Send"/>}</Button></Group></div>
 
   </section>;
 

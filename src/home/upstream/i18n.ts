@@ -1,3 +1,4 @@
+import {resolveLanguage,getLanguage} from "../../i18n";
 /**
  * The plugin's text in Steam's own UI language. Each language lives in src/locales and has the exact
  * shape of the English file, so TypeScript flags any missing string. Languages without a translation
@@ -79,4 +80,5 @@ function detectLocale(): string {
 }
 
 export const locale = detectLocale();
-export const t: Strings = LOCALES[locale] ?? en;
+// Resolve on read so switching Game Hub language never mutates Steam's language.
+export const t: Strings = new Proxy(en,{get(_target,key){const chosen=resolveLanguage(getLanguage());return (LOCALES[chosen==='pt-BR'?'pt':chosen]??en)[key as keyof Strings];}});

@@ -1,3 +1,4 @@
+import {T} from '../i18n';
 import {homeHeaderCSS} from '../fullscreen';
 import {footerSelector} from '../center-footer';
 import {NATIVE_LIBRARY_RECOVERY,GAME_HUB_LIBRARY,openNativeLibraryRecovery} from './native-library';
@@ -55,7 +56,7 @@ export function startHomeModule(){
 export function HomePreferences({controls,close}:{controls:Controls;close?:()=>void}){
  const c=useSyncExternalStore(subscribe,()=>config),message=useSyncExternalStore(subscribe,()=>status),{Button}=controls;
  const set=(key:keyof Settings,value:any)=>void update({...c,dashboard:{...c.dashboard,[key]:value}});
- const row=(label:string,run:()=>void)=><Button key={label.split(':')[0]} className="gcc-utility gcc-setting-row" onClick={run}>{label}</Button>;
+ const row=(label:string,run:()=>void)=><Button key={label.split(':')[0]} className="gcc-utility gcc-setting-row" onClick={run}><T text={label}/></Button>;
  return <><p>{message}</p>
  {row('Preview integrated Home',()=>{close?.();Navigation.Navigate(PREVIEW);})}
  {row('Preview integrated Library',()=>{close?.();Navigation.Navigate(LIBRARY);})}

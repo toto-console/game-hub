@@ -1,3 +1,4 @@
+import {T} from "./i18n";
 import {useEffect,useLayoutEffect,useRef,useState} from 'react';
 import type {Controls} from './Panel';
 import {focusControl} from './navigation';
@@ -109,7 +110,7 @@ export function SteamcordQuickMenu({controls,native,rail,drafts}:{controls:Contr
  const name=view.kind==='chat'?view.channel?.name:view.kind==='channels'?view.guild?.name:({home:'Steamcord',dms:'Direct Messages',servers:'Servers',voice:'Discord Voice',image:'Image',settings:'Steamcord Settings'} as Record<string,string>)[view.kind];
  const avatar=(src?:string)=><span className="sc-avatar">{src?<img src={src} alt="" onError={e=>{e.currentTarget.style.visibility='hidden';}}/>:<span aria-hidden="true">D</span>}</span>;
  const row=(key:string,label:string,fn:()=>void,sub?:string,src?:string,disabled=false)=><Button key={key} className="sc-row" disabled={disabled} onClick={fn}>{src&&avatar(src)}<span><strong>{label}</strong>{sub&&<small>{sub}</small>}</span></Button>;
- return <div ref={root} data-steamcord className="sc-root"><style>{steamcordCSS}</style><h2>{name}</h2><Button className="sc-back" onClick={back}>{stack.current.length?'Back':'Back to Quick Menu tabs'}</Button>
+ return <div ref={root} data-steamcord className="sc-root"><style>{steamcordCSS}</style><h2>{name}</h2><Button className="sc-back" onClick={back}>{stack.current.length?<T text="Back"/>:'Back to Quick Menu tabs'}</Button>
  <div ref={body} className="sc-body" onScroll={()=>{if(body.current)atEnd.current=body.current.scrollHeight-body.current.scrollTop-body.current.clientHeight<45;}}>
  {error&&<p role="alert">{error}</p>}{notice&&<p role="status">{notice}</p>}
  {!connected?<><p>{loading?'Connecting to Steamcord...':!available?'Steamcord 1.43.1 is required for these embedded controls.':state?.enabled===false?'Discord is stopped in Steamcord.':state?'Connect your Discord account in Steamcord.':'Steamcord is unavailable. Retry or open its original menu.'}</p>{row('retry','Retry',()=>refreshRef.current())}{row('native','Open original Steamcord / Setup',native)}</>:<>
@@ -122,7 +123,7 @@ export function SteamcordQuickMenu({controls,native,rail,drafts}:{controls:Contr
  {view.kind==='chat'&&<>{row('older','Load older messages',older,undefined,undefined,busy||!messages.length)}{messages.map(m=><div key={m.id} className="sc-message" data-self={m.authorId===state!.me?.id}><Message data-gh-control="" tabIndex={0} className="sc-bubble"><small>{m.author}</small><span>{m.text||'(Attachment)'}</span>{m.time&&<time>{new Date(m.time).toLocaleString()}</time>}</Message>{m.images.map((src,i)=>row(m.id+':'+i,'View image',()=>go({kind:'image',image:src})))}</div>)}{!loading&&!messages.length&&<p>No loaded messages.</p>}</>}
  {view.kind==='image'&&<img className="sc-image" src={view.image} alt="Discord attachment"/>}
  </>}{loading&&connected&&<p>Refreshing...</p>}</div>
- {view.kind==='chat'&&connected&&<div className="sc-composer"><Input label="Discord message" placeholder="Message" value={draft} onChange={text=>{setDraft(text);if(view.channel)drafts.set(account.current+':'+view.channel.id,text);}} onConfirm={()=>{requestAnimationFrame(()=>move(root.current?.querySelector('input')));}}/><Button className="sc-send" disabled={busy||!draft.trim()} onClick={()=>void send()}>Send</Button></div>}</div>;
+ {view.kind==='chat'&&connected&&<div className="sc-composer"><Input label="Discord message" placeholder="Message" value={draft} onChange={text=>{setDraft(text);if(view.channel)drafts.set(account.current+':'+view.channel.id,text);}} onConfirm={()=>{requestAnimationFrame(()=>move(root.current?.querySelector('input')));}}/><Button className="sc-send" disabled={busy||!draft.trim()} onClick={()=>void send()}><T text="Send"/></Button></div>}</div>;
 }
 function mergeMessages(a:DiscordMessage[],b:DiscordMessage[]){return [...new Map([...a,...b].map(m=>[m.id,m])).values()].sort((x,y)=>BigInt(x.id)<BigInt(y.id)?-1:1);}
 const steamcordCSS=`

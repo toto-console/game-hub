@@ -1,3 +1,13 @@
+## 0.13.0-dev.49
+
+Add saved English, Portuguese (Brazil), Japanese and system-language choices in Game Hub settings. Localize core navigation, settings, Welcome headings, social menus and the existing Home translations without changing Steam, game or message languages. Untranslated advanced text falls back to English.
+
+Consume unhandled Back at the Home root after child screens close, preventing a second Back from falling through to native Steam history. Rename the Switcher library button to Game Library to match its destination. Native recovery remains explicit.
+
+## 0.13.0-dev.48
+
+Notifications now use Steam achievement names, descriptions and achievement icons, cached sender personas including Steamcord CDN avatars, and existing tray message previews. Conversation deduplication preserves preview and artwork. Row layout isolates Steam button wrappers to preserve image/text spacing. Previews stay in memory and are not logged or saved. Existing actions, unread handling and controller navigation remain intact.
+
 ## 0.13.0-dev.47
 
 Named source ZIP now includes the compiled frontend and passes the same package integrity checks as the runtime ZIP, preventing an unbuilt named source package from causing a missing-module failure. GitHub automatic source archives remain development-only.

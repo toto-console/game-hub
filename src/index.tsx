@@ -1,3 +1,5 @@
+import {initializeLanguage} from './i18n';
+import {T} from "./i18n";
 import {connectBackAudio} from './back-audio';
 import {startNavigationAudio,playSound} from './native-navigation-audio';
 import {startUpdateChecks} from './software-updates';
@@ -113,6 +115,7 @@ export default definePlugin(()=>{
   try {storage=window.localStorage;} catch { /* Preferences can remain session-only. */ }
 
   let settings=loadSettings(storage);
+  initializeLanguage(storage,window.navigator.language);
   const stopWebOwner=setWebOwnerResolver(()=>Router.WindowStore?.GamepadUIMainWindowInstance);
   const storeApply=callable<[url:string,options:StoreOptions],StoreResult>('store_appearance');
   let storeStatus:StoreResult={applied:false,reason:'Open the Store to apply its appearance.'};
@@ -281,14 +284,14 @@ export default definePlugin(()=>{
       {s.enabled&&registered&&<Button className="gbs-button gbs-primary" onClick={()=>{Navigation.Navigate(ROUTE);Navigation.CloseSideMenus?.();}}>Open Game Base</Button>}
 
       {s.enabled&&s.controlCenter&&globalRegistered&&<Button className="gbs-button" onClick={()=>{setNavigationError(false);if(!owningCenter().show())setNavigationError(true);}}>Open Control Center</Button>}
-      <Button className="gbs-button" aria-pressed={s.controlCenter} onClick={()=>setSettings({...s,controlCenter:!s.controlCenter})}>Control Center replacement: {s.controlCenter?'On':'Off'}</Button>
-      <details><summary>Integrations</summary><Button className="gbs-button" onClick={()=>openGameMusic()}>ThemeDeck Game Soundtracks</Button></details><details><summary>Media</summary><Button className="gbs-button" onClick={()=>{Navigation.CloseSideMenus?.();openMediaManager();}}>Manage Apps</Button></details><details><summary>Store Appearance</summary>
-      {([['storeAppearance','PS5-Style Steam Store'],['storeBackgrounds','Navy Background Gradients'],['storeGloss','Animated Store Gloss'],['storeReducedMotion','Reduced Store Motion'],['storeSubtle','Subtle Store Colors']] as const).map(([key,label])=><Button key={key} className="gbs-button" aria-pressed={s[key]} onClick={()=>setSettings({...s,[key]:!s[key]})}>{label}: {s[key]?'On':'Off'}</Button>)}
+      <Button className="gbs-button" aria-pressed={s.controlCenter} onClick={()=>setSettings({...s,controlCenter:!s.controlCenter})}>Control Center replacement: {s.controlCenter?<T text="On"/>:<T text="Off"/>}</Button>
+      <details><summary><T text="Integrations"/></summary><Button className="gbs-button" onClick={()=>openGameMusic()}>ThemeDeck Game Soundtracks</Button></details><details><summary><T text="Media"/></summary><Button className="gbs-button" onClick={()=>{Navigation.CloseSideMenus?.();openMediaManager();}}><T text="Manage Apps"/></Button></details><details><summary>Store Appearance</summary>
+      {([['storeAppearance','PS5-Style Steam Store'],['storeBackgrounds','Navy Background Gradients'],['storeGloss','Animated Store Gloss'],['storeReducedMotion','Reduced Store Motion'],['storeSubtle','Subtle Store Colors']] as const).map(([key,label])=><Button key={key} className="gbs-button" aria-pressed={s[key]} onClick={()=>setSettings({...s,[key]:!s[key]})}>{label}: {s[key]?<T text="On"/>:<T text="Off"/>}</Button>)}
       <p>Store music follows ThemeDeck's own settings. Steam controls trailer playback. Global reduced motion also applies.</p>
       <p role="status">{storeState.reason}</p>
       <Button className="gbs-button" onClick={()=>{setSettings({...s,storeAppearance:false});restoreOriginalWeb(Router.WindowStore?.GamepadUIMainWindowInstance);Navigation.NavigateToSteamWeb('https://store.steampowered.com/');Navigation.CloseSideMenus?.();}}>Open Original Steam Store</Button>
       </details>
-      <Button className="gbs-button" aria-pressed={s.fullscreenWeb} onClick={()=>setSettings({...s,fullscreenWeb:!s.fullscreenWeb})}>Fullscreen Web Pages: {s.fullscreenWeb?'Enabled':'Disabled'}</Button>
+      <Button className="gbs-button" aria-pressed={s.fullscreenWeb} onClick={()=>setSettings({...s,fullscreenWeb:!s.fullscreenWeb})}>Fullscreen Web Pages: {s.fullscreenWeb?<T text="Enabled"/>:<T text="Disabled"/>}</Button>
       <p>Hide the Steam browser's top toolbar on compatible Game Hub pages for a cleaner console-style interface.</p>
       <Button className="gbs-button" onClick={()=>{restoreOriginalWeb(Router.WindowStore?.GamepadUIMainWindowInstance);Navigation.CloseSideMenus?.();}}>Open in Original Steam Browser</Button>
       <Button className="gbs-button" onClick={()=>{try{owningCenter().native();}catch{setNavigationError(true);}}}>Open Original Steam Menu</Button>
@@ -301,7 +304,7 @@ export default definePlugin(()=>{
 
       <Button className="gbs-button" aria-pressed={s.enabled} onClick={()=>setSettings({...s,enabled:!s.enabled})}>{s.enabled?'Disable Game Base':'Enable Game Base'}</Button>
 
-      <Button className="gbs-button" aria-pressed={s.friendsEntry} onClick={()=>setSettings({...s,friendsEntry:!s.friendsEntry})}>Friends &amp; Chat shortcut: {s.friendsEntry?'On':'Off'}</Button>
+      <Button className="gbs-button" aria-pressed={s.friendsEntry} onClick={()=>setSettings({...s,friendsEntry:!s.friendsEntry})}>Friends &amp; Chat shortcut: {s.friendsEntry?<T text="On"/>:<T text="Off"/>}</Button>
 
       {s.enabled&&s.friendsEntry&&!entry?.connected&&<><p role="status">Social shortcut unavailable on this window. Use Open Game Base above.</p><Button className="gbs-button" onClick={()=>{connectEntry();setSettings({...settings});}}>Retry social shortcut</Button></>}
 

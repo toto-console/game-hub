@@ -1,3 +1,4 @@
+import {useLanguage} from "../../i18n";
 import {movedPointer} from '../pointer-intent';
 import {highlightSoundtrack} from '../../themedeck-adapter';
 import { Focusable, GamepadButton, GamepadEvent, NavEntryPositionPreferences } from "@decky/ui";
@@ -13,9 +14,11 @@ const EDGE_PAD = 48;
 
 /** An <img> that walks through candidate URLs until one loads, then shows `fallback`. */
 export function Art({ sources, className, fallback }: { sources: string[]; className?: string; fallback?: ReactNode }) {
+ useLanguage();
   return <ArtSource key={sources.join("|")} sources={sources} className={className} fallback={fallback}/>;
 }
 function ArtSource({sources,className,fallback}:{sources:string[];className?:string;fallback?:ReactNode}){
+ useLanguage();
   const [index, setIndex] = useState(0);
   if (index >= sources.length) return <>{fallback ?? null}</>;
   return (
@@ -104,6 +107,7 @@ export function useFocusHook(onFocus?: (el: HTMLElement) => void) {
  * both run on the GPU without touching the layout.
  */
 export function Tile(p: TileProps) {
+ useLanguage();
   const ref = useFocusHook(p.onFocus);
   return (
     <Focusable
@@ -158,6 +162,7 @@ export function GameTile({
   art?: "portrait" | "hero";
   onActivate?: () => void;
 }) {
+ useLanguage();
   const running = runningAppId() === app.appid;
   const playable = isInstalled(app) || app.app_type === APP_TYPE_SHORTCUT;
   return (
@@ -201,6 +206,7 @@ export function ActionTile({
   className?: string;
   preferredFocus?: boolean;
 }) {
+ useLanguage();
   return (
     <Tile
       size={size}
@@ -235,6 +241,7 @@ export function Button({
   onActivate: (anchor: HTMLElement | null) => void;
   onFocus?: (el: HTMLElement) => void;
 }) {
+ useLanguage();
   const ref = useFocusHook(onFocus);
   return (
     <Focusable
@@ -253,6 +260,7 @@ export function Button({
 
 /** A small round icon in the top right corner (search, settings, profile), like the PS5 header. */
 export function IconButton({ icon, label, onActivate }: { icon: ReactNode; label: string; onActivate: () => void }) {
+ useLanguage();
   return (
     <Focusable
       className="ghd-icon-button"
@@ -283,6 +291,7 @@ export function Card({
   preferredFocus?: boolean;
   onActivate: () => void;
 }) {
+ useLanguage();
   return (
     <Focusable
       className={`ghd-card ${accent ? "ghd-card-accent" : ""}`}
@@ -314,6 +323,7 @@ export function Row({
   className?: string;
   children: ReactNode;
 }) {
+ useLanguage();
   return (
     <section className={`ghd-section ${anchor ? "ghd-section-clip" : ""} ${className ?? ""}`}>
       {title && <h2 className="ghd-section-title">{title}</h2>}

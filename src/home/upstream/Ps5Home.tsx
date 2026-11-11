@@ -1,3 +1,5 @@
+import {useLanguage} from "../../i18n";
+import {T} from "../../i18n";
 import {callable} from '@decky/api';
 import {WelcomeBackground} from '../WelcomeBackground';
 import {sanitizeSettings,type WelcomeSettings} from '../welcome-layout';
@@ -92,6 +94,7 @@ function slideTo(el: HTMLElement) {
  * one is dropped once it's covered, so at most two images are ever on screen.
  */
 function Backdrop({ app, dim }: { app?: App; dim: boolean }) {
+ useLanguage();
   const [layers, setLayers] = useState<App[]>(app ? [app] : []);
   useEffect(() => {
     if (app) setLayers((l) => (l[l.length - 1]?.appid === app.appid ? l : [...l.slice(-1), app]));
@@ -121,6 +124,7 @@ function Backdrop({ app, dim }: { app?: App; dim: boolean }) {
 
 /** Logo (or name), "Played today · 42 h played", then the white Play pill and the round "…" button. */
 function GameInfo({ pick, onFocus }: { pick?: Pick; onFocus: () => void }) {
+ useLanguage();
   if (!pick) return null;
   if (!("app" in pick)) {
     return (
@@ -179,6 +183,7 @@ interface LowerRowsProps {
  * and the game info, not every tile (each one is a Steam focus node, which is costly to update).
  */
 const TopRow = memo(function TopRow({ recents, goTab, onTopRow }: TopRowProps) {
+ useLanguage();
   const store: Pick = {
     store:true,
     title: t.storeTitle,
@@ -239,6 +244,7 @@ const TopRow = memo(function TopRow({ recents, goTab, onTopRow }: TopRowProps) {
 
 /** The rows further down, under the game info. Same memo trick as TopRow. */
 const LowerRows = memo(function LowerRows({ favorites, installed, goTab, onLowerRow }: LowerRowsProps) {
+ useLanguage();
   return (
     <>
       {favorites.length > 0 && (
@@ -274,6 +280,7 @@ const LowerRows = memo(function LowerRows({ favorites, installed, goTab, onLower
 });
 
 export function HomeTab({ goTab,active=true }: { goTab: GoTab;active?:boolean }) {
+ useLanguage();
   const revision=useLibraryRevision(active);
   const recents = useMemo(() => recentApps(RECENT_COUNT), [revision]);
   const favorites = useMemo(() => favoriteApps().sort(byRecent).slice(0, ROW_COUNT), [revision]);
@@ -374,7 +381,7 @@ export function HomeTab({ goTab,active=true }: { goTab: GoTab;active?:boolean })
       <style>{homeHubCSS}</style>
       {(pickedApp||welcomeSelected)&&<div className="gh-home-game-heading" data-visible={active&&expanded&&!lowered} aria-hidden={!active||!expanded||lowered}>
         <span className={`gh-home-game-thumb${welcomeSelected?' gh-home-welcome-thumb':''}`}>{welcomeSelected?<WelcomeIcon/>:pickedApp&&<Art sources={[...portraitUrls(pickedApp),...landscapeUrls(pickedApp)]} fallback={<span aria-hidden="true">{pickedApp.display_name.slice(0,1)}</span>}/>}</span>
-        <span className="gh-home-game-name">{welcomeSelected?'Welcome':pickedApp?.display_name}</span>
+        <span className="gh-home-game-name">{welcomeSelected?<T text="Welcome"/>:pickedApp?.display_name}</span>
       </div>}
       {!globalWallpaper&&<Backdrop app={welcomeSelected?initialApp:backdrop} dim={lowered} />}
       {wallpaper&&wallpaper.background!=='existing'&&<WelcomeBackground home active={active} hidden={!globalWallpaper&&!welcomeSelected} settings={wallpaper} app={recents.find(a=>a.app_type!==APP_TYPE_SHORTCUT)}/>}

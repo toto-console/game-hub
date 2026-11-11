@@ -58,3 +58,10 @@ describe('system integration adapters',()=>{
   plugin.version='9.0.0';expect(pluginInventory()[0].compatible).toBe(false);
  });
 });
+
+it('keeps tray previews and avatars when merging a real unread conversation',()=>{
+ const f=fixture();f.conversations.push({id:'friend:12',name:'Alex',kind:'friend',unread:1,time:123});
+ vi.stubGlobal('g_FriendsUIApp',{FriendStore:{GetFriendIfCached:()=>({is_friend:true,persona:{m_strPlayerName:'Alex'}})}});
+ f.setGroups([{notifications:[{notificationID:'preview',eType:8,rtCreated:123,data:{getClassName:()=> 'CClientNotificationFriendMessage',steamid:()=> '76561197960265740',icon:()=> 'https://avatars.steamstatic.com/test.jpg',body:()=> 'Existing tray preview'}}]}]);
+ f.store.refresh();expect(f.store.getSnapshot().rows).toHaveLength(1);expect(f.store.getSnapshot().rows[0]).toMatchObject({detail:'Existing tray preview',avatar:'https://avatars.steamstatic.com/test.jpg',conversation:'friend:12'});f.stop();
+});

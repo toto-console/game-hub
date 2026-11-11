@@ -1,3 +1,6 @@
+import {connectHomeBackBoundary} from '../home-back';
+import {T} from "../../i18n";
+import {useLanguage} from "../../i18n";
 import {MediaHome} from "./MediaHome";
 import {openGameHubWeb} from '../../fullscreen-web';
 import {focusControl} from '../../navigation';
@@ -62,6 +65,7 @@ function mediaCards(openApps: () => void): CardDef[] {
 }
 
 function CardsTab({ cards }: { cards: CardDef[] }) {
+ useLanguage();
   return (
     <Focusable className="ghd-page ghd-cards" flow-children="grid">
       {cards.map((c, i) => (
@@ -73,6 +77,7 @@ function CardsTab({ cards }: { cards: CardDef[] }) {
 
 /** Search, settings, power and the profile picture: the PS5's top right corner. */
 function TopIcons() {
+ useLanguage();
   const me = useMemo(persona, []);
   const [now,setNow]=useState(()=>new Date());
   const presence=readDockPresence(window,undefined).profile;
@@ -92,6 +97,7 @@ function TopIcons() {
 }
 
 function TabBar({ tab }: { tab: TabId }) {
+ useLanguage();
   if (tab === "library") {
     return (
       <div className="ghd-tabbar">
@@ -106,7 +112,7 @@ function TabBar({ tab }: { tab: TabId }) {
       <span className="ghd-bumper">L1</span>
       {TABS.map((x) => (
         <div key={x.id} className={`ghd-tab ${x.id === tab ? "ghd-tab-active" : ""}`}>
-          {x.label}
+          {<T text={x.id==='games'?'Games':'Media'}/>}
         </div>
       ))}
       <span className="ghd-bumper">R1</span>
@@ -116,6 +122,7 @@ function TabBar({ tab }: { tab: TabId }) {
 
 /** The PS5 home: Games / Media on top (L1 / R1 to switch), icons on the right and one page per tab. */
 export function Ps5Shell({ initialTab = "games" }: { initialTab?: TabId }) {
+ useLanguage();
   const [tab, setTab] = useState<TabId>(initialTab);
   const [libraryView, setLibraryView] = useState("installed");
   const root = useRef<HTMLDivElement>(null);
@@ -124,6 +131,11 @@ export function Ps5Shell({ initialTab = "games" }: { initialTab?: TabId }) {
   useFocusReveal(root);
 
   const backHome=useCallback(()=>setTab('games'),[]);
+  useEffect(()=>{
+    const el=root.current;if(!el)return;
+    return connectHomeBackBoundary(el,()=>tab==='games',()=>focusControl(el.querySelector<HTMLElement>('.ghd-scroller .ghd-selected')));
+  },[tab]);
+
   useEffect(()=>{
     if(tab!=='games')return;
     const frame=requestAnimationFrame(()=>focusControl(root.current?.querySelector<HTMLElement>('.ghd-scroller .ghd-selected')));
@@ -134,7 +146,7 @@ export function Ps5Shell({ initialTab = "games" }: { initialTab?: TabId }) {
     setLibraryView(view);
     setTab(next);
   };
-  const cards = useMemo(() => mediaCards(() => goTab("library", "apps")), []);
+  const cards = mediaCards(() => goTab("library", "apps"));
 
   const step = (dir: 1 | -1) => {
     const i = Math.max(0, TABS.findIndex((x) => x.id === tab));

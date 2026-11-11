@@ -1,3 +1,4 @@
+import {useLanguage} from "../../i18n";
 import {lastPlayed} from "../../library-data";
 import { Focusable } from "@decky/ui";
 import { ReactNode } from "react";
@@ -35,6 +36,7 @@ function InfoCard({
   onFocus: () => void;
   children: ReactNode;
 }) {
+ useLanguage();
   const ref = useFocusHook(onFocus);
   return (
     <Focusable
@@ -55,6 +57,7 @@ function InfoCard({
 }
 
 function Bar({ value }: { value: number }) {
+ useLanguage();
   const pct = Math.max(0, Math.min(1, value));
   return (
     <div className="ghd-bar">
@@ -64,6 +67,7 @@ function Bar({ value }: { value: number }) {
 }
 
 function HltbCard({ app, onFocus }: { app: App; onFocus: () => void }) {
+ useLanguage();
   const hltb = useHltb(app);
   const times = hltb.state === "done" ? hltb.value : null;
   const played = (app.minutes_playtime_forever ?? 0) * 60;
@@ -104,6 +108,7 @@ function HltbCard({ app, onFocus }: { app: App; onFocus: () => void }) {
 }
 
 function PlaytimeCard({ app, onFocus }: { app: App; onFocus: () => void }) {
+ useLanguage();
   const total = (app.minutes_playtime_forever ?? 0) * 60;
   const recent = (app.minutes_playtime_last_two_weeks ?? 0) * 60;
   return (
@@ -117,6 +122,7 @@ function PlaytimeCard({ app, onFocus }: { app: App; onFocus: () => void }) {
 }
 
 function ReviewsCard({ app, onFocus }: { app: App; onFocus: () => void }) {
+ useLanguage();
   const pct = app.review_percentage_with_bombs ?? 0;
   const size = Number(app.size_on_disk ?? 0);
   if (!pct && !app.metacritic_score && !size) return null;
@@ -142,6 +148,7 @@ function ReviewsCard({ app, onFocus }: { app: App; onFocus: () => void }) {
 }
 
 function AchievementsCard({ app, onFocus }: { app: App; onFocus: () => void }) {
+ useLanguage();
   const ach = useAchievements(app);
   const focusRef=useFocusHook(onFocus);
   // Appears once loaded and only for games that have achievements; it's last, so nothing shifts.
@@ -153,12 +160,14 @@ function AchievementsCard({ app, onFocus }: { app: App; onFocus: () => void }) {
   </Focusable>;
 }
 export function GameCards({app,onFocus}:{app:App;onFocus:()=>void}) {
+ useLanguage();
  if(!currentSettings().infoCards||app.app_type===APP_TYPE_SHORTCUT)return null;
  return <AchievementsCard app={app} onFocus={onFocus}/>;
 }
 
 /** Shortcut cards under the Store and Game Library tiles. */
 export function ActionCards({ cards, onFocus }: { cards: ActionCard[]; onFocus: () => void }) {
+ useLanguage();
   if (!currentSettings().infoCards || cards.length === 0) return null;
   return (
     <Focusable className="ghd-infocards" flow-children="row">
