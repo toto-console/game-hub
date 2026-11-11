@@ -1,20 +1,20 @@
-# Game Hub 0.13.0-dev.46
+# Game Hub 0.13.0-dev.47
 
-Experimental Windows-first update from dev.38. Download **Game-Hub-0.13.0-dev.46-decky.zip** and verify it against SHA256SUMS.txt.
+Experimental Linux compatibility candidate. Install **Game-Hub-0.13.0-dev.47-decky.zip** through Decky and verify SHA256SUMS.txt. Do not install GitHub's automatic Source code archives.
 
-## Changes
+## Changes since dev.46
 
-- Native Audio Loader-compatible navigation, selection and Back sounds across Library, Welcome and custom Back handlers. No sound packs are bundled.
-- Control Center keeps Party, Friends, Game News and Messages visible while browsing dock icons. The current-game and achievements tab is preserved; selecting dock icons still opens their controls.
-- Notifications display supported friend avatars and game artwork, clearer descriptions, dates and unread indicators. Recognizes Steam's current FriendMessage sender/icon fields and game IDs in grouped alerts. Private message bodies are not collected.
-- Welcome accepts GIF, animated WebP/APNG and compatible MP4/WebM/Ogg wallpapers up to 5 MB. Videos loop muted, with an animation toggle, reduced-motion handling and inactive-screen cleanup. Both Welcome-only and entire-Home placement are retained. Video codec support depends on Steam's browser.
-- Native Steam header is hidden while integrated Home/Library is mounted, including the return from Library.
-- Welcome shows its icon and name at the top left when navigating into widgets, matching the game-page heading transition.
+- Linux Welcome storage uses Decky's actual user home filesystem, with a settings-filesystem fallback, instead of the operating-system root partition. Windows drive reporting is preserved.
+- Store/Friend Activity styling now uses capability detection on Linux as well as Windows. It only uses Steam's existing loopback renderer endpoint; no ports, firewall settings, services, or OS configuration are changed. If unavailable, native Steam remains the fallback.
+- The named source ZIP includes its matching compiled frontend and receives the same package validation as the install ZIP. Previously a named source ZIP installed as a plugin could leave Decky unable to fetch the missing frontend.
+- Added Windows/Ubuntu backend test jobs and a Linux device acceptance checklist.
 
-## Installation and compatibility
+## Steam Deck loading error
 
-Use Decky's Install Plugin from ZIP while idle after backing up the plugin and settings. Settings are preserved by the package. Automatic installation remains disabled; no exact Decky/platform pairing has been certified for automated updates. Select the beta update channel to discover this pre-release.
+A report shows “Failed to fetch dynamically imported module.” The installed version, ZIP and full URL are unknown, so the cause on that device is unconfirmed. The dev.46 install ZIP contains dist/index.js; its source ZIP does not. Reinstall the named -decky.zip through Decky, then restart Steam when idle if necessary. Preserve settings. If the issue persists, report Game Hub, Decky and Steam versions plus the complete failed-module URL and matching Decky log error. This release does not claim to resolve every cause of that error.
 
-Local build/load checks use Windows 11 x64 and an unidentified Decky development build. Windows 10, SteamOS and Bazzite remain untested. CI building on Linux does not establish SteamOS compatibility. Steam internal API changes may affect integrations. Optional plugins are not installed or modified.
+## Compatibility and testing
 
-TypeScript, production builds and automated regression checks are required before publication. Live Xbox navigation, audio-pack playback, long-running animated wallpaper performance, gameplay and voice-call acceptance remain manual checks. No game processes, saves, personal artwork, credentials or sound packs are included.
+No SteamOS or Bazzite device was available. This is not a verified Linux support release. Automated Ubuntu tests cannot validate Gaming Mode, Guide input, voice, optional-plugin audio, video codecs or game overlays. See docs/LINUX-TESTING.md in the source package for the device checklist and remaining limitations.
+
+Existing Windows UI and integrations are preserved. Optional plugins are not installed or modified. No game processes or saves are touched. Automatic update installation remains disabled and compatibility targets remain uncertified. Keep your previous ZIP and settings backup for rollback.
