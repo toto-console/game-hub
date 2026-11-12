@@ -1,7 +1,10 @@
 {
   "Language": {
     "pt-BR": "Idioma",
-    "ja": "言語"
+    "ja": "言語",
+    "es": "Idioma",
+    "fr": "Langue",
+    "de": "Sprache"
   },
   "Languages": {
     "pt-BR": "Idiomas",
@@ -9,7 +12,10 @@
   },
   "Use system language": {
     "pt-BR": "Usar idioma do sistema",
-    "ja": "システム言語を使用"
+    "ja": "システム言語を使用",
+    "es": "Usar idioma del sistema",
+    "fr": "Utiliser la langue du système",
+    "de": "Systemsprache verwenden"
   },
   "Changes apply immediately to Game Hub. Steam and game languages are unchanged.": {
     "pt-BR": "As alterações são aplicadas imediatamente ao Game Hub. Os idiomas do Steam e dos jogos não são alterados.",
@@ -21,35 +27,59 @@
   },
   "Settings": {
     "pt-BR": "Configurações",
-    "ja": "設定"
+    "ja": "設定",
+    "es": "Ajustes",
+    "fr": "Paramètres",
+    "de": "Einstellungen"
   },
   "Home": {
     "pt-BR": "Início",
-    "ja": "ホーム"
+    "ja": "ホーム",
+    "es": "Inicio",
+    "fr": "Accueil",
+    "de": "Startseite"
   },
   "Games": {
     "pt-BR": "Jogos",
-    "ja": "ゲーム"
+    "ja": "ゲーム",
+    "es": "Juegos",
+    "fr": "Jeux",
+    "de": "Spiele"
   },
   "Media": {
     "pt-BR": "Mídia",
-    "ja": "メディア"
+    "ja": "メディア",
+    "es": "Multimedia",
+    "fr": "Médias",
+    "de": "Medien"
   },
   "Welcome": {
     "pt-BR": "Boas-vindas",
-    "ja": "ウェルカム"
+    "ja": "ウェルカム",
+    "es": "Bienvenida",
+    "fr": "Bienvenue",
+    "de": "Willkommen"
   },
   "Game Library": {
     "pt-BR": "Biblioteca de jogos",
-    "ja": "ゲームライブラリー"
+    "ja": "ゲームライブラリー",
+    "es": "Biblioteca de juegos",
+    "fr": "Bibliothèque de jeux",
+    "de": "Spielebibliothek"
   },
   "Installed": {
     "pt-BR": "Instalados",
-    "ja": "インストール済み"
+    "ja": "インストール済み",
+    "es": "Instalado",
+    "fr": "Installé",
+    "de": "Installiert"
   },
   "Your Collection": {
     "pt-BR": "Sua coleção",
-    "ja": "コレクション"
+    "ja": "コレクション",
+    "es": "Tu colección",
+    "fr": "Votre collection",
+    "de": "Deine Sammlung"
   },
   "All Games": {
     "pt-BR": "Todos os jogos",
@@ -57,23 +87,38 @@
   },
   "Favorites": {
     "pt-BR": "Favoritos",
-    "ja": "お気に入り"
+    "ja": "お気に入り",
+    "es": "Favoritos",
+    "fr": "Favoris",
+    "de": "Favoriten"
   },
   "Friends": {
     "pt-BR": "Amigos",
-    "ja": "フレンド"
+    "ja": "フレンド",
+    "es": "Amigos",
+    "fr": "Amis",
+    "de": "Freunde"
   },
   "Friends Online": {
     "pt-BR": "Amigos online",
-    "ja": "オンラインのフレンド"
+    "ja": "オンラインのフレンド",
+    "es": "Amigos en línea",
+    "fr": "Amis en ligne",
+    "de": "Freunde online"
   },
   "Friend Activity": {
     "pt-BR": "Atividade dos amigos",
-    "ja": "フレンドのアクティビティ"
+    "ja": "フレンドのアクティビティ",
+    "es": "Actividad de amigos",
+    "fr": "Activité des amis",
+    "de": "Freundesaktivität"
   },
   "Messages": {
     "pt-BR": "Mensagens",
-    "ja": "メッセージ"
+    "ja": "メッセージ",
+    "es": "Mensajes",
+    "fr": "Messages",
+    "de": "Nachrichten"
   },
   "Message": {
     "pt-BR": "Mensagem",
@@ -81,27 +126,45 @@
   },
   "Party": {
     "pt-BR": "Grupo",
-    "ja": "パーティー"
+    "ja": "パーティー",
+    "es": "Grupo",
+    "fr": "Groupe",
+    "de": "Gruppe"
   },
   "Notifications": {
     "pt-BR": "Notificações",
-    "ja": "通知"
+    "ja": "通知",
+    "es": "Notificaciones",
+    "fr": "Notifications",
+    "de": "Benachrichtigungen"
   },
   "Search for Players": {
     "pt-BR": "Buscar jogadores",
-    "ja": "プレイヤーを検索"
+    "ja": "プレイヤーを検索",
+    "es": "Buscar jugadores",
+    "fr": "Rechercher des joueurs",
+    "de": "Spieler suchen"
   },
   "Friend Requests": {
     "pt-BR": "Pedidos de amizade",
-    "ja": "フレンドリクエスト"
+    "ja": "フレンドリクエスト",
+    "es": "Solicitudes de amistad",
+    "fr": "Demandes d’amis",
+    "de": "Freundschaftsanfragen"
   },
   "Play": {
     "pt-BR": "Jogar",
-    "ja": "プレイ"
+    "ja": "プレイ",
+    "es": "Jugar",
+    "fr": "Jouer",
+    "de": "Spielen"
   },
   "Back": {
     "pt-BR": "Voltar",
-    "ja": "戻る"
+    "ja": "戻る",
+    "es": "Atrás",
+    "fr": "Retour",
+    "de": "Zurück"
   },
   "Cancel": {
     "pt-BR": "Cancelar",
@@ -109,11 +172,17 @@
   },
   "Close": {
     "pt-BR": "Fechar",
-    "ja": "閉じる"
+    "ja": "閉じる",
+    "es": "Cerrar",
+    "fr": "Fermer",
+    "de": "Schließen"
   },
   "Done": {
     "pt-BR": "Concluído",
-    "ja": "完了"
+    "ja": "完了",
+    "es": "Listo",
+    "fr": "Terminé",
+    "de": "Fertig"
   },
   "Save": {
     "pt-BR": "Salvar",
@@ -129,15 +198,24 @@
   },
   "Search": {
     "pt-BR": "Buscar",
-    "ja": "検索"
+    "ja": "検索",
+    "es": "Buscar",
+    "fr": "Rechercher",
+    "de": "Suchen"
   },
   "On": {
     "pt-BR": "Ativado",
-    "ja": "オン"
+    "ja": "オン",
+    "es": "Activado",
+    "fr": "Activé",
+    "de": "Ein"
   },
   "Off": {
     "pt-BR": "Desativado",
-    "ja": "オフ"
+    "ja": "オフ",
+    "es": "Desactivado",
+    "fr": "Désactivé",
+    "de": "Aus"
   },
   "ON": {
     "pt-BR": "ATIVADO",
@@ -181,7 +259,10 @@
   },
   "Appearance": {
     "pt-BR": "Aparência",
-    "ja": "外観"
+    "ja": "外観",
+    "es": "Apariencia",
+    "fr": "Apparence",
+    "de": "Darstellung"
   },
   "Decky / Shortcuts": {
     "pt-BR": "Decky / Atalhos",
@@ -189,19 +270,31 @@
   },
   "About": {
     "pt-BR": "Sobre",
-    "ja": "情報"
+    "ja": "情報",
+    "es": "Acerca de",
+    "fr": "À propos",
+    "de": "Info"
   },
   "Home Dashboard": {
     "pt-BR": "Tela inicial",
-    "ja": "ホーム画面"
+    "ja": "ホーム画面",
+    "es": "Panel de inicio",
+    "fr": "Tableau de bord d’accueil",
+    "de": "Start-Dashboard"
   },
   "Integrations": {
     "pt-BR": "Integrações",
-    "ja": "連携"
+    "ja": "連携",
+    "es": "Integraciones",
+    "fr": "Intégrations",
+    "de": "Integrationen"
   },
   "Software Update": {
     "pt-BR": "Atualização de software",
-    "ja": "ソフトウェアアップデート"
+    "ja": "ソフトウェアアップデート",
+    "es": "Actualización de software",
+    "fr": "Mise à jour logicielle",
+    "de": "Softwareupdate"
   },
   "Do Not Disturb": {
     "pt-BR": "Não perturbe",
@@ -301,7 +394,10 @@
   },
   "Manage Apps": {
     "pt-BR": "Gerenciar aplicativos",
-    "ja": "アプリを管理"
+    "ja": "アプリを管理",
+    "es": "Administrar aplicaciones",
+    "fr": "Gérer les applications",
+    "de": "Apps verwalten"
   },
   "Changes apply to Game Hub. Steam controls open their native settings.": {
     "pt-BR": "As alterações se aplicam ao Game Hub. Os controles do Steam abrem suas configurações originais.",
@@ -309,47 +405,80 @@
   },
   "Back to Control Center": {
     "pt-BR": "Voltar à Central de controle",
-    "ja": "コントロールセンターに戻る"
+    "ja": "コントロールセンターに戻る",
+    "es": "Volver al centro de control",
+    "fr": "Retour au centre de contrôle",
+    "de": "Zurück zum Kontrollzentrum"
   },
   "Start a party": {
     "pt-BR": "Iniciar um grupo",
-    "ja": "パーティーを開始"
+    "ja": "パーティーを開始",
+    "es": "Iniciar un grupo",
+    "fr": "Créer un groupe",
+    "de": "Gruppe starten"
   },
   "In Voice Chat": {
     "pt-BR": "Em chat de voz",
-    "ja": "ボイスチャット中"
+    "ja": "ボイスチャット中",
+    "es": "En chat de voz",
+    "fr": "Dans le chat vocal",
+    "de": "Im Sprachchat"
   },
   "Connecting": {
     "pt-BR": "Conectando",
-    "ja": "接続中"
+    "ja": "接続中",
+    "es": "Conectando",
+    "fr": "Connexion en cours",
+    "de": "Verbindung wird hergestellt"
   },
   "All caught up": {
     "pt-BR": "Tudo em dia",
-    "ja": "新しい通知はありません"
+    "ja": "新しい通知はありません",
+    "es": "Todo al día",
+    "fr": "Vous êtes à jour",
+    "de": "Alles gelesen"
   },
   "Game News": {
     "pt-BR": "Notícias de jogos",
-    "ja": "ゲームニュース"
+    "ja": "ゲームニュース",
+    "es": "Noticias de juegos",
+    "fr": "Actualités des jeux",
+    "de": "Spielenachrichten"
   },
   "Downloads / Uploads": {
     "pt-BR": "Downloads / Uploads",
-    "ja": "ダウンロード／アップロード"
+    "ja": "ダウンロード／アップロード",
+    "es": "Descargas / Cargas",
+    "fr": "Téléchargements / Envois",
+    "de": "Downloads / Uploads"
   },
   "Downloads": {
     "pt-BR": "Downloads",
-    "ja": "ダウンロード"
+    "ja": "ダウンロード",
+    "es": "Descargas",
+    "fr": "Téléchargements",
+    "de": "Downloads"
   },
   "Switcher / Games": {
     "pt-BR": "Alternador / Jogos",
-    "ja": "スイッチャー／ゲーム"
+    "ja": "スイッチャー／ゲーム",
+    "es": "Selector / Juegos",
+    "fr": "Sélecteur / Jeux",
+    "de": "Wechsler / Spiele"
   },
   "Sound": {
     "pt-BR": "Som",
-    "ja": "サウンド"
+    "ja": "サウンド",
+    "es": "Sonido",
+    "fr": "Son",
+    "de": "Ton"
   },
   "Microphone": {
     "pt-BR": "Microfone",
-    "ja": "マイク"
+    "ja": "マイク",
+    "es": "Micrófono",
+    "fr": "Microphone",
+    "de": "Mikrofon"
   },
   "Muted": {
     "pt-BR": "Silenciado",
@@ -361,15 +490,24 @@
   },
   "Profile": {
     "pt-BR": "Perfil",
-    "ja": "プロフィール"
+    "ja": "プロフィール",
+    "es": "Perfil",
+    "fr": "Profil",
+    "de": "Profil"
   },
   "Power": {
     "pt-BR": "Energia",
-    "ja": "電源"
+    "ja": "電源",
+    "es": "Encendido",
+    "fr": "Alimentation",
+    "de": "Ein/Aus"
   },
   "Music": {
     "pt-BR": "Música",
-    "ja": "ミュージック"
+    "ja": "ミュージック",
+    "es": "Música",
+    "fr": "Musique",
+    "de": "Musik"
   },
   "Control Center": {
     "pt-BR": "Central de controle",
@@ -393,7 +531,10 @@
   },
   "Achievements": {
     "pt-BR": "Conquistas",
-    "ja": "実績"
+    "ja": "実績",
+    "es": "Logros",
+    "fr": "Succès",
+    "de": "Erfolge"
   },
   "Activities": {
     "pt-BR": "Atividades",
@@ -417,7 +558,10 @@
   },
   "PC Storage": {
     "pt-BR": "Armazenamento do PC",
-    "ja": "PCストレージ"
+    "ja": "PCストレージ",
+    "es": "Almacenamiento del PC",
+    "fr": "Stockage du PC",
+    "de": "PC-Speicher"
   },
   "News": {
     "pt-BR": "Notícias",
@@ -425,11 +569,17 @@
   },
   "Wishlist": {
     "pt-BR": "Lista de desejos",
-    "ja": "ウィッシュリスト"
+    "ja": "ウィッシュリスト",
+    "es": "Lista de deseados",
+    "fr": "Liste de souhaits",
+    "de": "Wunschliste"
   },
   "Steam Store": {
     "pt-BR": "Loja Steam",
-    "ja": "Steamストア"
+    "ja": "Steamストア",
+    "es": "Tienda de Steam",
+    "fr": "Magasin Steam",
+    "de": "Steam-Shop"
   },
   "Controller": {
     "pt-BR": "Controle",
@@ -441,23 +591,38 @@
   },
   "Customize Welcome": {
     "pt-BR": "Personalizar boas-vindas",
-    "ja": "ウェルカムをカスタマイズ"
+    "ja": "ウェルカムをカスタマイズ",
+    "es": "Personalizar bienvenida",
+    "fr": "Personnaliser l’accueil",
+    "de": "Willkommen anpassen"
   },
   "Background": {
     "pt-BR": "Plano de fundo",
-    "ja": "背景"
+    "ja": "背景",
+    "es": "Fondo",
+    "fr": "Arrière-plan",
+    "de": "Hintergrund"
   },
   "Wallpaper placement": {
     "pt-BR": "Posição do papel de parede",
-    "ja": "壁紙の表示範囲"
+    "ja": "壁紙の表示範囲",
+    "es": "Ubicación del fondo",
+    "fr": "Emplacement du fond d’écran",
+    "de": "Hintergrundbildbereich"
   },
   "Welcome only": {
     "pt-BR": "Somente boas-vindas",
-    "ja": "ウェルカムのみ"
+    "ja": "ウェルカムのみ",
+    "es": "Solo bienvenida",
+    "fr": "Accueil uniquement",
+    "de": "Nur Willkommen"
   },
   "Welcome + entire Home screen": {
     "pt-BR": "Boas-vindas + toda a tela inicial",
-    "ja": "ウェルカムとホーム画面全体"
+    "ja": "ウェルカムとホーム画面全体",
+    "es": "Bienvenida y toda la pantalla de inicio",
+    "fr": "Accueil et tout l’écran principal",
+    "de": "Willkommen und gesamter Startbildschirm"
   },
   "Choose image or animated wallpaper": {
     "pt-BR": "Escolher imagem ou papel de parede animado",
@@ -481,15 +646,24 @@
   },
   "Resize": {
     "pt-BR": "Redimensionar",
-    "ja": "サイズを変更"
+    "ja": "サイズを変更",
+    "es": "Cambiar tamaño",
+    "fr": "Redimensionner",
+    "de": "Größe ändern"
   },
   "Show / Hide": {
     "pt-BR": "Mostrar / Ocultar",
-    "ja": "表示／非表示"
+    "ja": "表示／非表示",
+    "es": "Mostrar / Ocultar",
+    "fr": "Afficher / Masquer",
+    "de": "Anzeigen / Ausblenden"
   },
   "Save custom arrangement": {
     "pt-BR": "Salvar organização personalizada",
-    "ja": "カスタム配置を保存"
+    "ja": "カスタム配置を保存",
+    "es": "Guardar diseño personalizado",
+    "fr": "Enregistrer la disposition",
+    "de": "Anordnung speichern"
   },
   "Make yourself at home": {
     "pt-BR": "Sinta-se em casa",
@@ -525,7 +699,10 @@
   },
   "Send": {
     "pt-BR": "Enviar",
-    "ja": "送信"
+    "ja": "送信",
+    "es": "Enviar",
+    "fr": "Envoyer",
+    "de": "Senden"
   },
   "Invite": {
     "pt-BR": "Convidar",
@@ -549,7 +726,10 @@
   },
   "View profile": {
     "pt-BR": "Ver perfil",
-    "ja": "プロフィールを見る"
+    "ja": "プロフィールを見る",
+    "es": "Ver perfil",
+    "fr": "Voir le profil",
+    "de": "Profil anzeigen"
   },
   "Loading…": {
     "pt-BR": "Carregando…",
@@ -557,395 +737,689 @@
   },
   "Enable PS5 look": {
     "pt-BR": "Ativar visual PS5",
-    "ja": "PS5スタイルを有効にする"
+    "ja": "PS5スタイルを有効にする",
+    "es": "Activar el aspecto PS5",
+    "fr": "Activer le look PS5",
+    "de": "PS5-Look aktivieren"
   },
   "Applies the PlayStation 5 home screen layout to Game Mode.": {
     "pt-BR": "Aplica o layout da tela inicial do PlayStation 5 no Modo Jogo.",
-    "ja": "PlayStation 5のホーム画面のレイアウトをゲームモードに適用します。"
+    "ja": "PlayStation 5のホーム画面のレイアウトをゲームモードに適用します。",
+    "es": "Aplica el diseño de la pantalla de inicio de PlayStation 5 al modo Juego.",
+    "fr": "Applique la disposition de l'écran d'accueil de la PlayStation 5 au mode Jeu.",
+    "de": "Übernimmt das Layout des PlayStation-5-Startbildschirms in den Spielmodus."
   },
   "PS5 screens": {
     "pt-BR": "Telas PS5",
-    "ja": "PS5の画面"
+    "ja": "PS5の画面",
+    "es": "Pantallas PS5",
+    "fr": "Écrans PS5",
+    "de": "PS5-Bildschirme"
   },
   "PS5 home screen": {
     "pt-BR": "Tela inicial PS5",
-    "ja": "PS5ホーム画面"
+    "ja": "PS5ホーム画面",
+    "es": "Pantalla de inicio PS5",
+    "fr": "Écran d'accueil PS5",
+    "de": "PS5-Startbildschirm"
   },
   "Replaces Steam's home with one just like the PS5: game row on top, game art and a Play button.": {
     "pt-BR": "Troca a tela inicial da Steam por uma igual à do PS5: fileira de jogos no topo, arte do jogo e botão Jogar.",
-    "ja": "SteamのホームをPS5と同じ画面に置き換えます：上部にゲームの列、ゲームのアート、プレイボタン。"
+    "ja": "SteamのホームをPS5と同じ画面に置き換えます：上部にゲームの列、ゲームのアート、プレイボタン。",
+    "es": "Sustituye el inicio de Steam por uno igual al de PS5: fila de juegos arriba, arte del juego y botón Jugar.",
+    "fr": "Remplace l'accueil de Steam par un écran comme celui de la PS5 : rangée de jeux en haut, illustration du jeu et bouton Jouer.",
+    "de": "Ersetzt Steams Startseite durch eine wie auf der PS5: Spielereihe oben, Spielgrafik und Spielen-Taste."
   },
   "Open Game Library": {
     "pt-BR": "Abrir Biblioteca de jogos",
-    "ja": "ゲームライブラリを開く"
+    "ja": "ゲームライブラリを開く",
+    "es": "Abrir la biblioteca de juegos",
+    "fr": "Ouvrir la bibliothèque de jeux",
+    "de": "Spielebibliothek öffnen"
   },
   "Open Steam's library": {
     "pt-BR": "Abrir a biblioteca da Steam",
-    "ja": "Steamライブラリを開く"
+    "ja": "Steamライブラリを開く",
+    "es": "Abrir la biblioteca de Steam",
+    "fr": "Ouvrir la bibliothèque Steam",
+    "de": "Steam-Bibliothek öffnen"
   },
   "The library tile on the home screen and the shortcuts open Steam's library (with your TabMaster tabs) instead of the PS5 Game Library.": {
     "pt-BR": "O bloco da biblioteca na tela inicial e os atalhos abrem a biblioteca da Steam (com as abas do TabMaster) em vez da Biblioteca de jogos do PS5.",
-    "ja": "ホーム画面のライブラリタイルとショートカットで、PS5ゲームライブラリの代わりにSteamライブラリ（TabMasterのタブ付き）を開きます。"
+    "ja": "ホーム画面のライブラリタイルとショートカットで、PS5ゲームライブラリの代わりにSteamライブラリ（TabMasterのタブ付き）を開きます。",
+    "es": "El bloque de biblioteca del inicio y los accesos directos abren la biblioteca de Steam (con tus pestañas de TabMaster) en lugar de la biblioteca de juegos PS5.",
+    "fr": "La tuile de bibliothèque de l'accueil et les raccourcis ouvrent la bibliothèque Steam (avec vos onglets TabMaster) au lieu de la bibliothèque de jeux PS5.",
+    "de": "Die Bibliothekskachel auf dem Startbildschirm und die Verknüpfungen öffnen Steams Bibliothek (mit deinen TabMaster-Tabs) statt der PS5-Spielebibliothek."
   },
   "Your Steam library, with your tabs": {
     "pt-BR": "Sua biblioteca da Steam, com as suas abas",
-    "ja": "タブ付きのSteamライブラリ"
+    "ja": "タブ付きのSteamライブラリ",
+    "es": "Tu biblioteca de Steam, con tus pestañas",
+    "fr": "Votre bibliothèque Steam, avec vos onglets",
+    "de": "Deine Steam-Bibliothek mit deinen Tabs"
   },
   "Info cards": {
     "pt-BR": "Cards de informações",
-    "ja": "情報カード"
+    "ja": "情報カード",
+    "es": "Tarjetas de información",
+    "fr": "Cartes d'infos",
+    "de": "Infokarten"
   },
   "Shows cards under the Play button: time to beat, achievements, your playtime and reviews.": {
     "pt-BR": "Mostra cards embaixo do botão Jogar: tempo para zerar, conquistas, seu tempo e avaliações.",
-    "ja": "プレイボタンの下にカードを表示：クリア時間、実績、プレイ時間、レビュー。"
+    "ja": "プレイボタンの下にカードを表示：クリア時間、実績、プレイ時間、レビュー。",
+    "es": "Muestra tarjetas bajo el botón Jugar: tiempo para terminar, logros, tu tiempo de juego y reseñas.",
+    "fr": "Affiche des cartes sous le bouton Jouer : durée de jeu, succès, votre temps de jeu et évaluations.",
+    "de": "Zeigt Karten unter der Spielen-Taste: Spieldauer, Erfolge, deine Spielzeit und Bewertungen."
   },
   "HowLongToBeat": {
     "pt-BR": "HowLongToBeat",
-    "ja": "HowLongToBeat"
+    "ja": "HowLongToBeat",
+    "es": "HowLongToBeat",
+    "fr": "HowLongToBeat",
+    "de": "HowLongToBeat"
   },
   "Looks up how long each game takes to beat. One request per game, kept for a week.": {
     "pt-BR": "Busca quanto tempo leva para zerar cada jogo. Uma consulta por jogo, guardada por uma semana.",
-    "ja": "各ゲームのクリアにかかる時間を調べます。ゲームごとに1回の問い合わせで、1週間保存されます。"
+    "ja": "各ゲームのクリアにかかる時間を調べます。ゲームごとに1回の問い合わせで、1週間保存されます。",
+    "es": "Consulta cuánto se tarda en terminar cada juego. Una consulta por juego, guardada una semana.",
+    "fr": "Indique le temps nécessaire pour finir chaque jeu. Une requête par jeu, conservée une semaine.",
+    "de": "Ermittelt, wie lange jedes Spiel dauert. Eine Anfrage pro Spiel, eine Woche lang gespeichert."
   },
   "PS5 colors everywhere": {
     "pt-BR": "Cores do PS5 em tudo",
-    "ja": "すべてをPS5カラーに"
+    "ja": "すべてをPS5カラーに",
+    "es": "Colores PS5 en todo",
+    "fr": "Couleurs PS5 partout",
+    "de": "PS5-Farben überall"
   },
   "Swaps Steam's blue and green for the accent color and deepens its greys to the PS5 tone, in menus, buttons and pages.": {
     "pt-BR": "Troca o azul e o verde da Steam pela cor de destaque e escurece os cinzas para o tom do PS5, em menus, botões e páginas.",
-    "ja": "Steamの青と緑をアクセントカラーに置き換え、グレーをPS5の色調に暗くします（メニュー、ボタン、ページ）。"
+    "ja": "Steamの青と緑をアクセントカラーに置き換え、グレーをPS5の色調に暗くします（メニュー、ボタン、ページ）。",
+    "es": "Cambia el azul y el verde de Steam por el color de acento y oscurece sus grises al tono PS5, en menús, botones y páginas.",
+    "fr": "Remplace le bleu et le vert de Steam par la couleur d'accent et assombrit ses gris au ton PS5, dans les menus, boutons et pages.",
+    "de": "Ersetzt Steams Blau und Grün durch die Akzentfarbe und vertieft die Grautöne auf den PS5-Ton – in Menüs, Tasten und Seiten."
   },
   "Accent color": {
     "pt-BR": "Cor de destaque",
-    "ja": "アクセントカラー"
+    "ja": "アクセントカラー",
+    "es": "Color de acento",
+    "fr": "Couleur d'accent",
+    "de": "Akzentfarbe"
   },
   "Home background": {
     "pt-BR": "Fundo da tela inicial",
-    "ja": "ホームの背景"
+    "ja": "ホームの背景",
+    "es": "Fondo del inicio",
+    "fr": "Fond de l'accueil",
+    "de": "Hintergrund der Startseite"
   },
   "Game art (PS5)": {
     "pt-BR": "Arte do jogo (PS5)",
-    "ja": "ゲームのアート（PS5）"
+    "ja": "ゲームのアート（PS5）",
+    "es": "Arte del juego (PS5)",
+    "fr": "Illustration du jeu (PS5)",
+    "de": "Spielgrafik (PS5)"
   },
   "Accent color gradient": {
     "pt-BR": "Gradiente na cor de destaque",
-    "ja": "アクセントカラーのグラデーション"
+    "ja": "アクセントカラーのグラデーション",
+    "es": "Degradado del color de acento",
+    "fr": "Dégradé de la couleur d'accent",
+    "de": "Verlauf in Akzentfarbe"
   },
   "Dark": {
     "pt-BR": "Escuro",
-    "ja": "ダーク"
+    "ja": "ダーク",
+    "es": "Oscuro",
+    "fr": "Sombre",
+    "de": "Dunkel"
   },
   "Focus": {
     "pt-BR": "Foco",
-    "ja": "フォーカス"
+    "ja": "フォーカス",
+    "es": "Selección",
+    "fr": "Sélection",
+    "de": "Fokus"
   },
   "White glow (PS5)": {
     "pt-BR": "Brilho branco (PS5)",
-    "ja": "白い光（PS5）"
+    "ja": "白い光（PS5）",
+    "es": "Brillo blanco (PS5)",
+    "fr": "Halo blanc (PS5)",
+    "de": "Weißes Leuchten (PS5)"
   },
   "Accent color glow": {
     "pt-BR": "Brilho na cor de destaque",
-    "ja": "アクセントカラーの光"
+    "ja": "アクセントカラーの光",
+    "es": "Brillo del color de acento",
+    "fr": "Halo de la couleur d'accent",
+    "de": "Leuchten in Akzentfarbe"
   },
   "Space for the art": {
     "pt-BR": "Espaço para a arte",
-    "ja": "アートの表示スペース"
+    "ja": "アートの表示スペース",
+    "es": "Espacio para el arte",
+    "fr": "Espace pour l'illustration",
+    "de": "Platz für die Grafik"
   },
   "Only for Steam's home screen (with PS5 home screen turned off).": {
     "pt-BR": "Só para a tela inicial da Steam (com a Tela inicial PS5 desligada).",
-    "ja": "Steamのホーム画面のみ（PS5ホーム画面がオフのとき）。"
+    "ja": "Steamのホーム画面のみ（PS5ホーム画面がオフのとき）。",
+    "es": "Solo para el inicio de Steam (con la pantalla de inicio PS5 desactivada).",
+    "fr": "Uniquement pour l'accueil de Steam (écran d'accueil PS5 désactivé).",
+    "de": "Nur für Steams Startseite (wenn der PS5-Startbildschirm aus ist)."
   },
   "Tile corner radius": {
     "pt-BR": "Arredondamento dos blocos",
-    "ja": "タイルの角の丸み"
+    "ja": "タイルの角の丸み",
+    "es": "Redondeo de los bloques",
+    "fr": "Arrondi des tuiles",
+    "de": "Eckenradius der Kacheln"
   },
   "Layout": {
     "pt-BR": "Layout",
-    "ja": "レイアウト"
+    "ja": "レイアウト",
+    "es": "Diseño",
+    "fr": "Disposition",
+    "de": "Layout"
   },
   "Control Center-style menus": {
     "pt-BR": "Menus estilo Central de controle",
-    "ja": "コントロールセンター風のメニュー"
+    "ja": "コントロールセンター風のメニュー",
+    "es": "Menús estilo centro de control",
+    "fr": "Menus style centre de contrôle",
+    "de": "Menüs im Stil des Kontrollzentrums"
   },
   "Steam menu and Quick Access with a dark panel, rounded corners and a white focused item.": {
     "pt-BR": "Menu Steam e Acesso Rápido com painel escuro, cantos arredondados e item focado em branco.",
-    "ja": "Steamメニューとクイックアクセスを、暗いパネル、丸い角、白い選択項目にします。"
+    "ja": "Steamメニューとクイックアクセスを、暗いパネル、丸い角、白い選択項目にします。",
+    "es": "Menú Steam y acceso rápido con panel oscuro, esquinas redondeadas y el elemento seleccionado en blanco.",
+    "fr": "Menu Steam et accès rapide avec un panneau sombre, des coins arrondis et l'élément sélectionné en blanc.",
+    "de": "Steam-Menü und Schnellzugriff mit dunklem Panel, runden Ecken und weißem ausgewähltem Eintrag."
   },
   "Style Steam's library": {
     "pt-BR": "Estilizar a biblioteca da Steam",
-    "ja": "Steamライブラリをスタイル変更"
+    "ja": "Steamライブラリをスタイル変更",
+    "es": "Dar estilo a la biblioteca de Steam",
+    "fr": "Styliser la bibliothèque Steam",
+    "de": "Steam-Bibliothek gestalten"
   },
   "PS5-style rounded capsules, focus and tabs in Steam's library. Turn off to keep Steam's own look or use plugins like TabMaster.": {
     "pt-BR": "Capas arredondadas, foco e abas no estilo PS5 na biblioteca da Steam. Desligue para usar o visual original ou plugins como o TabMaster.",
-    "ja": "SteamライブラリでPS5風の丸いカバー、フォーカス、タブを使います。オフにするとSteam本来の見た目のまま、TabMasterなどのプラグインも使えます。"
+    "ja": "SteamライブラリでPS5風の丸いカバー、フォーカス、タブを使います。オフにするとSteam本来の見た目のまま、TabMasterなどのプラグインも使えます。",
+    "es": "Portadas redondeadas, selección y pestañas estilo PS5 en la biblioteca de Steam. Desactívalo para mantener el aspecto de Steam o usar plugins como TabMaster.",
+    "fr": "Jaquettes arrondies, sélection et onglets façon PS5 dans la bibliothèque Steam. Désactivez pour garder le look de Steam ou utiliser des plugins comme TabMaster.",
+    "de": "Abgerundete Spielcover, Fokus und Tabs im PS5-Stil in Steams Bibliothek. Ausschalten, um Steams eigenen Look zu behalten oder Plugins wie TabMaster zu nutzen."
   },
   "Clean home screen": {
     "pt-BR": "Tela inicial limpa",
-    "ja": "シンプルなホーム画面"
+    "ja": "シンプルなホーム画面",
+    "es": "Inicio limpio",
+    "fr": "Accueil épuré",
+    "de": "Aufgeräumte Startseite"
   },
   "Hides What's New, Friends and Recommended below the recent games.": {
     "pt-BR": "Esconde Novidades, Amigos e Recomendados abaixo dos jogos recentes.",
-    "ja": "最近のゲームの下にある新着情報、フレンド、おすすめを非表示にします。"
+    "ja": "最近のゲームの下にある新着情報、フレンド、おすすめを非表示にします。",
+    "es": "Oculta Novedades, Amigos y Recomendados bajo los juegos recientes.",
+    "fr": "Masque Nouveautés, Amis et Recommandations sous les jeux récents.",
+    "de": "Blendet Neuigkeiten, Freunde und Empfehlungen unter den zuletzt gespielten Spielen aus."
   },
   "Hide bottom bar": {
     "pt-BR": "Ocultar barra inferior",
-    "ja": "下部のバーを隠す"
+    "ja": "下部のバーを隠す",
+    "es": "Ocultar la barra inferior",
+    "fr": "Masquer la barre du bas",
+    "de": "Untere Leiste ausblenden"
   },
   "Hides the controller button hints bar (A, B, X, Y) at the bottom of the screen.": {
     "pt-BR": "Esconde a barra de botões do controle (A, B, X, Y) que aparece na parte de baixo da tela.",
-    "ja": "画面下部のコントローラーボタンのヒントバー（A、B、X、Y）を非表示にします。"
+    "ja": "画面下部のコントローラーボタンのヒントバー（A、B、X、Y）を非表示にします。",
+    "es": "Oculta la barra de indicaciones de botones del mando (A, B, X, Y) en la parte inferior de la pantalla.",
+    "fr": "Masque la barre d'aide des boutons de la manette (A, B, X, Y) en bas de l'écran.",
+    "de": "Blendet die Leiste mit den Controller-Tastenhinweisen (A, B, X, Y) unten am Bildschirm aus."
   },
   "PlayStation-style font (SST)": {
     "pt-BR": "Fonte estilo PlayStation (SST)",
-    "ja": "PlayStation風フォント（SST）"
+    "ja": "PlayStation風フォント（SST）",
+    "es": "Fuente estilo PlayStation (SST)",
+    "fr": "Police style PlayStation (SST)",
+    "de": "Schrift im PlayStation-Stil (SST)"
   },
   "Reset to defaults": {
     "pt-BR": "Restaurar padrões",
-    "ja": "初期設定に戻す"
+    "ja": "初期設定に戻す",
+    "es": "Restablecer valores predeterminados",
+    "fr": "Rétablir les valeurs par défaut",
+    "de": "Auf Standard zurücksetzen"
   },
   "Support the project": {
     "pt-BR": "Apoie o projeto",
-    "ja": "プロジェクトを支援"
+    "ja": "プロジェクトを支援",
+    "es": "Apoya el proyecto",
+    "fr": "Soutenir le projet",
+    "de": "Projekt unterstützen"
   },
   "Enjoying the plugin? Buy the author a coffee and help keep it updated.": {
     "pt-BR": "Curtiu o plugin? Pague um café para o autor e ajude a manter as atualizações.",
-    "ja": "プラグインを気に入ったら、作者にコーヒーをおごって更新を応援してください。"
+    "ja": "プラグインを気に入ったら、作者にコーヒーをおごって更新を応援してください。",
+    "es": "¿Te gusta el plugin? Invita un café al autor y ayuda a mantenerlo actualizado.",
+    "fr": "Le plugin vous plaît ? Offrez un café à l'auteur et aidez à le maintenir à jour.",
+    "de": "Gefällt dir das Plugin? Spendiere dem Autor einen Kaffee und hilf, es aktuell zu halten."
   },
   "PlayStation blue": {
     "pt-BR": "Azul PlayStation",
-    "ja": "PlayStationブルー"
+    "ja": "PlayStationブルー",
+    "es": "Azul PlayStation",
+    "fr": "Bleu PlayStation",
+    "de": "PlayStation-Blau"
   },
   "Light blue": {
     "pt-BR": "Azul claro",
-    "ja": "ライトブルー"
+    "ja": "ライトブルー",
+    "es": "Azul claro",
+    "fr": "Bleu clair",
+    "de": "Hellblau"
   },
   "Starlight Blue": {
     "pt-BR": "Starlight Blue",
-    "ja": "Starlight Blue"
+    "ja": "Starlight Blue",
+    "es": "Starlight Blue",
+    "fr": "Starlight Blue",
+    "de": "Starlight Blue"
   },
   "Cobalt Blue": {
     "pt-BR": "Cobalt Blue",
-    "ja": "Cobalt Blue"
+    "ja": "Cobalt Blue",
+    "es": "Cobalt Blue",
+    "fr": "Cobalt Blue",
+    "de": "Cobalt Blue"
   },
   "Cosmic Red": {
     "pt-BR": "Cosmic Red",
-    "ja": "Cosmic Red"
+    "ja": "Cosmic Red",
+    "es": "Cosmic Red",
+    "fr": "Cosmic Red",
+    "de": "Cosmic Red"
   },
   "Nova Pink": {
     "pt-BR": "Nova Pink",
-    "ja": "Nova Pink"
+    "ja": "Nova Pink",
+    "es": "Nova Pink",
+    "fr": "Nova Pink",
+    "de": "Nova Pink"
   },
   "Galactic Purple": {
     "pt-BR": "Galactic Purple",
-    "ja": "Galactic Purple"
+    "ja": "Galactic Purple",
+    "es": "Galactic Purple",
+    "fr": "Galactic Purple",
+    "de": "Galactic Purple"
   },
   "Volcanic Red": {
     "pt-BR": "Volcanic Red",
-    "ja": "Volcanic Red"
+    "ja": "Volcanic Red",
+    "es": "Volcanic Red",
+    "fr": "Volcanic Red",
+    "de": "Volcanic Red"
   },
   "White": {
     "pt-BR": "Branco",
-    "ja": "ホワイト"
+    "ja": "ホワイト",
+    "es": "Blanco",
+    "fr": "Blanc",
+    "de": "Weiß"
   },
   "All your games and apps": {
     "pt-BR": "Todos os seus jogos e apps",
-    "ja": "すべてのゲームとアプリ"
+    "ja": "すべてのゲームとアプリ",
+    "es": "Todos tus juegos y aplicaciones",
+    "fr": "Tous vos jeux et applications",
+    "de": "Alle deine Spiele und Apps"
   },
   "Previous tab": {
     "pt-BR": "Aba anterior",
-    "ja": "前のタブ"
+    "ja": "前のタブ",
+    "es": "Pestaña anterior",
+    "fr": "Onglet précédent",
+    "de": "Vorheriger Tab"
   },
   "Next tab": {
     "pt-BR": "Próxima aba",
-    "ja": "次のタブ"
+    "ja": "次のタブ",
+    "es": "Pestaña siguiente",
+    "fr": "Onglet suivant",
+    "de": "Nächster Tab"
   },
   "Resume": {
     "pt-BR": "Voltar ao jogo",
-    "ja": "再開"
+    "ja": "再開",
+    "es": "Reanudar",
+    "fr": "Reprendre",
+    "de": "Fortsetzen"
   },
   "View game": {
     "pt-BR": "Ver jogo",
-    "ja": "ゲームを表示"
+    "ja": "ゲームを表示",
+    "es": "Ver juego",
+    "fr": "Voir le jeu",
+    "de": "Spiel ansehen"
   },
   "Open": {
     "pt-BR": "Abrir",
-    "ja": "開く"
+    "ja": "開く",
+    "es": "Abrir",
+    "fr": "Ouvrir",
+    "de": "Öffnen"
   },
   "Details": {
     "pt-BR": "Detalhes",
-    "ja": "詳細"
+    "ja": "詳細",
+    "es": "Detalles",
+    "fr": "Détails",
+    "de": "Details"
   },
   "More options": {
     "pt-BR": "Mais opções",
-    "ja": "その他のオプション"
+    "ja": "その他のオプション",
+    "es": "Más opciones",
+    "fr": "Plus d'options",
+    "de": "Weitere Optionen"
   },
   "Game options": {
     "pt-BR": "Opções do jogo",
-    "ja": "ゲームのオプション"
+    "ja": "ゲームのオプション",
+    "es": "Opciones del juego",
+    "fr": "Options du jeu",
+    "de": "Spieloptionen"
   },
   "Select": {
     "pt-BR": "Selecionar",
-    "ja": "選択"
+    "ja": "選択",
+    "es": "Seleccionar",
+    "fr": "Sélectionner",
+    "de": "Auswählen"
   },
   "Running": {
     "pt-BR": "Em execução",
-    "ja": "実行中"
+    "ja": "実行中",
+    "es": "En ejecución",
+    "fr": "En cours",
+    "de": "Läuft"
   },
   "Shortcuts": {
     "pt-BR": "Atalhos",
-    "ja": "ショートカット"
+    "ja": "ショートカット",
+    "es": "Accesos directos",
+    "fr": "Raccourcis",
+    "de": "Verknüpfungen"
   },
   "Steam Library": {
     "pt-BR": "Biblioteca Steam",
-    "ja": "Steamライブラリ"
+    "ja": "Steamライブラリ",
+    "es": "Biblioteca de Steam",
+    "fr": "Bibliothèque Steam",
+    "de": "Steam-Bibliothek"
   },
   "Media Gallery": {
     "pt-BR": "Galeria de mídia",
-    "ja": "メディアギャラリー"
+    "ja": "メディアギャラリー",
+    "es": "Galería multimedia",
+    "fr": "Galerie multimédia",
+    "de": "Mediengalerie"
   },
   "Playable": {
     "pt-BR": "Jogáveis",
-    "ja": "プレイ可能"
+    "ja": "プレイ可能",
+    "es": "Jugables",
+    "fr": "Jouables",
+    "de": "Spielbar"
   },
   "Apps": {
     "pt-BR": "Apps",
-    "ja": "アプリ"
+    "ja": "アプリ",
+    "es": "Aplicaciones",
+    "fr": "Applications",
+    "de": "Apps"
   },
   "Non-Steam": {
     "pt-BR": "Não Steam",
-    "ja": "非Steam"
+    "ja": "非Steam",
+    "es": "Fuera de Steam",
+    "fr": "Hors Steam",
+    "de": "Nicht-Steam"
   },
   "Sort: Recent": {
     "pt-BR": "Ordenar: Recentes",
-    "ja": "並び替え：最近"
+    "ja": "並び替え：最近",
+    "es": "Ordenar: recientes",
+    "fr": "Trier : récents",
+    "de": "Sortieren: Zuletzt"
   },
   "Sort: A–Z": {
     "pt-BR": "Ordenar: A–Z",
-    "ja": "並び替え：名前順"
+    "ja": "並び替え：名前順",
+    "es": "Ordenar: A–Z",
+    "fr": "Trier : A–Z",
+    "de": "Sortieren: A–Z"
   },
   "Nothing here yet.": {
     "pt-BR": "Nada por aqui ainda.",
-    "ja": "まだ何もありません。"
+    "ja": "まだ何もありません。",
+    "es": "Aún no hay nada aquí.",
+    "fr": "Rien ici pour l'instant.",
+    "de": "Hier ist noch nichts."
   },
   "Featured, new releases and recommendations": {
     "pt-BR": "Destaques, lançamentos e recomendações",
-    "ja": "注目作、新作、おすすめ"
+    "ja": "注目作、新作、おすすめ",
+    "es": "Destacados, novedades y recomendaciones",
+    "fr": "À la une, nouveautés et recommandations",
+    "de": "Empfehlungen, Neuerscheinungen und Highlights"
   },
   "Specials": {
     "pt-BR": "Ofertas",
-    "ja": "セール"
+    "ja": "セール",
+    "es": "Ofertas",
+    "fr": "Promotions",
+    "de": "Angebote"
   },
   "Games on sale right now": {
     "pt-BR": "Jogos em promoção agora",
-    "ja": "いまセール中のゲーム"
+    "ja": "いまセール中のゲーム",
+    "es": "Juegos rebajados ahora mismo",
+    "fr": "Les jeux en promo en ce moment",
+    "de": "Spiele, die gerade reduziert sind"
   },
   "What you've got your eye on": {
     "pt-BR": "O que você está de olho",
-    "ja": "気になっているゲーム"
+    "ja": "気になっているゲーム",
+    "es": "Lo que tienes en el punto de mira",
+    "fr": "Ce qui vous fait envie",
+    "de": "Was du im Blick hast"
   },
   "Games, apps and friends": {
     "pt-BR": "Jogos, apps e amigos",
-    "ja": "ゲーム、アプリ、フレンド"
+    "ja": "ゲーム、アプリ、フレンド",
+    "es": "Juegos, aplicaciones y amigos",
+    "fr": "Jeux, applications et amis",
+    "de": "Spiele, Apps und Freunde"
   },
   "Apps and tools in your library": {
     "pt-BR": "Apps e programas da sua biblioteca",
-    "ja": "ライブラリ内のアプリとツール"
+    "ja": "ライブラリ内のアプリとツール",
+    "es": "Aplicaciones y herramientas de tu biblioteca",
+    "fr": "Applications et outils de votre bibliothèque",
+    "de": "Apps und Tools in deiner Bibliothek"
   },
   "Screenshots and recordings": {
     "pt-BR": "Capturas de tela e gravações",
-    "ja": "スクリーンショットと録画"
+    "ja": "スクリーンショットと録画",
+    "es": "Capturas de pantalla y grabaciones",
+    "fr": "Captures d'écran et enregistrements",
+    "de": "Screenshots und Aufnahmen"
   },
   "Game Base": {
     "pt-BR": "Game Base",
-    "ja": "Game Base"
+    "ja": "Game Base",
+    "es": "Game Base",
+    "fr": "Game Base",
+    "de": "Game Base"
   },
   "Friends, chats and who's online": {
     "pt-BR": "Amigos, conversas e quem está on-line",
-    "ja": "フレンド、チャット、オンライン中の人"
+    "ja": "フレンド、チャット、オンライン中の人",
+    "es": "Amigos, chats y quién está en línea",
+    "fr": "Amis, discussions et qui est en ligne",
+    "de": "Freunde, Chats und wer online ist"
   },
   "Invites": {
     "pt-BR": "Convites",
-    "ja": "招待"
+    "ja": "招待",
+    "es": "Invitaciones",
+    "fr": "Invitations",
+    "de": "Einladungen"
   },
   "Friend and group invites": {
     "pt-BR": "Convites de amizade e de grupos",
-    "ja": "フレンドとグループへの招待"
+    "ja": "フレンドとグループへの招待",
+    "es": "Invitaciones de amistad y de grupos",
+    "fr": "Invitations d'amis et de groupes",
+    "de": "Freundschafts- und Gruppeneinladungen"
   },
   "Steam Community": {
     "pt-BR": "Comunidade Steam",
-    "ja": "Steamコミュニティ"
+    "ja": "Steamコミュニティ",
+    "es": "Comunidad Steam",
+    "fr": "Communauté Steam",
+    "de": "Steam-Community"
   },
   "Activity, guides and discussions": {
     "pt-BR": "Atividade, guias e discussões",
-    "ja": "アクティビティ、ガイド、ディスカッション"
+    "ja": "アクティビティ、ガイド、ディスカッション",
+    "es": "Actividad, guías y debates",
+    "fr": "Activité, guides et discussions",
+    "de": "Aktivitäten, Anleitungen und Diskussionen"
   },
   "Your Steam profile": {
     "pt-BR": "Seu perfil na Steam",
-    "ja": "あなたのSteamプロフィール"
+    "ja": "あなたのSteamプロフィール",
+    "es": "Tu perfil de Steam",
+    "fr": "Votre profil Steam",
+    "de": "Dein Steam-Profil"
   },
   "Queue and updates": {
     "pt-BR": "Fila e atualizações",
-    "ja": "キューとアップデート"
+    "ja": "キューとアップデート",
+    "es": "Cola y actualizaciones",
+    "fr": "File d'attente et mises à jour",
+    "de": "Warteschlange und Updates"
   },
   "Time to beat": {
     "pt-BR": "Tempo para zerar",
-    "ja": "クリア時間"
+    "ja": "クリア時間",
+    "es": "Tiempo para terminar",
+    "fr": "Durée de jeu",
+    "de": "Spieldauer"
   },
   "Story": {
     "pt-BR": "História",
-    "ja": "メイン"
+    "ja": "メイン",
+    "es": "Historia",
+    "fr": "Histoire",
+    "de": "Story"
   },
   "+ Extras": {
     "pt-BR": "+ Extras",
-    "ja": "＋やり込み"
+    "ja": "＋やり込み",
+    "es": "+ Extras",
+    "fr": "+ Extras",
+    "de": "+ Extras"
   },
   "100%": {
     "pt-BR": "100%",
-    "ja": "100%"
+    "ja": "100%",
+    "es": "100 %",
+    "fr": "100 %",
+    "de": "100 %"
   },
   "Looking up HowLongToBeat…": {
     "pt-BR": "Buscando no HowLongToBeat…",
-    "ja": "HowLongToBeatで検索中…"
+    "ja": "HowLongToBeatで検索中…",
+    "es": "Buscando en HowLongToBeat…",
+    "fr": "Recherche sur HowLongToBeat…",
+    "de": "Suche bei HowLongToBeat …"
   },
   "No HowLongToBeat data": {
     "pt-BR": "Sem dados no HowLongToBeat",
-    "ja": "HowLongToBeatのデータなし"
+    "ja": "HowLongToBeatのデータなし",
+    "es": "Sin datos de HowLongToBeat",
+    "fr": "Aucune donnée HowLongToBeat",
+    "de": "Keine HowLongToBeat-Daten"
   },
   "All unlocked!": {
     "pt-BR": "Todas desbloqueadas!",
-    "ja": "すべて解除！"
+    "ja": "すべて解除！",
+    "es": "¡Todos desbloqueados!",
+    "fr": "Tous débloqués !",
+    "de": "Alle freigeschaltet!"
   },
   "Your time": {
     "pt-BR": "Seu tempo",
-    "ja": "プレイ時間"
+    "ja": "プレイ時間",
+    "es": "Tu tiempo",
+    "fr": "Votre temps",
+    "de": "Deine Spielzeit"
   },
   "Not played yet": {
     "pt-BR": "Ainda não jogado",
-    "ja": "まだプレイしていません"
+    "ja": "まだプレイしていません",
+    "es": "Aún sin jugar",
+    "fr": "Pas encore joué",
+    "de": "Noch nicht gespielt"
   },
   "Reviews": {
     "pt-BR": "Avaliações",
-    "ja": "レビュー"
+    "ja": "レビュー",
+    "es": "Reseñas",
+    "fr": "Évaluations",
+    "de": "Bewertungen"
   },
   "positive": {
     "pt-BR": "positivas",
-    "ja": "好評"
+    "ja": "好評",
+    "es": "positivas",
+    "fr": "positives",
+    "de": "positiv"
   },
   "Not installed": {
     "pt-BR": "Não instalado",
-    "ja": "未インストール"
+    "ja": "未インストール",
+    "es": "No instalado",
+    "fr": "Non installé",
+    "de": "Nicht installiert"
   },
   "Played today": {
     "pt-BR": "Jogado hoje",
-    "ja": "今日プレイ"
+    "ja": "今日プレイ",
+    "es": "Jugado hoy",
+    "fr": "Joué aujourd'hui",
+    "de": "Heute gespielt"
   },
   "Played yesterday": {
     "pt-BR": "Jogado ontem",
-    "ja": "昨日プレイ"
+    "ja": "昨日プレイ",
+    "es": "Jugado ayer",
+    "fr": "Joué hier",
+    "de": "Gestern gespielt"
   },
   "Played over a year ago": {
     "pt-BR": "Jogado há mais de um ano",
-    "ja": "1年以上前にプレイ"
+    "ja": "1年以上前にプレイ",
+    "es": "Jugado hace más de un año",
+    "fr": "Joué il y a plus d'un an",
+    "de": "Vor über einem Jahr gespielt"
   },
   "All Games & Apps": {
     "pt-BR": "Todos os jogos e aplicativos",

@@ -1,3 +1,4 @@
+import {loadWelcomeSettings,rememberWelcomeSettings} from './welcome-settings-cache';
 import {T} from "../i18n";
 import {readWallpaper,wallpaperAccept} from './wallpaper-media';
 import {callable} from '@decky/api';
@@ -54,9 +55,9 @@ export function WelcomeHub({active,app,favorite,back,onSettings,initialSettings,
 
  const news=data.news[0],store=data.store[0];
 
- useEffect(()=>{if(initialSettings)return;let stopped=false;getSettings().then(raw=>{if(!stopped){const next=sanitizeSettings(raw);setSettings(next);onSettings?.(next);setReady(true);}}).catch(()=>{if(!stopped){setError('Welcome preferences could not load. Retry by reopening Welcome.');}});return()=>{stopped=true;};},[]);
+ useEffect(()=>{if(initialSettings)return;let stopped=false;loadWelcomeSettings(getSettings).then(raw=>{if(!stopped){const next=sanitizeSettings(raw);setSettings(next);onSettings?.(next);setReady(true);}}).catch(()=>{if(!stopped){setError('Welcome preferences could not load. Retry by reopening Welcome.');}});return()=>{stopped=true;};},[]);
 
- const persist=(next:WelcomeSettings)=>{if(!ready)return;next=sanitizeSettings(next);setSettings(next);onSettings?.(next);latest.current=next;setError('');saving.current=saving.current.then(async()=>{if(!await saveSettings(next))throw Error('Save failed');}).catch(()=>setError('Layout applies for this session; saving failed. Please try again.'));};
+ const persist=(next:WelcomeSettings)=>{if(!ready)return;next=rememberWelcomeSettings(next);setSettings(next);onSettings?.(next);latest.current=next;setError('');saving.current=saving.current.then(async()=>{if(!await saveSettings(next))throw Error('Save failed');}).catch(()=>setError('Layout applies for this session; saving failed. Please try again.'));};
 
  const focus=(id:WidgetId,navigation=false)=>{setSelection(id);(navigation?focusNavigation:focusControl)(root.current?.querySelector<HTMLElement>(`[data-widget="${id}"]`));};
 

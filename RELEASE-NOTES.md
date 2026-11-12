@@ -1,7 +1,11 @@
-# Game Hub 0.13.0-dev.49
+# Game Hub 0.13.0-dev.52 — experimental preview
 
-Game Hub Settings now includes Language: English, Português (Brasil), 日本語 and Use system language. Choices apply immediately, persist across reloads, and keep controller focus. Existing Home translations follow the selection. Untranslated advanced messages and third-party plugin screens may remain in English; Steam content and personal messages are not translated.
+- Fixed reopening Game Library from Switcher and made its Back button reachable with Down.
+- Corrected Library-to-Home history and stale Switcher restoration when returning from other Control Center screens.
+- Retained custom wallpaper settings across Home remounts to prevent the game-artwork flash.
+- Added Portuguese, Japanese, Spanish, French and German language choices, plus automatic system language. Some advanced labels remain English.
+- Improved notification names, message previews, avatars and achievement artwork using available Steam data.
 
-Home handles the final Back press locally after child screens close. Switcher's misleading Steam Library · native label is now Game Library. Explicit native recovery is preserved. The Reddit report's OS/version was not confirmed; this corrects the matching code path without claiming SteamOS/Bazzite hardware validation.
+Download **Game-Hub-0.13.0-dev.52-decky.zip** below and install it with Decky's ZIP installer. Do not use GitHub's Code → Download ZIP or automatic Source code archives as the plugin installer.
 
-Includes the dev.48 notification improvements. Install the named -decky.zip. Backups and previous settings remain available. Linux support is still experimental.
+Windows build tested with automated checks. SteamOS and Bazzite remain experimental and have not been verified on physical Linux hardware. Please report your OS, Steam version, Decky version and exact reproduction steps for any issues. Live controller testing remains necessary.

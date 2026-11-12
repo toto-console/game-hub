@@ -9,7 +9,7 @@ import {openMediaManager} from './MediaManager';
 import {connectStoreAppearance,type StoreOptions,type StoreResult} from './store-appearance';
 import {connectFullscreenWeb,openGameHubWeb,restoreOriginalWeb,setWebOwnerResolver,type WebWindow} from './fullscreen-web';
 import {exitGameAndConfirm} from './game-exit';
-import {GAME_HUB_LIBRARY} from './home/native-library';
+import {GAME_HUB_LIBRARY,openGameHubLibrary} from './home/native-library';
 import {connectFocusGloss} from './focus-gloss';
 import {startSoundtracks} from './themedeck-adapter';
 import {GameMusicRoute,GAME_MUSIC_ROUTE,openGameMusic} from './GameMusicSettings';
@@ -178,11 +178,11 @@ export default definePlugin(()=>{
   const goHome=(instance:any,navigate:()=>void)=>{const helper=homeFocus.get(instance?.BrowserWindow?.document);if(helper)helper.navigate(navigate);else navigate();};
   const actions:CenterActions={
     hub:(tab,conversation,friend)=>{if(!registered)throw Error('Game Hub route is unavailable.');entryRequest={tab,conversation,friend,serial:entryRequest.serial+1};requestListeners.forEach(fn=>fn());const main=Router.WindowStore?.GamepadUIMainWindowInstance as unknown as {LocationPathName?:string};if(main?.LocationPathName!==ROUTE)Navigation.Navigate(ROUTE);},
-    home:()=>goHome(Router.WindowStore?.GamepadUIMainWindowInstance,()=>Navigation.Navigate('/library/home')),games:()=>Navigation.Navigate(GAME_HUB_LIBRARY),
+    home:()=>goHome(Router.WindowStore?.GamepadUIMainWindowInstance,()=>Navigation.Navigate('/library/home')),games:()=>openGameHubLibrary(path=>Navigation.Navigate(path)),
     notifications:()=>Navigation.OpenQuickAccessMenu(0),downloads:()=>Navigation.Navigate('/library/downloads'),
     sound:()=>Navigation.Navigate('/settings/audio'),accessories:()=>Navigation.Navigate('/settings/controller/menu/0'),
     web:url=>{const main=Router.WindowStore?.GamepadUIMainWindowInstance;openGameHubWeb(url,u=>main?.NavigateToSteamWeb(u),main);},
-    library:id=>Navigation.Navigate(id?`/library/app/${id}`:GAME_HUB_LIBRARY),
+    library:id=>id?Navigation.Navigate(`/library/app/${id}`):openGameHubLibrary(path=>Navigation.Navigate(path)),
     profile:async()=>{
       const client=(window as unknown as {SteamClient?:{URL?:{GetSteamURLList?:(keys:string[])=>Promise<Record<string,{url:string}>>}}}).SteamClient;
       const main=Router.WindowStore?.GamepadUIMainWindowInstance as unknown as {NavigateToSteamWeb?:(url:string)=>void};
@@ -226,13 +226,13 @@ export default definePlugin(()=>{
       store.close(false);
     };
     const localActions:CenterActions={...actions,exitGame,
-      home:()=>goHome(instance,()=>navigate('/library/home')),games:()=>navigate(GAME_HUB_LIBRARY),
+      home:()=>goHome(instance,()=>navigate('/library/home')),games:()=>openGameHubLibrary(navigate),
       hub:()=>{throw Error('Use the in-overlay Game Hub panel.');},
       notifications:()=>instance.MenuStore.OpenQuickAccessMenu(0),downloads:()=>navigate('/library/downloads'),
       sound:()=>navigate('/settings/audio'),accessories:()=>navigate('/settings/controller/menu/0'),
       steamSettings:()=>navigate('/settings'),notificationSettings:()=>navigate('/settings/notifications'),
       decky:()=>instance.MenuStore.OpenQuickAccessMenu(999),deckyPage:page=>navigate(page==='store'?'/decky/store':'/decky/settings'),
-      web:url=>openGameHubWeb(url,u=>instance.NavigateToSteamWeb(u),instance),library:id=>navigate(id?`/library/app/${id}`:GAME_HUB_LIBRARY),
+      web:url=>openGameHubWeb(url,u=>instance.NavigateToSteamWeb(u),instance),library:id=>id?navigate(`/library/app/${id}`):openGameHubLibrary(navigate),
       profile:async()=>{const client=(window as any).SteamClient;const url=(await client.URL.GetSteamURLList(['SteamIDMyProfile'])).SteamIDMyProfile?.url;if(!url||new URL(url).origin!=='https://steamcommunity.com')throw Error('Steam profile unavailable.');return()=>openGameHubWeb(url,u=>instance.NavigateToSteamWeb(u),instance);}
     };
     return {store,controls:localControls,bridge:localBridge,actions:localActions,beforeProfile:returning.begin,dispose(){returning.dispose();store.dispose();}};

@@ -1,3 +1,4 @@
+import {OPEN_GAME_HUB_LIBRARY,returnFromGameHubLibrary} from "../native-library";
 import {connectHomeBackBoundary} from '../home-back';
 import {T} from "../../i18n";
 import {useLanguage} from "../../i18n";
@@ -125,12 +126,14 @@ export function Ps5Shell({ initialTab = "games" }: { initialTab?: TabId }) {
  useLanguage();
   const [tab, setTab] = useState<TabId>(initialTab);
   const [libraryView, setLibraryView] = useState("installed");
+  useEffect(()=>{setTab(initialTab);},[initialTab]);
+  useEffect(()=>{const open=()=>setTab("library");window.addEventListener(OPEN_GAME_HUB_LIBRARY,open);return()=>window.removeEventListener(OPEN_GAME_HUB_LIBRARY,open);},[]);
   const root = useRef<HTMLDivElement>(null);
   const contentNav = useRef<any>(null);
   const firstRender = useRef(true);
   useFocusReveal(root);
 
-  const backHome=useCallback(()=>setTab('games'),[]);
+  const backHome=useCallback(()=>returnFromGameHubLibrary(initialTab,path=>Navigation.Navigate(path),()=>setTab('games')),[initialTab]);
   useEffect(()=>{
     const el=root.current;if(!el)return;
     return connectHomeBackBoundary(el,()=>tab==='games',()=>focusControl(el.querySelector<HTMLElement>('.ghd-scroller .ghd-selected')));
