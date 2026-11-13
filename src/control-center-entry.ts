@@ -2,7 +2,7 @@ import {type PatchFunction,type PatchHandle} from './social-entry';
 import {focusControl} from './navigation';
 
 /** Each window’s existing native menu request is the boundary; no controller input hooks. */
-export type CenterWindow = {BrowserWindow:Window;LocationPathName:string;MainRunningAppID?:number|string;params?:{appid?:number;gameid?:string;browserInfo?:{m_unPID?:number}};CompositionStateStore?:{AddMinimumCompositionStateRequest(mode:number,label:string):void;RemoveMinimumCompositionStateRequest(mode:number,label:string):void};BCanNavigate():boolean;IsAnyVRWindow?():boolean;IsGamepadUIOverlayWindow?():boolean;GetShowingGlobalModal?():unknown;MenuStore:{ToggleSideMenu?(n:number,open?:boolean):void;OpenSideMenu(n:number):void;CloseSideMenus():void;m_cSuppressRequests?:number}};
+export type CenterWindow = {BrowserWindow:Window;LocationPathName:string;MainRunningAppID?:number|string;params?:{appid?:number;gameid?:string;browserInfo?:{m_unPID?:number}};CompositionStateStore?:{AddMinimumCompositionStateRequest(mode:number,label:string):void;RemoveMinimumCompositionStateRequest(mode:number,label:string):void};BCanNavigate():boolean;IsAnyVRWindow?():boolean;IsGamepadUIOverlayWindow?():boolean;GetShowingGlobalModal?():unknown;MenuStore:{GetQuickAccessTab?():number;ToggleSideMenu?(n:number,open?:boolean):void;OpenSideMenu(n:number):void;CloseSideMenus():void;m_cSuppressRequests?:number}};
 export function createControlCenter(candidate:unknown,patch:PatchFunction,original:symbol,enabled:()=>boolean,headers={css:"",selector:""},overlay?:{mode:number;subscribe:(fn:(pid:number,app:number,active:boolean,userInitiated:boolean)=>void)=>()=>void}){
  const main=candidate as CenterWindow|undefined;
  const listeners=new Set<()=>void>();
@@ -40,7 +40,10 @@ export function createControlCenter(candidate:unknown,patch:PatchFunction,origin
     const hadOwn=Object.hasOwn(menu,'OpenSideMenu'),before=menu.OpenSideMenu;
     const h=patch(menu,'OpenSideMenu',args=>{
      if(disposed||bypass||!enabled()||!ready)return original;
-     if(args[0]!==1){close(false);return original;}
+     // Explicit plugin and Friends calls retain their own adapters/recovery.
+     // GetQuickAccessTab is optional on older Steam clients.
+     if(args[0]===2&&[999,3].includes(menu.GetQuickAccessTab?.()??-1)){close(false);return original;}
+     if(args[0]!==1&&args[0]!==2){close(false);return original;}
      if(!open&&!supported())return original;
      try{if(open)requestClose();else if(!show())return original;return;}catch{close(false);releaseComposition();return original;}
     });
@@ -68,6 +71,7 @@ export function createControlCenter(candidate:unknown,patch:PatchFunction,origin
  return {
   subscribe(fn:()=>void){listeners.add(fn);return()=>{listeners.delete(fn);};},getSnapshot:()=>open,
   get connected(){return !!handle;},get inGame(){return inGame;},get currentAppId(){return inGame?main?.params?.appid:undefined;},show,showDesktopFallback:()=>show(true),close,requestClose,native,
+  runNative<T>(run:()=>T):T{bypass++;try{return run();}finally{bypass--;}} ,
   setExitTransition(fn:(restore:boolean)=>void){exitTransition=fn;return()=>{if(exitTransition===fn)exitTransition=undefined;};},
   modalClosed(){if(!open)releaseComposition();},
   owns:(doc:Document)=>!!main&&doc===main.BrowserWindow?.document,

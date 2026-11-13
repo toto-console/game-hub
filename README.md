@@ -12,7 +12,7 @@ Screenshot of the included browser preview, not a live Steam account. Home uses 
 
 ## Download
 
-Open [Releases](https://github.com/toto-console/game-hub/releases) and download **Game-Hub-0.13.0-dev.46-decky.zip** from the newest pre-release. The automatic GitHub “Source code” archives are **not installable plugins**. Compare the file's SHA-256 with `SHA256SUMS.txt` from the same release.
+Open [Releases](https://github.com/toto-console/game-hub/releases) and download **Game-Hub-0.13.0-dev.53-decky.zip** from the newest pre-release. The automatic GitHub “Source code” archives are **not installable plugins**. Compare the file's SHA-256 with `SHA256SUMS.txt` from the same release.
 
 ## Platform status
 

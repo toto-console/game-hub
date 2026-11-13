@@ -1,6 +1,6 @@
 # SteamOS and Bazzite experimental build
 
-Version 0.13.0-dev.47 is a compatibility candidate, not a device-certified release.
+Version 0.13.0-dev.53 is a compatibility candidate, not a device-certified release.
 No SteamOS or Bazzite hardware was available. Ubuntu CI is not Gaming Mode validation.
 
 Changes:
@@ -16,3 +16,5 @@ Device checklist: record distro, Steam build, Decky version and GPU; load Home a
 Known limitations: Store styling depends on the existing CEF endpoint; desktop Roblox handoff is not certified for Linux; codec availability varies; no Linux live voice, overlay, audio, controller, suspend/resume or performance claims. Update compatibility targets remain empty until a loader/platform combination is certified.
 
 References: https://github.com/SteamDeckHomebrew/decky-plugin-template/blob/main/decky.pyi and https://github.com/SteamDeckHomebrew/decky-loader
+
+Navigation regression checklist: open Switcher > Game Library > B > B; repeat five times. Home must remain Game Hub with working focus. Open a different Control Center panel, press B, and confirm no stale Library appears. Check normal Guide/QAM takeover and intentional native recovery independently.

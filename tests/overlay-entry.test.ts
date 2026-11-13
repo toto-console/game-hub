@@ -61,3 +61,21 @@ it('expires close restoration suppression so later native open requests work',()
   x.windowInstance.MenuStore.ToggleSideMenu!(1,true);expect(x.store.getSnapshot()).toBe(true);
  }finally{vi.useRealTimers();}
 });
+
+it('routes normal QAM requests into the center but preserves explicit native handoff',()=>{
+ const x=setup(false);x.windowInstance.MenuStore.OpenSideMenu(2);
+ expect(x.store.getSnapshot()).toBe(true);expect(x.native).not.toHaveBeenCalled();
+ x.store.close(false);x.store.runNative(()=>x.windowInstance.MenuStore.OpenSideMenu(2));
+ expect(x.native).toHaveBeenCalledWith(2);expect(x.store.getSnapshot()).toBe(false);
+ x.windowInstance.MenuStore.OpenSideMenu(2);expect(x.store.getSnapshot()).toBe(true);
+});
+it('native bypass expires even when a native action throws',()=>{
+ const x=setup(false);expect(()=>x.store.runNative(()=>{throw Error('failed');})).toThrow();
+ x.windowInstance.MenuStore.OpenSideMenu(2);expect(x.store.getSnapshot()).toBe(true);expect(x.native).not.toHaveBeenCalled();
+});
+
+it('retains Decky and Friends adapters rather than trapping optional plugin settings',()=>{
+ const x=setup(false);
+ for(const tab of [999,3]){x.windowInstance.MenuStore.GetQuickAccessTab=()=>tab;x.windowInstance.MenuStore.OpenSideMenu(2);}
+ expect(x.native).toHaveBeenCalledTimes(2);expect(x.store.getSnapshot()).toBe(false);
+});

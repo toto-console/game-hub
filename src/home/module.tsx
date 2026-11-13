@@ -1,7 +1,7 @@
 import {T} from '../i18n';
 import {homeHeaderCSS} from '../fullscreen';
 import {footerSelector} from '../center-footer';
-import {NATIVE_LIBRARY_RECOVERY,GAME_HUB_LIBRARY,openNativeLibraryRecovery} from './native-library';
+import {NATIVE_LIBRARY_RECOVERY,GAME_HUB_HOME,GAME_HUB_LIBRARY,openNativeLibraryRecovery} from './native-library';
 import {callable,routerHook} from '@decky/api';
 import {Navigation,classMap} from '@decky/ui';
 import {useSyncExternalStore,type CSSProperties} from 'react';
@@ -45,13 +45,13 @@ async function update(next:Config){
  try{if(!await save(next))throw Error('Save failed');config=next;sync();status='Dashboard preferences saved.';}catch{status='Dashboard preferences could not be saved. Existing Home is unchanged.';}emit();
 }
 export function startHomeModule(){
- disposed=false;nativeLibraryBypass=false;routerHook.addRoute(PREVIEW,()=>screen('games'),{exact:true});routerHook.addRoute(LIBRARY,()=>screen('library'),{exact:true});
+ disposed=false;nativeLibraryBypass=false;routerHook.addRoute(GAME_HUB_HOME,()=>screen('games'),{exact:true});routerHook.addRoute(PREVIEW,()=>screen('games'),{exact:true});routerHook.addRoute(LIBRARY,()=>screen('library'),{exact:true});
  const recoverLibrary=()=>{nativeLibraryBypass=true;sync();emit();};window.addEventListener(NATIVE_LIBRARY_RECOVERY,recoverLibrary);
  const stopLoading=loadWhenReady(getSettings,raw=>{config={...initial,...raw,active:raw.active===true,dashboard:withDefaults(raw.dashboard)};config.tileScale=Math.max(.8,Math.min(1.2,Number(config.tileScale)||1));config.gap=Math.max(1,Math.min(4,Number(config.gap)||2));sync();status=originalDashboardActive()?'Original PS5 Dashboard remains active. Preview the integrated module before migration.':'Integrated Home is available; enable it after testing the preview.';emit();},()=>{status='Waiting for dashboard preferences. Retrying automatically...';emit();});
  // Decky emits lifecycle changes through its existing state bus; never disable another plugin automatically.
  const bus=(window as any).DeckyPluginLoader?.deckyState?.eventBus;
  const changed=()=>{sync();emit();};bus?.addEventListener?.('update',changed);
- return()=>{stopLoading();window.removeEventListener(NATIVE_LIBRARY_RECOVERY,recoverLibrary);disposed=true;sync();bus?.removeEventListener?.('update',changed);routerHook.removeRoute(PREVIEW);routerHook.removeRoute(LIBRARY);listeners.clear();};
+ return()=>{stopLoading();window.removeEventListener(NATIVE_LIBRARY_RECOVERY,recoverLibrary);disposed=true;sync();bus?.removeEventListener?.('update',changed);routerHook.removeRoute(GAME_HUB_HOME);routerHook.removeRoute(PREVIEW);routerHook.removeRoute(LIBRARY);listeners.clear();};
 }
 export function HomePreferences({controls,close}:{controls:Controls;close?:()=>void}){
  const c=useSyncExternalStore(subscribe,()=>config),message=useSyncExternalStore(subscribe,()=>status),{Button}=controls;

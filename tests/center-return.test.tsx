@@ -23,6 +23,6 @@ it('still restores a genuine profile Back return',()=>{
 });
 it('leaving the standalone Library records Home as the next screen history returns to',()=>{
  const navigate=vi.fn(),select=vi.fn();returnFromGameHubLibrary('library',navigate,select);
- expect(select).toHaveBeenCalledOnce();expect(navigate).toHaveBeenCalledWith('/library/home');
+ expect(select).not.toHaveBeenCalled();expect(navigate).toHaveBeenCalledWith('/game-hub/home');
  navigate.mockClear();returnFromGameHubLibrary('games',navigate,select);expect(navigate).not.toHaveBeenCalled();
 });

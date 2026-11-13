@@ -172,7 +172,14 @@ export function Ps5Shell({ initialTab = "games" }: { initialTab?: TabId }) {
         flow-children="column"
         {...({ navRef: contentNav } as any)}
         onButtonDown={onButtonDown}
-        onCancelButton={tab === "media" ? () => setTab("games") : undefined}
+        onCancelButton={e=>{
+          // Own the Steam navigation-tree cancel as well as the DOM fallback.
+          // SteamOS can process its default Back before a bubbling DOM listener.
+          e.preventDefault();e.stopPropagation();
+          if(tab==='library')backHome();
+          else if(tab==='media')setTab('games');
+          else focusControl(root.current?.querySelector<HTMLElement>('.ghd-scroller .ghd-selected'));
+        }}
         onCancelActionDescription={tab === "games" ? undefined : t.tabGames}
         actionDescriptionMap={{
           [GamepadButton.BUMPER_LEFT]: t.prevTab,
