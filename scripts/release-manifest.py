@@ -11,6 +11,6 @@ source=out/f'Game-Hub-{version}-source.zip'
 with zipfile.ZipFile(source) as z:
     assert z.testzip() is None
     for required in ('src/index.tsx','package-lock.json','.github/workflows/release.yml','scripts/release-manifest.py'):z.getinfo('game-base-social/'+required)
-files=[out/name,out/f'Game-Hub-{version}-source.zip',out/'game-hub-update.json']
+files=[out/'Game-Base-Social.zip',out/name,out/f'Game-Hub-{version}-source.zip',out/'game-hub-update.json']
 (out/'SHA256SUMS.txt').write_text(''.join(hashlib.sha256(p.read_bytes()).hexdigest()+'  '+p.name+'\n' for p in files))
 print('Release manifest and checksums verified for',version)

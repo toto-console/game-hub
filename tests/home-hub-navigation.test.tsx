@@ -1,3 +1,4 @@
+import {rememberWelcome,welcomeReturn} from '../src/home/welcome-layout';
 const welcomeSettings=vi.hoisted(()=>vi.fn(async()=>({})));
 vi.mock('@decky/api',()=>({callable:()=>welcomeSettings}));
 import React from 'react';
@@ -20,7 +21,7 @@ import {defaults} from '../src/home/welcome-layout';
 import {HomeTab} from '../src/home/upstream/Ps5Home';
 import {highlightSoundtrack} from '../src/themedeck-adapter';
 beforeAll(()=>{window.matchMedia=vi.fn().mockReturnValue({matches:false});HTMLElement.prototype.scrollTo=vi.fn();});
-afterEach(()=>{cleanup();rememberWelcomeSettings(defaults());launch.mockClear();welcomeSettings.mockResolvedValue({});});
+afterEach(()=>{cleanup();rememberWelcome(undefined);rememberWelcomeSettings(defaults());launch.mockClear();welcomeSettings.mockResolvedValue({});});
 it.each(['keyboard','controller'])('Down enters Play and summaries without launching or reselecting music: %s',mode=>{
  const v=render(<HomeTab goTab={()=>{}}/>);const tile=v.getAllByText('Selected game').find(e=>e.classList.contains('ghd-tile'))!;act(()=>tile.focus());vi.mocked(highlightSoundtrack).mockClear();
  const down=()=>mode==='keyboard'?fireEvent.keyDown(document.activeElement!,{key:'ArrowDown'}):fireEvent(document.activeElement!,new CustomEvent('vgp_ondirection',{bubbles:true,cancelable:true,detail:{button:10}}));
@@ -43,3 +44,23 @@ it('starts a fresh Home on Welcome instead of recent games',()=>{const v=render(
 
 it('keeps an opted-in Welcome wallpaper when selecting a game',async()=>{rememberWelcomeSettings({...defaults(),wallpaperScope:'home',background:'local',image:'data:image/png;base64,AAAA'});const v=render(<HomeTab goTab={()=>{}}/>);await waitFor(()=>expect(v.container.querySelector('.ghd-backdrop')).toBeNull());const game=v.getAllByText('Selected game').find(e=>e.classList.contains('ghd-tile'))!;act(()=>game.focus());expect(v.container.querySelector('.ghw-background img')?.getAttribute('src')).toBe('data:image/png;base64,AAAA');expect(v.getByText('Play')).toBeTruthy();});
 it('keeps the same saved wallpaper node while leaving and returning to Welcome',async()=>{rememberWelcomeSettings({...defaults(),wallpaperScope:'welcome',background:'local',image:'data:image/png;base64,AAAA'});const v=render(<HomeTab goTab={()=>{}}/>);await waitFor(()=>expect(v.container.querySelector('.ghw-background img')).toBeTruthy());const image=v.container.querySelector('.ghw-background img')!;const game=v.getAllByText('Selected game').find(e=>e.classList.contains('ghd-tile'))!;act(()=>game.focus());expect(v.container.querySelector('.ghw-background img')).toBe(image);expect(image.parentElement?.hidden).toBe(true);act(()=>v.getByRole('button',{name:'Welcome'}).focus());expect(v.container.querySelector('.ghw-background img')).toBe(image);expect(image.parentElement?.hidden).toBe(false);});
+
+it('restores Welcome expanded before paint and rejects stale top-row focus until intentional Up',()=>{
+ rememberWelcome('achievements',{top:220,left:400});
+ const v=render(<HomeTab goTab={()=>{}}/>);
+ expect(v.container.querySelector('.ghd-scroller')?.getAttribute('data-expanded')).toBe('true');
+ const game=v.getAllByText('Selected game').find(e=>e.classList.contains('ghd-tile'))!;
+ act(()=>game.focus());expect(v.queryByText('Play')).toBeNull();
+ expect(v.container.querySelector('.ghd-scroller')?.getAttribute('data-expanded')).toBe('true');
+ fireEvent.keyDown(v.getByText('Welcome achievements'),{key:'ArrowUp'});
+ expect(v.container.querySelector('.ghd-scroller')?.getAttribute('data-expanded')).toBe('false');expect(welcomeReturn).toBeUndefined();
+ act(()=>game.focus());expect(v.getByText('Play')).toBeTruthy();
+});
+
+it('releases header focus ownership when Welcome becomes inactive',()=>{
+ rememberWelcome('achievements');
+ const tree=(active:boolean)=><div className="ghd-root"><div className="ghd-topicons"/><HomeTab goTab={()=>{}} active={active}/></div>;
+ const v=render(tree(true));const header=v.container.querySelector<HTMLElement>('.ghd-topicons')!;
+ expect(header.inert).toBe(true);v.rerender(tree(false));expect(header.inert).not.toBe(true);
+ v.rerender(tree(true));expect(header.inert).toBe(true);
+});

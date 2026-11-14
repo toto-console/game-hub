@@ -5,7 +5,7 @@ import {callable} from '@decky/api';
 import {WelcomeBackground} from '../WelcomeBackground';
 import {sanitizeSettings,type WelcomeSettings} from '../welcome-layout';
 import {WelcomeHub,WelcomeIcon} from '../WelcomeHub';
-import {welcomeReturn} from '../welcome-layout';
+import {welcomeReturn,rememberWelcome} from '../welcome-layout';
 import {GameDetail} from '../GameDetail';
 import {homeHubCSS} from '../home-hub-style';
 import {homeHubReturn,clearHomeHubReturn} from '../home-hub-data';
@@ -294,7 +294,7 @@ export function HomeTab({ goTab,active=true }: { goTab: GoTab;active?:boolean })
   const [pick, setPick] = useState<Pick | undefined>(startWelcome.current?{welcome:true,title:"Welcome",description:"",icon:<WelcomeIcon/>,go:()=>{},cards:[]}:initialApp ? { app: initialApp } : undefined);
   const [backdrop, setBackdrop] = useState<App | undefined>(initialApp);
   const [lowered, setLowered] = useState(false);
-  const [expanded,setExpanded]=useState(!!restore.current);
+  const [expanded,setExpanded]=useState(!!restore.current||!!welcomeRestore.current);
   const [hubOpened,setHubOpened]=useState<number|undefined>(restore.current?.appid);
   const scroller = useRef<HTMLDivElement>(null);
   const selectedEl = useRef<HTMLElement | null>(null);
@@ -304,7 +304,7 @@ export function HomeTab({ goTab,active=true }: { goTab: GoTab;active?:boolean })
     const el=scroller.current?.querySelector<HTMLElement>(`.ghd-home-row .ghd-tile:nth-child(${startWelcome.current?2:Math.max(0,recents.indexOf(initialApp))+3})`);
     if(el){el.classList.add(SELECTED_CLASS);selectedEl.current=el;slideTo(el);}
   },[]);
-  useEffect(()=>{const row=scroller.current?.querySelector<HTMLElement>('.ghd-home-row');if(row)row.inert=expanded;},[expanded]);
+  useLayoutEffect(()=>{const row=scroller.current?.querySelector<HTMLElement>('.ghd-home-row');if(row)row.inert=expanded;},[expanded]);
   const [storeHero,setStoreHero]=useState<string>();
   const [wallpaper,setWallpaper]=useState<WelcomeSettings|undefined>(cachedWelcomeSettings);
   const wallpaperRevision=useRef(0);
@@ -312,6 +312,12 @@ export function HomeTab({ goTab,active=true }: { goTab: GoTab;active?:boolean })
   useEffect(()=>{let stopped=false;const revision=wallpaperRevision.current;void loadWelcomeSettings(()=>callable<[],WelcomeSettings>('welcome_settings')()).then(raw=>{if(!stopped&&revision===wallpaperRevision.current)setWallpaper(sanitizeSettings(raw));}).catch(()=>{if(!stopped&&revision===wallpaperRevision.current)setWallpaper(sanitizeSettings({background:'existing'}));});return()=>{stopped=true;};},[]);
   const globalWallpaper=wallpaper?.wallpaperScope==='home'&&wallpaper.background!=='existing';
   const welcomeSelected=!!pick&&!("app" in pick)&&!!pick.welcome;
+  useLayoutEffect(()=>{
+    const header=scroller.current?.closest<HTMLElement>('.ghd-root')?.querySelector<HTMLElement>('.ghd-topicons');
+    if(!header||!active||!welcomeSelected||!expanded)return;
+    const previous=header.inert;header.inert=true;
+    return()=>{header.inert=previous;};
+  },[active,welcomeSelected,expanded]);
   const storeSelected=!!pick&&!("app" in pick)&&!!pick.store;
   const pickedApp = pick && "app" in pick ? pick.app : undefined;
   useSoundtrackScope("home",active,pickedApp?.appid);
@@ -337,12 +343,14 @@ export function HomeTab({ goTab,active=true }: { goTab: GoTab;active?:boolean })
   }, []);
 
   const toTop = useCallback(() => {
-    setLowered(false);setExpanded(false);
+    rememberWelcome(undefined);setLowered(false);setExpanded(false);
     const row=scroller.current?.querySelector<HTMLElement>('.ghd-home-row');if(row)row.inert=false;
     scroller.current?.scrollTo({ top: 0, behavior: scroller.current&&motionAllowed(scroller.current)?"smooth":"auto" });
   }, []);
   const onTopRow = useCallback(
     (next: Pick, el: HTMLElement) => {
+      // Steam can restore a stale top-row focus while returning from a widget.
+      if(scroller.current?.dataset.expanded==='true'&&scroller.current.hasAttribute('data-welcome-hub'))return;
       if(selectedEl.current===el){toTop();return;}
       selectedEl.current?.classList.remove(SELECTED_CLASS);
       el.classList.add(SELECTED_CLASS);

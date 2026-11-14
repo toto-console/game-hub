@@ -1,1 +1,18 @@
-{"name":"Game Base Social","author":"Community","flags":[],"api_version":1,"publish":{"tags":["social"],"description":"Isolated social panel with native Steam chat handoff. Windows runtime validation pending.","image":""}}
+{
+  "name": "Game Base Social",
+  "author": "Community",
+  "flags": [],
+  "api_version": 1,
+  "publish": {
+    "tags": [
+      "social"
+    ],
+    "description": "Game Hub: PS5-inspired Home, Library and Control Center for Decky. Experimental; SteamOS and Bazzite hardware validation pending.",
+    "image": ""
+  },
+  "version": "0.13.0-dev.60",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/toto-console/game-hub.git"
+  }
+}

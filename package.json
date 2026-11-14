@@ -1,6 +1,6 @@
 {
   "name": "game-base-decky",
-  "version": "0.13.0-dev.53",
+  "version": "0.13.0-dev.60",
   "type": "module",
   "license": "MIT",
   "description": "PS5-inspired Steam interface for Decky Loader. Experimental Windows-first release.",
@@ -35,5 +35,9 @@
     "typescript-eslint": "8.46.4",
     "vite": "6.4.1",
     "vitest": "3.2.4"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/toto-console/game-hub.git"
   }
 }

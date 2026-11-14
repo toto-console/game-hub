@@ -1,3 +1,4 @@
+import {welcomeReturn} from '../welcome-layout';
 import {OPEN_GAME_HUB_LIBRARY,returnFromGameHubLibrary} from "../native-library";
 import {connectHomeBackBoundary} from '../home-back';
 import {T} from "../../i18n";
@@ -121,6 +122,11 @@ function TabBar({ tab }: { tab: TabId }) {
   );
 }
 
+function restoreHomeFocus(root:HTMLElement|null){
+ const welcome=root?.querySelector<HTMLElement>('.ghd-scroller[data-welcome-hub][data-expanded=true]');
+ focusControl(welcome?.querySelector<HTMLElement>('[data-widget][aria-current=true]')??welcome?.querySelector<HTMLElement>(`[data-widget="${welcomeReturn??''}"]`)??welcome?.querySelector<HTMLElement>('[data-welcome-entry]')??root?.querySelector<HTMLElement>('.ghd-scroller .ghd-selected'));
+}
+
 /** The PS5 home: Games / Media on top (L1 / R1 to switch), icons on the right and one page per tab. */
 export function Ps5Shell({ initialTab = "games" }: { initialTab?: TabId }) {
  useLanguage();
@@ -136,12 +142,12 @@ export function Ps5Shell({ initialTab = "games" }: { initialTab?: TabId }) {
   const backHome=useCallback(()=>returnFromGameHubLibrary(initialTab,path=>Navigation.Navigate(path),()=>setTab('games')),[initialTab]);
   useEffect(()=>{
     const el=root.current;if(!el)return;
-    return connectHomeBackBoundary(el,()=>tab==='games',()=>focusControl(el.querySelector<HTMLElement>('.ghd-scroller .ghd-selected')));
+    return connectHomeBackBoundary(el,()=>tab==='games',()=>restoreHomeFocus(el));
   },[tab]);
 
   useEffect(()=>{
     if(tab!=='games')return;
-    const frame=requestAnimationFrame(()=>focusControl(root.current?.querySelector<HTMLElement>('.ghd-scroller .ghd-selected')));
+    const frame=requestAnimationFrame(()=>restoreHomeFocus(root.current));
     return()=>cancelAnimationFrame(frame);
   },[tab]);
 
@@ -178,7 +184,7 @@ export function Ps5Shell({ initialTab = "games" }: { initialTab?: TabId }) {
           e.preventDefault();e.stopPropagation();
           if(tab==='library')backHome();
           else if(tab==='media')setTab('games');
-          else focusControl(root.current?.querySelector<HTMLElement>('.ghd-scroller .ghd-selected'));
+          else restoreHomeFocus(root.current);
         }}
         onCancelActionDescription={tab === "games" ? undefined : t.tabGames}
         actionDescriptionMap={{

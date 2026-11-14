@@ -24,5 +24,5 @@ export function controlCenterHeaders(modules:unknown){
 
 /** Home and Library own their header independently of the Control Center lifecycle. */
 export function homeHeaderCSS(modules:unknown):string {
- return headerClasses(modules).map(c=>`body:has(.gh-home-module) .${c}{display:none!important;visibility:hidden!important;pointer-events:none!important;}`).join('\n');
+ return headerClasses(modules).map(c=>`body:has(.gh-home-module,.gha-root) .${c}{display:none!important;visibility:hidden!important;pointer-events:none!important;}`).join('\n');
 }

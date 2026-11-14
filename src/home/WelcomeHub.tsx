@@ -3,9 +3,9 @@ import {T} from "../i18n";
 import {readWallpaper,wallpaperAccept} from './wallpaper-media';
 import {callable} from '@decky/api';
 
-import {Focusable,Navigation} from '@decky/ui';
+import {Focusable,Navigation,Router} from '@decky/ui';
 
-import {useEffect,useRef,useState,type ReactNode} from 'react';
+import {useEffect,useLayoutEffect,useRef,useState,type ReactNode} from 'react';
 
 import {MdEmojiEvents,MdSportsEsports,MdStorage,MdFavorite,MdShoppingBag,MdNewspaper,MdGroup,MdChat,MdAccessibility,MdPhotoLibrary} from 'react-icons/md';
 
@@ -17,7 +17,7 @@ import {Art,useFocusHook} from './upstream/components';
 
 import {openStore,openDetails,openAchievements,heroUrls,portraitUrls,landscapeUrls,type App} from './upstream/steam';
 
-import {defaults,sanitizeSettings,preset,insert,arrange,neighbor,firstWidget,WIDGETS,TITLES,rememberWelcome,welcomeReturn,type WidgetId,type WelcomeSettings,type Cell} from './welcome-layout';
+import {defaults,sanitizeSettings,preset,insert,arrange,neighbor,firstWidget,WIDGETS,TITLES,rememberWelcome,welcomeReturn,welcomePosition,type WidgetId,type WelcomeSettings,type Cell} from './welcome-layout';
 
 import {useWelcomeData} from './welcome-data';
 
@@ -67,7 +67,7 @@ export function WelcomeHub({active,app,favorite,back,onSettings,initialSettings,
 
  const closeEditor=()=>{setEditing(false);setMoving(undefined);setDraft(undefined);requestAnimationFrame(()=>focus(latest.current.cells.some(c=>c.id===ref.current.selection)?ref.current.selection:latest.current.cells[0].id));};
 
- const go=(id:WidgetId)=>{rememberWelcome(id);try{
+ const go=(id:WidgetId)=>{rememberWelcome(id,{top:root.current?.closest<HTMLElement>('.ghd-scroller')?.scrollTop??0,left:root.current?.querySelector<HTMLElement>('.ghw-viewport')?.scrollLeft??0});try{
 
   const services=welcomeServices();switch(id){
 
@@ -113,7 +113,7 @@ export function WelcomeHub({active,app,favorite,back,onSettings,initialSettings,
 
   if(menu){stop();if(!k.repeat&&!d?.is_repeat)openEditor();return;}
 
-  if(cancel){stop();if(state.moving){setMoving(undefined);setDraft(undefined);setEditing(true);requestAnimationFrame(()=>focusControl(el.querySelector<HTMLElement>('.ghw-editor .ghw-control')));}else if(state.editing)closeEditor();else state.back();return;}
+  if(cancel){stop();if(state.moving){setMoving(undefined);setDraft(undefined);setEditing(true);requestAnimationFrame(()=>focusControl(el.querySelector<HTMLElement>('.ghw-editor .ghw-control')));}else if(state.editing)closeEditor();else focus(state.selection);return;}
 
   if(state.editing&&!state.moving){if(e.type==='vgp_onok'||k.key==='Enter'){stop();if(!k.repeat&&!d?.is_repeat)target.closest<HTMLElement>('.ghw-control')?.click();return;}if(direction!==undefined){stop();const nodes=Array.from(el.querySelectorAll<HTMLElement>('.ghw-editor .ghw-control'));const current=target.closest<HTMLElement>('.ghw-control');if(!current)return;const a=current.getBoundingClientRect(),dx=direction===11?-1:direction===12?1:0,dy=direction===9?-1:direction===10?1:0;const candidates=nodes.filter(n=>n!==current).map(n=>({n,r:n.getBoundingClientRect()})).filter(({r})=>dx?(r.left+r.width/2-a.left-a.width/2)*dx>1:(r.top+r.height/2-a.top-a.height/2)*dy>1);const score=(r:DOMRect)=>{const x=Math.abs(r.left+r.width/2-a.left-a.width/2),y=Math.abs(r.top+r.height/2-a.top-a.height/2);return dx?x+y*5:y+x*3;};candidates.sort((b,c)=>score(b.r)-score(c.r));if(candidates[0]){focusNavigation(candidates[0].n);candidates[0].n.scrollIntoView({block:'nearest'});}}return;}
 
@@ -130,7 +130,21 @@ export function WelcomeHub({active,app,favorite,back,onSettings,initialSettings,
 
  };for(const name of ['keydown','vgp_ondirection','vgp_oncancel','vgp_onmenu','vgp_onok','gh-welcome-edit'])el.ownerDocument.addEventListener(name,handle,true);return()=>{for(const name of ['keydown','vgp_ondirection','vgp_oncancel','vgp_onmenu','vgp_onok','gh-welcome-edit'])el.ownerDocument.removeEventListener(name,handle,true);};},[active,ready]);
 
- useEffect(()=>{if(!active||!ready||!welcomeReturn)return;const id=welcomeReturn;rememberWelcome(undefined);requestAnimationFrame(()=>focus(settings.cells.some(c=>c.id===id)?id:settings.cells[0].id));},[active,ready]);
+ useLayoutEffect(()=>{
+  if(!active||!ready)return;
+  const restore=()=>{const id=welcomeReturn,el=root.current;if(!id||!el)return;
+   const position=welcomePosition;onContentFocus?.();
+   focus(latest.current.cells.some(c=>c.id===id)?id:latest.current.cells[0].id);
+   const scroller=el.closest<HTMLElement>('.ghd-scroller'),view=el.querySelector<HTMLElement>('.ghw-viewport');
+   if(position){if(scroller)scroller.scrollTop=position.top;if(view)view.scrollLeft=position.left;}
+  };
+  restore();
+  // Some Steam versions retain the Home component underneath native routes.
+  const owner=(Router as any)?.WindowStore?.SteamUIWindows?.find((w:any)=>w.BrowserWindow?.document===root.current?.ownerDocument);
+  const path=owner?.LocationPathName;
+  const stop=owner?.m_history?.listen?.((location:any,action:string)=>{if(action==='POP'&&location.pathname===path)restore();});
+  return()=>{stop?.();};
+ },[active,ready]);
 
  const resize=()=>{const c=settings.cells.find(c=>c.id===selection);if(!c)return;const h=c.h%3+1;persist({...settings,preset:'Custom',cells:arrange(settings.cells,c.id,{h,y:Math.min(c.y,3-h)})});};
  const beginMove=()=>{if(!settings.cells.some(c=>c.id===selection)){setError("Show this widget before moving it.");return;}setDraft(settings.cells);setMoving(selection);setEditing(false);requestAnimationFrame(()=>focus(latest.current.cells.some(c=>c.id===ref.current.selection)?ref.current.selection:latest.current.cells[0].id));};
@@ -187,7 +201,7 @@ export function WelcomeHub({active,app,favorite,back,onSettings,initialSettings,
 function Widget({cell:c,entry,children,onFocus,activate,selected}:{cell:Cell;entry:boolean;children:ReactNode;onFocus:(el:HTMLElement)=>void;activate:()=>void;selected:boolean}){
 
  const select=()=>{playSelectionSound();activate();};
- const ref=useFocusHook(onFocus);return <Focusable ref={ref} role="button" tabIndex={0} data-gh-control data-widget={c.id} data-welcome-entry={entry?true:undefined} preferredFocus={entry} aria-label={TITLES[c.id]} className={`ghw-widget ghw-${c.id}`} data-size={c.h} focusClassName="ghd-focused" noFocusRing style={{gridColumn:`${c.x+1} / span ${c.w}`,gridRow:`${c.y+1} / span ${c.h}`}} onActivate={select} onClick={select} onFocus={e=>onFocus(e.currentTarget)}><div className="ghw-title">{icons[c.id]}<span><T text={TITLES[c.id]}/></span></div>{children}</Focusable>;
+ const ref=useFocusHook(onFocus);return <Focusable ref={ref} role="button" tabIndex={0} data-gh-control data-widget={c.id} aria-current={selected?true:undefined} data-welcome-entry={entry?true:undefined} preferredFocus={entry} aria-label={TITLES[c.id]} className={`ghw-widget ghw-${c.id}`} data-size={c.h} focusClassName="ghd-focused" noFocusRing style={{gridColumn:`${c.x+1} / span ${c.w}`,gridRow:`${c.y+1} / span ${c.h}`}} onActivate={select} onClick={select} onFocus={e=>onFocus(e.currentTarget)}><div className="ghw-title">{icons[c.id]}<span><T text={TITLES[c.id]}/></span></div>{children}</Focusable>;
 
 }
 

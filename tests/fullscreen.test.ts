@@ -6,4 +6,4 @@ describe('route-only header suppression',()=>{
 });
 
 
-it('hides the native bar only while integrated Home or Library is mounted',()=>{const css=homeHeaderCSS([{DashboardBar:'native-bar',Header:'native-head',CurrentUserAvatar:'avatar',Clock:'clock'}]);expect(css).toContain('body:has(.gh-home-module) .native-bar{display:none!important');expect(css).toContain('body:has(.gh-home-module) .native-head{display:none!important');expect(css).not.toContain('.ghd-topicons');expect(homeHeaderCSS([{Header:'unverified'}])).toBe('');});
+it('hides the native bar only while integrated Home or Library is mounted',()=>{const css=homeHeaderCSS([{DashboardBar:'native-bar',Header:'native-head',CurrentUserAvatar:'avatar',Clock:'clock'}]);expect(css).toContain('body:has(.gh-home-module,.gha-root) .native-bar{display:none!important');expect(css).toContain('body:has(.gh-home-module,.gha-root) .native-head{display:none!important');expect(css).not.toContain('.ghd-topicons');expect(homeHeaderCSS([{Header:'unverified'}])).toBe('');});

@@ -28,3 +28,10 @@ export const portraitUrls = (app: App) => [
   ...steamAsset(app, "library_600x900.jpg"),
 ];
 
+
+/** Use Steam's authenticated artwork URLs; never derive filesystem names from a shortcut ID. */
+export function switcherArtworkUrls(app:App):string[]{
+ const icon=custom('GetIconURLForApp',app);
+ const portrait=portraitUrls(app),landscape=landscapeUrls(app);
+ return [...new Set((app.app_type===APP_TYPE_SHORTCUT?[...portrait,...landscape,...icon]:[...icon,...portrait,...landscape]).filter((url):url is string=>typeof url==='string'&&!!url.trim()))];
+}

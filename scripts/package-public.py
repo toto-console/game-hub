@@ -30,3 +30,7 @@ for label,files in [('decky',runtime),('source',source)]:
  digest=hashlib.sha256(dest.read_bytes()).hexdigest()
  validate_package(dest.read_bytes(),digest,version)
  print(dest.name,digest)
+
+# Stable asset basename matches Decky identity without changing installed directories.
+import shutil
+shutil.copyfile(out/f"Game-Hub-{version}-decky.zip", out/"Game-Base-Social.zip")

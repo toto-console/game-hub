@@ -2,12 +2,12 @@ import {readGameAchievements,type AchievementResult} from './achievements';
 import {boundedJSON} from './store-content';
 import {newsForApp,plainText,type GameNews} from './game-content';
 import {stopSoundtrackForLaunch} from './themedeck-adapter';
-import {heroUrls} from './library-art';
+import {heroUrls,switcherArtworkUrls} from './library-art';
 import {isInstalled,recentLibrary,lastPlayed,SHORTCUT} from './library-data';
 import {launchGameId} from './home/launch-id';
-export type Game={id:number;name:string;last:number;minutes:number;installed:boolean;shortcut:boolean;gameid:string;icon?:string};
+export type Game={id:number;name:string;last:number;minutes:number;installed:boolean;shortcut:boolean;gameid:string;icon?:string;artwork?:string[]};
 const host=()=>window as any;
-function normalizeGame(a:any):Game {const h=host();return {id:a.appid,name:a.display_name,last:lastPlayed(a),minutes:a.minutes_playtime_forever??0,installed:isInstalled(a),shortcut:a.app_type===SHORTCUT,gameid:launchGameId(a)??'',icon:h.appStore?.GetIconURLForApp?.(a)};}
+function normalizeGame(a:any):Game {const artwork=switcherArtworkUrls(a);return {id:a.appid,name:a.display_name,last:lastPlayed(a),minutes:a.minutes_playtime_forever??0,installed:isInstalled(a),shortcut:a.app_type===SHORTCUT,gameid:launchGameId(a)??'',icon:artwork[0],artwork};}
 export function recentGames():Game[]{return recentLibrary(host(),3).map(normalizeGame);}
 export function gameById(id:number):Game|undefined{const a=host().appStore?.GetAppOverviewByAppID(id);return a?normalizeGame(a):undefined;}
 export async function playGame(g:Game){const h=host(),a=h.appStore?.GetAppOverviewByAppID(g.id);if(!a)throw Error('This game is no longer in the library.');const id=launchGameId(a);if(a.app_type===SHORTCUT){if(!id)throw Error('Steam shortcut launch identity unavailable. Use Steam game details.');}else if(!isInstalled(a)){if(typeof h.SteamClient?.Installs?.OpenInstallWizard!=='function')throw Error('Use Steam game details to install.');return h.SteamClient.Installs.OpenInstallWizard([g.id]);}if(!id)throw Error('Steam launch identity unavailable.');stopSoundtrackForLaunch();return h.SteamClient.Apps.RunGame(id,'',-1,100);}

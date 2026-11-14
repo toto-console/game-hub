@@ -50,7 +50,8 @@ export function neighbor(cells:Cell[],id:WidgetId,dx:number,dy:number):WidgetId|
  })[0]?.id;
 }
 export let welcomeReturn:WidgetId|undefined;
-export function rememberWelcome(id?:WidgetId){welcomeReturn=id;}
+export let welcomePosition:{top:number;left:number}|undefined;
+export function rememberWelcome(id?:WidgetId,position?:{top:number;left:number}){welcomeReturn=id;welcomePosition=id?position:undefined;}
 
 /** Visual entry point is independent of saved array/DOM order. */
 export function firstWidget(cells:Cell[]):WidgetId|undefined{return [...cells].sort((a,b)=>a.x-b.x||a.y-b.y)[0]?.id;}

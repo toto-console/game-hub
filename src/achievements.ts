@@ -10,7 +10,7 @@ export function parseAchievements(response:unknown):AchievementResult{
   if(!a||typeof a.strID!=='string'||!a.strID||seen.has(a.strID))return [];
   seen.add(a.strID);const done=a.bAchieved===true,hidden=a.bHidden===true&&!done;
   const number=(v:unknown)=>typeof v==='number'&&Number.isFinite(v)&&v>=0?v:undefined;
-  return [{id:a.strID,name:hidden?'Hidden achievement':a.strName||a.strID,description:hidden?'Keep playing to discover this achievement.':a.strDescription||'',image:!hidden&&typeof a.strImage==='string'&&a.strImage.startsWith('https://')?a.strImage:undefined,done,unlocked:number(a.rtUnlocked)??0,current:number(a.flCurrentProgress),max:number(a.flMaxProgress),rarity:number(a.flAchieved)}];
+  return [{id:a.strID,name:hidden?'Hidden achievement':a.strName||a.strID,description:hidden?'Keep playing to discover this achievement.':a.strDescription||'',image:!hidden&&typeof a.strImage==='string'&&a.strImage.startsWith('https://')?a.strImage:undefined,done,unlocked:number(a.rtUnlocked)??0,current:number(a.flCurrentProgress),max:number(a.flMaxProgress),rarity:number(a.flAchieved)!==undefined&&a.flAchieved<=100?a.flAchieved:undefined}];
  });
  if(rows.length&&!achievements.length)throw Error('Steam achievement data could not be read');
  return {achievements,total:achievements.length,done:achievements.filter(a=>a.done).length,achievementState:achievements.length?'ready':'empty'};

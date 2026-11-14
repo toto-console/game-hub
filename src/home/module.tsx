@@ -1,5 +1,6 @@
+import {AchievementsRoute,ACHIEVEMENTS_ROUTE} from '../AchievementsPage';
 import {T} from '../i18n';
-import {homeHeaderCSS} from '../fullscreen';
+import {homeHeaderCSS,controlCenterHeaders} from '../fullscreen';
 import {footerSelector} from '../center-footer';
 import {NATIVE_LIBRARY_RECOVERY,GAME_HUB_HOME,GAME_HUB_LIBRARY,openNativeLibraryRecovery} from './native-library';
 import {callable,routerHook} from '@decky/api';
@@ -30,6 +31,12 @@ function Dashboard({tab}:{tab:'games'|'library'}){
  const vars={'--ghd-accent':accentColor(d.accent),'--ghd-focus':d.focus==='white'?'#fff':accentColor(d.accent),'--ghd-radius':`${d.radius}px`,'--ghd-user-scale':c.tileScale,'--ghd-user-gap':`${c.gap}vh`} as CSSProperties;
  return <div className="gh-home-module" data-motion={c.motion} data-background={d.background} style={vars}><style>{dashboardFooterCSS}{homeHeaderCSS(classMap)}</style><style>{`.gh-home-module{position:absolute;inset:0}.gh-home-module .ghd-root{font-family:inherit}.gh-home-module .ghd-row-anchor{--ghd-gap:var(--ghd-user-gap);--ghd-slot:calc(10vh * var(--ghd-user-scale));--ghd-big:calc(15.5vh * var(--ghd-user-scale))}.gh-home-module[data-background=gradient] .ghd-backdrop,.gh-home-module[data-background=dark] .ghd-backdrop{display:none}.gh-home-module[data-background=dark] .ghd-root{background:#04060c}.gh-home-module[data-motion=false] *{animation:none!important;transition:none!important}@media(prefers-reduced-motion:reduce){.gh-home-module *{animation:none!important;transition:none!important}}`}</style><Ps5Shell initialTab={tab}/></div>;
 }
+function HomeChrome(){
+ const hide=useSyncExternalStore(subscribe,()=>config.active&&config.dashboard.enabled&&config.dashboard.ps5Home&&!nativeLibraryBypass&&!originalDashboardActive());
+ if(!hide)return null;
+ // Global mounting keeps the native chrome suppressed through route replacement commits.
+ return <style>{controlCenterHeaders(classMap).selector.split(',').filter(Boolean).map(s=>`${s}{display:none!important;visibility:hidden!important;pointer-events:none!important;transition:none!important}`).join('')}</style>;
+}
 function sync(){
  setCurrentSettings({...config.dashboard,palette:false,controlCenter:false});
  const want=!disposed&&config.active&&config.dashboard.enabled&&config.dashboard.ps5Home&&!originalDashboardActive();
@@ -45,13 +52,13 @@ async function update(next:Config){
  try{if(!await save(next))throw Error('Save failed');config=next;sync();status='Dashboard preferences saved.';}catch{status='Dashboard preferences could not be saved. Existing Home is unchanged.';}emit();
 }
 export function startHomeModule(){
- disposed=false;nativeLibraryBypass=false;routerHook.addRoute(GAME_HUB_HOME,()=>screen('games'),{exact:true});routerHook.addRoute(PREVIEW,()=>screen('games'),{exact:true});routerHook.addRoute(LIBRARY,()=>screen('library'),{exact:true});
+ disposed=false;nativeLibraryBypass=false;routerHook.addGlobalComponent('GameHubHomeChrome',HomeChrome);routerHook.addRoute(ACHIEVEMENTS_ROUTE,AchievementsRoute,{exact:true});routerHook.addRoute(GAME_HUB_HOME,()=>screen('games'),{exact:true});routerHook.addRoute(PREVIEW,()=>screen('games'),{exact:true});routerHook.addRoute(LIBRARY,()=>screen('library'),{exact:true});
  const recoverLibrary=()=>{nativeLibraryBypass=true;sync();emit();};window.addEventListener(NATIVE_LIBRARY_RECOVERY,recoverLibrary);
  const stopLoading=loadWhenReady(getSettings,raw=>{config={...initial,...raw,active:raw.active===true,dashboard:withDefaults(raw.dashboard)};config.tileScale=Math.max(.8,Math.min(1.2,Number(config.tileScale)||1));config.gap=Math.max(1,Math.min(4,Number(config.gap)||2));sync();status=originalDashboardActive()?'Original PS5 Dashboard remains active. Preview the integrated module before migration.':'Integrated Home is available; enable it after testing the preview.';emit();},()=>{status='Waiting for dashboard preferences. Retrying automatically...';emit();});
  // Decky emits lifecycle changes through its existing state bus; never disable another plugin automatically.
  const bus=(window as any).DeckyPluginLoader?.deckyState?.eventBus;
  const changed=()=>{sync();emit();};bus?.addEventListener?.('update',changed);
- return()=>{stopLoading();window.removeEventListener(NATIVE_LIBRARY_RECOVERY,recoverLibrary);disposed=true;sync();bus?.removeEventListener?.('update',changed);routerHook.removeRoute(GAME_HUB_HOME);routerHook.removeRoute(PREVIEW);routerHook.removeRoute(LIBRARY);listeners.clear();};
+ return()=>{stopLoading();window.removeEventListener(NATIVE_LIBRARY_RECOVERY,recoverLibrary);disposed=true;routerHook.removeGlobalComponent('GameHubHomeChrome');sync();bus?.removeEventListener?.('update',changed);routerHook.removeRoute(ACHIEVEMENTS_ROUTE);routerHook.removeRoute(GAME_HUB_HOME);routerHook.removeRoute(PREVIEW);routerHook.removeRoute(LIBRARY);listeners.clear();};
 }
 export function HomePreferences({controls,close}:{controls:Controls;close?:()=>void}){
  const c=useSyncExternalStore(subscribe,()=>config),message=useSyncExternalStore(subscribe,()=>status),{Button}=controls;
@@ -68,7 +75,7 @@ export function HomePreferences({controls,close}:{controls:Controls;close?:()=>v
  {row(`Info cards: ${c.dashboard.infoCards?'On':'Off'}`,()=>set('infoCards',!c.dashboard.infoCards))}
  {row(`HowLongToBeat: ${c.dashboard.hltb?'On':'Off'}`,()=>set('hltb',!c.dashboard.hltb))}
  {row('Open native Steam Library (recovery)',()=>{close?.();openNativeLibraryRecovery();})}
- {row('Use Game Hub for Steam Library',()=>{nativeLibraryBypass=false;sync();close?.();Navigation.Navigate('/library');})}
+ {row('Use Game Hub for Steam Library',()=>{nativeLibraryBypass=false;sync();emit();close?.();Navigation.Navigate('/library');})}
  {row(`Reduced motion: ${c.motion?'Off':'On'}`,()=>void update({...c,motion:!c.motion}))}
  {row(`Focus style: ${c.dashboard.focus}`,()=>set('focus',c.dashboard.focus==='white'?'accent':'white'))}
  {row('Restore dashboard defaults',()=>void update({...initial,active:c.active}))}

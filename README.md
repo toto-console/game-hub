@@ -60,3 +60,7 @@ Original code: MIT. Derived PS5 Dashboard code retains its upstream MIT notice; 
 Use the named **Game-Hub-VERSION-decky.zip** release asset, not GitHub's automatic **Source code (zip)** download. The automatic source download is not a built plugin. Older named `-source.zip` assets also lacked `dist/index.js`; from dev.47 onward the named source package includes the matching compiled interface as a safeguard.
 
 “Failed to fetch dynamically imported module” means Decky could not load the plugin module; it does not by itself prove a SteamUI API mismatch. Confirm the installed plugin has `dist/index.js`, record Game Hub/Decky/Steam versions and the full failed URL, and inspect Decky's log for the corresponding request. Do not delete settings or reset Steam data. Reinstall the named `-decky.zip` through Decky and restart Steam when idle if the failed module remains cached. If it persists, submit the full error and versions. Linux is still experimental; see [device test checklist](docs/LINUX-TESTING.md).
+
+## Decky Direct Updater
+
+See [installation, experimental version selection and recovery](docs/DIRECT-UPDATER.md). Use the **Game-Base-Social.zip** release asset. Internal Decky name remains **Game Base Social**.

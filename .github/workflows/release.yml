@@ -50,5 +50,5 @@ jobs:
           RELEASE_TAG: ${{ inputs.tag }}
         shell: bash
         run: |
-          gh release create "$RELEASE_TAG" --verify-tag --draft --prerelease --title "Game Hub $RELEASE_TAG — experimental preview" --notes-file RELEASE-NOTES.md ../Game-Hub-*-decky.zip ../Game-Hub-*-source.zip ../game-hub-update.json ../SHA256SUMS.txt
+          gh release create "$RELEASE_TAG" --verify-tag --draft --prerelease --title "Game Hub $RELEASE_TAG â€” experimental preview" --notes-file RELEASE-NOTES.md ../Game-Base-Social.zip ../Game-Hub-*-decky.zip ../Game-Hub-*-source.zip ../game-hub-update.json ../SHA256SUMS.txt
           gh release edit "$RELEASE_TAG" --draft=false --prerelease --latest=false

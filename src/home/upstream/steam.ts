@@ -120,7 +120,7 @@ function openNativeGameMenu(app: App, anchor?: EventTarget | null) {
 }
 
 export function openAchievements(app: App) {
-  Navigation.Navigate(`/library/app/${app.appid}/achievements/my/individual`);
+  Navigation.Navigate(`/game-hub/achievements/${app.appid}`);
 }
 
 export function openExternal(url: string) {
