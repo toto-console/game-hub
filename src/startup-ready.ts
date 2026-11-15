@@ -9,13 +9,14 @@ export function loadWhenReady<T>(load:()=>Promise<T>,apply:(value:T)=>void,faile
  return()=>{active=false;clearTimeout(timer);};
 }
 
-/** A global component can mount before Steam publishes its window in WindowStore. */
-export function bindWhenReady<T>(resolve:()=>T|undefined,bind:(owner:T)=>void|(()=>void)){
+/** A global component can mount before Steam publishes/classifies its window.
+ * Return false from bind while its dependencies are still starting. */
+export function bindWhenReady<T>(resolve:()=>T|undefined,bind:(owner:T)=>void|false|(()=>void)){
  let active=true,timer:ReturnType<typeof setTimeout>|undefined,release:void|(()=>void);
  const attempt=()=>{
   if(!active)return;
   const owner=resolve();
-  if(owner){release=bind(owner);return;}
+  if(owner){const result=bind(owner);if(result!==false){release=result;return;}}
   timer=setTimeout(attempt,250);
  };
  attempt();

@@ -11,6 +11,14 @@ HLTB_CACHE_FILE = os.path.join(decky.DECKY_PLUGIN_RUNTIME_DIR, "home-hltb-cache.
 
 
 class Plugin:
+    async def export_center_diagnostic(self, report: dict) -> dict:
+        from center_diagnostic import export_report
+        return await asyncio.to_thread(export_report, report, os.path.dirname(__file__))
+
+    async def player_bio(self, steamid: str) -> dict:
+        from player_bio import read_bio
+        return await asyncio.to_thread(read_bio, steamid)
+
     hltb: HltbClient | None = None
     store_appearance_adapter = None
 

@@ -39,3 +39,10 @@ it('cancels pending backend and window retries when unloaded',async()=>{
  await vi.advanceTimersByTimeAsync(10000);
  expect(load).toHaveBeenCalledOnce();expect(bind).not.toHaveBeenCalled();expect(vi.getTimerCount()).toBe(0);
 });
+
+it('waits for a published window to acquire its overlay identity without duplicate binding',()=>{
+ vi.useFakeTimers();let classified=false;const owner={},release=vi.fn();const bind=vi.fn(()=>classified?release:false as const);
+ const stop=bindWhenReady(()=>owner,bind);vi.advanceTimersByTime(750);expect(bind).toHaveBeenCalledTimes(4);
+ classified=true;vi.advanceTimersByTime(250);expect(bind).toHaveBeenCalledTimes(5);
+ vi.advanceTimersByTime(2000);expect(bind).toHaveBeenCalledTimes(5);stop();expect(release).toHaveBeenCalledOnce();
+});

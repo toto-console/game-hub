@@ -79,3 +79,30 @@ it('retains Decky and Friends adapters rather than trapping optional plugin sett
  for(const tab of [999,3]){x.windowInstance.MenuStore.GetQuickAccessTab=()=>tab;x.windowInstance.MenuStore.OpenSideMenu(2);}
  expect(x.native).toHaveBeenCalledTimes(2);expect(x.store.getSnapshot()).toBe(false);
 });
+
+it('recovers activation subscription after the overlay bridge becomes ready and never intercepts early',()=>{
+ const x=setup();x.store.dispose();let available=false;const stop=vi.fn(),subscribe=vi.fn(()=>{if(!available)throw Error('not ready');return stop;});
+ const store=createControlCenter(x.windowInstance,patch,original,()=>true,undefined,{mode:2,subscribe});stores.push(store);
+ expect(()=>store.mount(document)).not.toThrow();
+ x.windowInstance.MenuStore.OpenSideMenu(1);expect(x.native).toHaveBeenCalledOnce();expect(store.diagnostic().lastResult).toBe('overlay-activation-unavailable');
+ available=true;x.windowInstance.MenuStore.OpenSideMenu(1);expect(store.getSnapshot()).toBe(true);expect(x.native).toHaveBeenCalledOnce();
+ expect(store.diagnostic().lastAction).toBe('native-menu-request');expect(store.diagnostic().lastResult).toBe('opened');
+ store.close();store.modalClosed();store.show();expect(subscribe).toHaveBeenCalledTimes(3);store.dispose();expect(stop).toHaveBeenCalledOnce();
+});
+it('reports absent integration and leaves the native menu usable',()=>{
+ const x=setup();x.store.dispose();const store=createControlCenter(x.windowInstance,patch,original,()=>true);stores.push(store);store.mount(document);
+ x.windowInstance.MenuStore.OpenSideMenu(1);expect(store.getSnapshot()).toBe(false);expect(x.native).toHaveBeenCalledOnce();expect(store.diagnostic().reason).toBe('overlay-activation-unavailable');store.native();expect(x.native).toHaveBeenCalledTimes(2);
+});
+it('cleans up and remounts after overlay disappearance without accumulating subscriptions',()=>{
+ const x=setup();x.store.dispose();const stop=vi.fn(),subscribe=vi.fn(()=>stop);
+ const store=createControlCenter(x.windowInstance,patch,original,()=>true,undefined,{mode:2,subscribe});stores.push(store);
+ const unmount=store.mount(document);store.show();unmount();expect(stop).toHaveBeenCalledOnce();
+ x.windowInstance.MenuStore.OpenSideMenu(1);expect(x.native).toHaveBeenCalledOnce();
+ const remount=store.mount(document);store.show();expect(store.getSnapshot()).toBe(true);remount();expect(stop).toHaveBeenCalledTimes(2);
+});
+it('does not require a particular controller or launcher when Steam exposes a valid overlay',()=>{
+ const x=setup();x.windowInstance.params!.gameid='shortcut identifier never exported';x.windowInstance.MenuStore.OpenSideMenu(1);
+ expect(x.store.getSnapshot()).toBe(true);expect(JSON.stringify(x.store.diagnostic())).not.toContain('shortcut');
+ x.store.close();x.store.modalClosed(); // A reconnected controller produces the same native menu request.
+ x.windowInstance.MenuStore.OpenSideMenu(1);expect(x.store.getSnapshot()).toBe(true);
+});

@@ -1,3 +1,4 @@
+import {CenterCompatibility} from './CenterCompatibility';
 import {initializeLanguage} from './i18n';
 import {T} from "./i18n";
 import {connectBackAudio} from './back-audio';
@@ -181,7 +182,7 @@ export default definePlugin(()=>{
     home:()=>goHome(Router.WindowStore?.GamepadUIMainWindowInstance,()=>Navigation.Navigate('/game-hub/home')),games:()=>openGameHubLibrary(path=>Navigation.Navigate(path)),
     notifications:()=>center.runNative(()=>Navigation.OpenQuickAccessMenu(0)),downloads:()=>Navigation.Navigate('/library/downloads'),
     sound:()=>Navigation.Navigate('/settings/audio'),accessories:()=>Navigation.Navigate('/settings/controller/menu/0'),
-    web:url=>{const main=Router.WindowStore?.GamepadUIMainWindowInstance;openGameHubWeb(url,u=>main?.NavigateToSteamWeb(u),main);},
+    web:url=>{const main=Router.WindowStore?.GamepadUIMainWindowInstance;if(typeof main?.NavigateToSteamWeb!=='function')throw Error('Steam Store navigation is unavailable. Reopen the Control Center and try again.');openGameHubWeb(url,u=>main.NavigateToSteamWeb(u),main);},
     library:id=>id?Navigation.Navigate(`/library/app/${id}`):openGameHubLibrary(path=>Navigation.Navigate(path)),
     profile:async()=>{
       const client=(window as unknown as {SteamClient?:{URL?:{GetSteamURLList?:(keys:string[])=>Promise<Record<string,{url:string}>>}}}).SteamClient;
@@ -205,10 +206,10 @@ export default definePlugin(()=>{
   const closeForMusic=()=>{center.close(false);for(const ctx of overlayContexts.values())ctx.store.close(false);};
   window.addEventListener("game-hub:open-music",closeForMusic);
   function createOverlayContext(instance:OverlayWindow){
-    const api=(window as unknown as {SteamClient?:{Overlay?:{RegisterForOverlayActivated?:(fn:(pid:number,app:number,active:boolean,userInitiated:boolean)=>void)=>{unregister:()=>void}}}}).SteamClient?.Overlay;
-    const store=createControlCenter(instance,replacePatch,callOriginal,()=>registered&&settings.enabled&&settings.controlCenter,controlCenterHeaders(classMap),api?.RegisterForOverlayActivated?{
-      mode:EUIComposition.Overlay,subscribe:fn=>{const h=api.RegisterForOverlayActivated!(fn);return()=>h.unregister();}
-    }:undefined);
+    const overlayAPI=()=> (window as unknown as {SteamClient?:{Overlay?:{RegisterForOverlayActivated?:(fn:(pid:number,app:number,active:boolean,userInitiated:boolean)=>void)=>{unregister:()=>void}}}}).SteamClient?.Overlay;
+    const store=createControlCenter(instance,replacePatch,callOriginal,()=>registered&&settings.enabled&&settings.controlCenter,controlCenterHeaders(classMap),{
+      mode:EUIComposition.Overlay,subscribe:fn=>{const api=overlayAPI();if(!api?.RegisterForOverlayActivated)throw Error('Overlay activation API unavailable');const h=api.RegisterForOverlayActivated(fn);if(typeof h?.unregister!=='function')throw Error('Overlay activation subscription unavailable');return()=>h.unregister();}
+    });
     const returning=connectProfileReturn(instance,()=>{store.show();},()=>store.getSnapshot(),()=>{try{return baseBridge.friendManagement?.account();}catch{return undefined;}});
     const localControls:Controls={...controls,keyboard:{
       visible:()=>!!instance.VirtualKeyboardManager?.IsShowingVirtualKeyboard?.Value,
@@ -256,7 +257,9 @@ export default definePlugin(()=>{
     useLayoutEffect(()=>{const doc=marker.current?.ownerDocument;if(doc)return connectFocusGloss(doc,()=>settings.enabled&&settings.motion);},[s.motion,s.enabled]);
     useLayoutEffect(()=>bindWhenReady(()=>{const doc=marker.current?.ownerDocument;return Router.WindowStore?.SteamUIWindows.find(w=>w.BrowserWindow?.document===doc) as OverlayWindow|undefined;},instance=>{
       if(instance&&instance===Router.WindowStore?.GamepadUIMainWindowInstance){attachMain();setContext('main');return;}
-      if(!instance?.IsGamepadUIOverlayWindow?.()||instance.IsAnyVRWindow?.())return;
+      // WindowStore may publish the instance before its overlay identity is initialized.
+      if(instance.IsAnyVRWindow?.())return;
+      if(!instance.IsGamepadUIOverlayWindow?.())return false;
       const ctx=createOverlayContext(instance);overlayContexts.set(instance,ctx);setContext(ctx);
       return()=>{overlayContexts.delete(instance);ctx.dispose();};
     }),[]);
@@ -270,7 +273,7 @@ export default definePlugin(()=>{
 
   function QuickAccess(){
     const owner=useRef<HTMLDivElement>(null);
-    const owningCenter=()=>{const instance=Router.WindowStore?.SteamUIWindows.find(w=>w.BrowserWindow?.document===owner.current?.ownerDocument) as OverlayWindow|undefined;return instance?overlayContexts.get(instance)?.store??center:center;};
+    const owningCenter=()=>{const instance=Router.WindowStore?.SteamUIWindows.find(w=>w.BrowserWindow?.document===owner.current?.ownerDocument) as OverlayWindow|undefined;return instance===Router.WindowStore?.GamepadUIMainWindowInstance?center:instance?overlayContexts.get(instance)?.store:undefined;};
 
     const s=useSyncExternalStore(subscribe,getSnapshot,getSnapshot);
 
@@ -283,7 +286,7 @@ export default definePlugin(()=>{
 
       {s.enabled&&registered&&<Button className="gbs-button gbs-primary" onClick={()=>{Navigation.Navigate(ROUTE);Navigation.CloseSideMenus?.();}}>Open Game Base</Button>}
 
-      {s.enabled&&s.controlCenter&&globalRegistered&&<Button className="gbs-button" onClick={()=>{setNavigationError(false);if(!owningCenter().show())setNavigationError(true);}}>Open Control Center</Button>}
+      {s.enabled&&s.controlCenter&&globalRegistered&&<Button className="gbs-button" onClick={()=>{setNavigationError(false);if(!owningCenter()?.show())setNavigationError(true);}}>Open Control Center</Button>}
       <Button className="gbs-button" aria-pressed={s.controlCenter} onClick={()=>setSettings({...s,controlCenter:!s.controlCenter})}>Control Center replacement: {s.controlCenter?<T text="On"/>:<T text="Off"/>}</Button>
       <details><summary><T text="Integrations"/></summary><Button className="gbs-button" onClick={()=>openGameMusic()}>ThemeDeck Game Soundtracks</Button></details><details><summary><T text="Media"/></summary><Button className="gbs-button" onClick={()=>{Navigation.CloseSideMenus?.();openMediaManager();}}><T text="Manage Apps"/></Button></details><details><summary>Store Appearance</summary>
       {([['storeAppearance','PS5-Style Steam Store'],['storeBackgrounds','Navy Background Gradients'],['storeGloss','Animated Store Gloss'],['storeReducedMotion','Reduced Store Motion'],['storeSubtle','Subtle Store Colors']] as const).map(([key,label])=><Button key={key} className="gbs-button" aria-pressed={s[key]} onClick={()=>setSettings({...s,[key]:!s[key]})}>{label}: {s[key]?<T text="On"/>:<T text="Off"/>}</Button>)}
@@ -294,7 +297,8 @@ export default definePlugin(()=>{
       <Button className="gbs-button" aria-pressed={s.fullscreenWeb} onClick={()=>setSettings({...s,fullscreenWeb:!s.fullscreenWeb})}>Fullscreen Web Pages: {s.fullscreenWeb?<T text="Enabled"/>:<T text="Disabled"/>}</Button>
       <p>Hide the Steam browser's top toolbar on compatible Game Hub pages for a cleaner console-style interface.</p>
       <Button className="gbs-button" onClick={()=>{restoreOriginalWeb(Router.WindowStore?.GamepadUIMainWindowInstance);Navigation.CloseSideMenus?.();}}>Open in Original Steam Browser</Button>
-      <Button className="gbs-button" onClick={()=>{try{owningCenter().native();}catch{setNavigationError(true);}}}>Open Original Steam Menu</Button>
+      <Button className="gbs-button" onClick={()=>{try{owningCenter()?.native();}catch{setNavigationError(true);}}}>Open Original Steam Menu</Button>
+      <details><summary>Control Center compatibility</summary><CenterCompatibility controls={controls} resolveStore={owningCenter}/></details>
       {s.controlCenter&&!center.connected&&<p>Guide replacement is unavailable on this Steam build. Use Open Control Center.</p>}
       {!registered&&<p role="status">Full panel navigation is unavailable on this Decky build.</p>}
 
