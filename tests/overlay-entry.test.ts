@@ -1,3 +1,4 @@
+import {OVERLAY_COMPOSITION} from '../src/overlay-compatibility';
 import {afterEach,expect,it,vi} from 'vitest';
 import {createControlCenter,type CenterWindow} from '../src/control-center-entry';
 import type {PatchFunction} from '../src/social-entry';
@@ -8,7 +9,7 @@ function setup(overlay=true){
  const native=vi.fn(),add=vi.fn(),remove=vi.fn(),unsubscribe=vi.fn();let activated:((pid:number,app:number,active:boolean,userInitiated:boolean)=>void)|undefined;
  const windowInstance:CenterWindow={BrowserWindow:window,LocationPathName:overlay?'/apprunning':'/library/home',params:{appid:750920,browserInfo:{m_unPID:42}},MainRunningAppID:overlay?750920:undefined,BCanNavigate:()=>true,IsGamepadUIOverlayWindow:()=>overlay,MenuStore:{OpenSideMenu:native,CloseSideMenus:vi.fn()},CompositionStateStore:{AddMinimumCompositionStateRequest:add,RemoveMinimumCompositionStateRequest:remove}};
  windowInstance.MenuStore.ToggleSideMenu=function(n,force){if(force!==false)this.OpenSideMenu(n);};
- const store=createControlCenter(windowInstance,patch,original,()=>true,undefined,overlay?{mode:2,subscribe:fn=>{activated=fn;return unsubscribe;}}:undefined);stores.push(store);store.mount(document);
+ const store=createControlCenter(windowInstance,patch,original,()=>true,undefined,overlay?{mode:OVERLAY_COMPOSITION,subscribe:fn=>{activated=fn;return unsubscribe;}}:undefined);stores.push(store);store.mount(document);
  return {store,windowInstance,native,add,remove,unsubscribe,activate:(pid:number,app:number,active:boolean,userInitiated=true)=>activated?.(pid,app,active,userInitiated)};
 }
 afterEach(()=>{stores.splice(0).forEach(s=>s.dispose());document.head.innerHTML='';document.body.innerHTML='';vi.restoreAllMocks();});
@@ -82,7 +83,7 @@ it('retains Decky and Friends adapters rather than trapping optional plugin sett
 
 it('recovers activation subscription after the overlay bridge becomes ready and never intercepts early',()=>{
  const x=setup();x.store.dispose();let available=false;const stop=vi.fn(),subscribe=vi.fn(()=>{if(!available)throw Error('not ready');return stop;});
- const store=createControlCenter(x.windowInstance,patch,original,()=>true,undefined,{mode:2,subscribe});stores.push(store);
+ const store=createControlCenter(x.windowInstance,patch,original,()=>true,undefined,{mode:OVERLAY_COMPOSITION,subscribe});stores.push(store);
  expect(()=>store.mount(document)).not.toThrow();
  x.windowInstance.MenuStore.OpenSideMenu(1);expect(x.native).toHaveBeenCalledOnce();expect(store.diagnostic().lastResult).toBe('overlay-activation-unavailable');
  available=true;x.windowInstance.MenuStore.OpenSideMenu(1);expect(store.getSnapshot()).toBe(true);expect(x.native).toHaveBeenCalledOnce();
@@ -95,7 +96,7 @@ it('reports absent integration and leaves the native menu usable',()=>{
 });
 it('cleans up and remounts after overlay disappearance without accumulating subscriptions',()=>{
  const x=setup();x.store.dispose();const stop=vi.fn(),subscribe=vi.fn(()=>stop);
- const store=createControlCenter(x.windowInstance,patch,original,()=>true,undefined,{mode:2,subscribe});stores.push(store);
+ const store=createControlCenter(x.windowInstance,patch,original,()=>true,undefined,{mode:OVERLAY_COMPOSITION,subscribe});stores.push(store);
  const unmount=store.mount(document);store.show();unmount();expect(stop).toHaveBeenCalledOnce();
  x.windowInstance.MenuStore.OpenSideMenu(1);expect(x.native).toHaveBeenCalledOnce();
  const remount=store.mount(document);store.show();expect(store.getSnapshot()).toBe(true);remount();expect(stop).toHaveBeenCalledTimes(2);
@@ -105,4 +106,20 @@ it('does not require a particular controller or launcher when Steam exposes a va
  expect(x.store.getSnapshot()).toBe(true);expect(JSON.stringify(x.store.diagnostic())).not.toContain('shortcut');
  x.store.close();x.store.modalClosed(); // A reconnected controller produces the same native menu request.
  x.windowInstance.MenuStore.OpenSideMenu(1);expect(x.store.getSnapshot()).toBe(true);
+});
+
+it('survives missing composition methods then uses real methods after they become ready',()=>{
+ const x=setup();const composition=x.windowInstance.CompositionStateStore;x.windowInstance.CompositionStateStore=undefined;
+ x.windowInstance.MenuStore.OpenSideMenu(1);expect(x.native).toHaveBeenCalledOnce();expect(x.store.diagnostic().reason).toBe('overlay-composition-unavailable');
+ x.windowInstance.CompositionStateStore=composition;x.windowInstance.MenuStore.OpenSideMenu(1);expect(x.store.getSnapshot()).toBe(true);expect(x.add).toHaveBeenCalledWith(2,'Game Hub Control Center');
+ x.store.close();x.store.modalClosed();expect(x.remove).toHaveBeenCalledWith(2,'Game Hub Control Center');
+});
+it('keeps cleanup failures from escaping into Steam during a game transition',()=>{
+ const x=setup();vi.spyOn(console,'error').mockImplementation(()=>{});x.store.show();x.remove.mockImplementation(()=>{throw Error('window gone');});x.unsubscribe.mockImplementation(()=>{throw Error('bridge gone');});
+ expect(()=>x.store.dispose()).not.toThrow();expect(x.windowInstance.MenuStore.OpenSideMenu).toBe(x.native);
+});
+
+it('falls back to native Steam on a render failure and does not claim the center is ready',()=>{
+ const x=setup();x.store.show();expect(()=>x.store.fail()).not.toThrow();expect(x.native).toHaveBeenCalledOnce();expect(x.store.getSnapshot()).toBe(false);expect(x.store.diagnostic().lastResult).toBe('render-failed');
+ x.windowInstance.MenuStore.OpenSideMenu(1);expect(x.native).toHaveBeenCalledTimes(2);
 });

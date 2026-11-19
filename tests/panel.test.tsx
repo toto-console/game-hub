@@ -1,12 +1,13 @@
 import {beforeEach,afterEach,describe,it,expect,vi} from 'vitest';
 import {cleanup,fireEvent,render,screen,act} from '@testing-library/react';
 import {useState} from 'react';
+vi.mock('@decky/api',()=>({callable:()=>async()=>({}),routerHook:{}}));
 vi.mock('@decky/ui',()=>({findModuleExport:()=>undefined}));
 import {Panel} from '../src/Panel';
 import {defaults,type Settings} from '../src/settings';
 import {browserControls} from '../preview/controls';
 import type {SocialBridge} from '../src/model';
-beforeEach(()=>{vi.stubGlobal('matchMedia',()=>({matches:true,addEventListener:vi.fn(),removeEventListener:vi.fn()}));});
+beforeEach(()=>{vi.stubGlobal('IntersectionObserver',class {observe(){} disconnect(){} unobserve(){}});vi.stubGlobal('matchMedia',()=>({matches:true,addEventListener:vi.fn(),removeEventListener:vi.fn()}));});
 afterEach(()=>{cleanup();vi.useRealTimers();vi.unstubAllGlobals();});
 function harness(initial:Partial<Settings>={},fail=false){
  const bridge:SocialBridge={readFriends:vi.fn<SocialBridge['readFriends']>(()=>({kind:'ready',detail:'Read from Steam',friends:[{id:'76561198000000001',name:'Real friend',state:'online'}]})),openNative:vi.fn(()=>{if(fail)throw Error();}),openProfile:vi.fn()};

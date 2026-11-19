@@ -38,3 +38,10 @@ it('embeds the same achievements and official news without a second hero or soun
  fireEvent.keyDown(summary,{key:'ArrowUp'});expect(back).toHaveBeenCalledOnce();
  const card=(await screen.findByText('Real achievement')).closest<HTMLElement>('.gh-detail-control')!;card.focus();fireEvent.click(card);fireEvent.keyDown(screen.getByRole('dialog'),{key:'Escape'});await waitFor(()=>expect(document.activeElement).toBe(card));
 });
+it('keeps standalone artwork out of layout and content above the background',()=>{
+ render(<GameDetail app={{appid:42,display_name:'Game',app_type:1,installed:false}} back={vi.fn()}/>);
+ const background=document.querySelector<HTMLElement>('.gh-detail-background')!;
+ const main=document.querySelector<HTMLElement>('.gh-detail-main')!;
+ expect(background.style.position).toBe('absolute');expect(background.style.inset).toBe('0');
+ expect(background.style.pointerEvents).toBe('none');expect(Number(main.style.zIndex)).toBeGreaterThan(Number(background.style.zIndex));
+});

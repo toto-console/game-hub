@@ -53,7 +53,7 @@ export function Messages({bridge,controls,initial,native,memory,onParty,onThread
     registerBack(chosen?close:picking?()=>setPicking(false):onParent);
     return()=>{registerBack(undefined);onThread(false);};
   },[!!chosen,picking]);
-  useEffect(()=>{onInitialUsed();},[]);
+  useEffect(()=>{if(initial){select(initial);setPicking(false);onInitialUsed();}},[initial]);
   useLayoutEffect(()=>{
     if(chosen)return;
     const frame=requestAnimationFrame(()=>{

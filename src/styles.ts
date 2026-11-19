@@ -51,6 +51,8 @@ export const css = `
 
 .gbs-root .gbs-list {padding:4px 12px 16px;max-height:55vh;overflow:auto;scroll-padding:10px;}
 
+.gbs-root .gbs-panel[aria-label="Steam friends"] {background:linear-gradient(145deg,rgba(235,240,245,.14),rgba(170,180,192,.04));border:1px solid #edf2fa45;box-shadow:inset 0 1px 0 #ffffff36,inset 0 0 28px #e5edff08,0 0 24px #dce9ff12;backdrop-filter:blur(4px);text-shadow:0 1px 3px #0009;}
+.gbs-root .gbs-panel[aria-label="Steam friends"] .gbs-friend[aria-pressed="true"] {background:linear-gradient(120deg,#f2f5fa20,#d1dae60a)!important;border-color:#f2f6ff66!important;box-shadow:inset 0 1px #ffffff29,0 0 14px #dfebff12;}
 .gbs-root .gbs-friend {display:flex;align-items:center;gap:14px;width:100%!important;border-color:transparent!important;background:transparent!important;padding:14px!important;margin:4px 0!important;}
 
 .gbs-root .gbs-friend[aria-pressed="true"] {background:#ffffff0d!important;border-color:#ffffff2b!important;}
@@ -73,6 +75,11 @@ export const css = `
 
 .gbs-root .gbs-person small {display:block;font-size:12px;color:#acb9cd;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 
+.gbs-root .gbs-friend-activity{display:flex;align-items:center;gap:.4em;min-width:0;width:100%;height:1.6em}
+.gbs-root .gbs-friend-activity .gbs-activity-title{flex:0 1 auto;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gbs-root .gbs-platform{flex:0 0 2em;height:1em;padding-left:.4em;border-left:1px solid #ffffff45;display:flex;align-items:center;justify-content:center;pointer-events:none;color:#fff;box-sizing:content-box}
+.gbs-root .gbs-platform img{display:block;width:2em;height:1.65em;object-fit:contain;filter:brightness(0) invert(1)}
+.gbs-root .gbs-platform svg{width:36px;height:22px;fill:none;stroke:currentColor;stroke-width:2}
 .gbs-root .gbs-chevron {color:#9da9bd;font-size:22px;}
 
 .gbs-root .gbs-detail {padding:32px;min-height:310px;}

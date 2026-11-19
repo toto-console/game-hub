@@ -21,7 +21,7 @@ export function CenterSettings({store,controls,settings,save,close,native,notifi
   [option('Do Not Disturb · Game Hub popups only','quietPreviews'),option('Notification previews','notificationPreview'),option('Notification popups','notificationToasts'),option('Long popups · 8s instead of 4s','longToasts'),option('Friend online · requires Live friends','friendOnlineAlerts'),option('Friend game activity · requires Live friends','friendGameAlerts'),option('Group message alerts','groupAlerts'),option('Available friend requests','friendRequestAlerts'),option('Available Steam invitations','inviteAlerts'),option('Plugin updates','pluginAlerts'),option('Unread message previews','messageAlerts'),option('Incoming voice previews','voiceAlerts'),{name:'Open Steam notification settings',run:notificationSettings}],
   [{name:'Steam voice and microphone settings',run:audio}],
   [{name:'Steam controller settings',run:controller}],
-  [option('Ambient lighting','ambientLight'),option('Control Center blur','glassBlur'),option('Animations','motion'),option('Control Center replacement','controlCenter')],
+  [option('PS5-style Steam profiles','profileAppearance'),option('Ambient lighting','ambientLight'),option('Control Center blur','glassBlur'),option('Animations','motion'),option('Control Center replacement','controlCenter')],
   [{name:'Decky Loader',run:decky},{name:'Original Steam settings',run:native}],
   [{name:'Restore Game Hub defaults',run:()=>save({...defaults})}]
  ][category]??[];

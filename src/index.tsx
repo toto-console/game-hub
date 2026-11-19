@@ -1,3 +1,6 @@
+import {packagePlatformAllowed} from './package-platform';
+import {setOverlayInitialization} from './center-diagnostics';
+import {OVERLAY_COMPOSITION} from './overlay-compatibility';
 import {CenterCompatibility} from './CenterCompatibility';
 import {initializeLanguage} from './i18n';
 import {T} from "./i18n";
@@ -17,7 +20,7 @@ import {GameMusicRoute,GAME_MUSIC_ROUTE,openGameMusic} from './GameMusicSettings
 import {startHomeModule,HomePreferences} from './home/module';
 import {connectHomeFocus} from './home-focus';
 import {bindWhenReady} from './startup-ready';
-import {connectProfileReturn} from './profile-return';
+import {connectProfileReturn,clearProfileReturn} from './profile-return';
 import {createPlayerSearch} from './player-search';
 import {fetchNoCors,callable} from '@decky/api';
 import {createFriendManagement} from './friend-management';
@@ -27,7 +30,7 @@ import {createControlCenter} from './control-center-entry';
 import {type HubTab} from './Panel';
 import { definePlugin, routerHook } from '@decky/api';
 
-import { DialogButton, SliderField, Focusable, Navigation, Router, TextField, ScrollPanel, classMap, replacePatch, callOriginal, EUIComposition } from '@decky/ui';
+import { DialogButton, SliderField, Focusable, Navigation, Router, TextField, ScrollPanel, classMap, replacePatch, callOriginal } from '@decky/ui';
 
 import { useState, useEffect, useLayoutEffect, useRef, useSyncExternalStore, type ComponentType, type ComponentProps, type RefAttributes } from 'react';
 
@@ -105,6 +108,10 @@ const baseBridge:SocialBridge={
 };
 
 export default definePlugin(()=>{
+  if(!packagePlatformAllowed('__GAMEHUB_PACKAGE_TARGET__', navigator.platform)) {
+    return {name:'Game Base Social',icon:<span>!</span>,content:<div>Incompatible Game Hub package. Install the matching Windows or SteamOS/Bazzite download from GitHub. Native Steam remains available; your settings are unchanged.</div>};
+  }
+
 
   const stopAudio=startNavigationAudio();const stopUpdates=startUpdateChecks();
   const stopHome=startHomeModule();
@@ -122,12 +129,13 @@ export default definePlugin(()=>{
   let storeStatus:StoreResult={applied:false,reason:'Open the Store to apply its appearance.'};
   const storeAdapters=new Set<ReturnType<typeof connectStoreAppearance>>();
   const webAdapters=new Set<ReturnType<typeof connectFullscreenWeb>>();
+  let webOwnerSerial=0;
 
   let entry:EntryAdapter|undefined;
 
   let registered=false;
   let globalRegistered=false;
-  let entryRequest:{tab:HubTab;serial:number;conversation?:string;friend?:string}={tab:'Friends',serial:0};
+  let entryRequest:{tab:HubTab;serial:number;conversation?:string;friend?:string;returnToProfile?:()=>void}={tab:'Friends',serial:0};
   const requestListeners=new Set<()=>void>();
   const requestSubscribe=(fn:()=>void)=>{requestListeners.add(fn);return()=>{requestListeners.delete(fn);};};
   const requestSnapshot=()=>entryRequest;
@@ -208,8 +216,9 @@ export default definePlugin(()=>{
   function createOverlayContext(instance:OverlayWindow){
     const overlayAPI=()=> (window as unknown as {SteamClient?:{Overlay?:{RegisterForOverlayActivated?:(fn:(pid:number,app:number,active:boolean,userInitiated:boolean)=>void)=>{unregister:()=>void}}}}).SteamClient?.Overlay;
     const store=createControlCenter(instance,replacePatch,callOriginal,()=>registered&&settings.enabled&&settings.controlCenter,controlCenterHeaders(classMap),{
-      mode:EUIComposition.Overlay,subscribe:fn=>{const api=overlayAPI();if(!api?.RegisterForOverlayActivated)throw Error('Overlay activation API unavailable');const h=api.RegisterForOverlayActivated(fn);if(typeof h?.unregister!=='function')throw Error('Overlay activation subscription unavailable');return()=>h.unregister();}
+      mode:OVERLAY_COMPOSITION,subscribe:fn=>{const api=overlayAPI();if(!api?.RegisterForOverlayActivated)throw Error('Overlay activation API unavailable');const h=api.RegisterForOverlayActivated(fn);if(typeof h?.unregister!=='function')throw Error('Overlay activation subscription unavailable');return()=>h.unregister();}
     });
+    try {
     const returning=connectProfileReturn(instance,()=>{store.show();},()=>store.getSnapshot(),()=>{try{return baseBridge.friendManagement?.account();}catch{return undefined;}});
     const localControls:Controls={...controls,keyboard:{
       visible:()=>!!instance.VirtualKeyboardManager?.IsShowingVirtualKeyboard?.Value,
@@ -237,6 +246,7 @@ export default definePlugin(()=>{
       profile:async()=>{const client=(window as any).SteamClient;const url=(await client.URL.GetSteamURLList(['SteamIDMyProfile'])).SteamIDMyProfile?.url;if(!url||new URL(url).origin!=='https://steamcommunity.com')throw Error('Steam profile unavailable.');return()=>openGameHubWeb(url,u=>instance.NavigateToSteamWeb(u),instance);}
     };
     return {store,controls:localControls,bridge:localBridge,actions:localActions,beforeProfile:returning.begin,dispose(){returning.dispose();store.dispose();}};
+    } catch(error){store.dispose();throw error;}
   }
   function GlobalCenter(){
     const s=useSyncExternalStore(subscribe,getSnapshot,getSnapshot),marker=useRef<HTMLSpanElement>(null);
@@ -260,12 +270,34 @@ export default definePlugin(()=>{
       // WindowStore may publish the instance before its overlay identity is initialized.
       if(instance.IsAnyVRWindow?.())return;
       if(!instance.IsGamepadUIOverlayWindow?.())return false;
-      const ctx=createOverlayContext(instance);overlayContexts.set(instance,ctx);setContext(ctx);
+      const ctx=createOverlayContext(instance);setOverlayInitialization('ready');overlayContexts.set(instance,ctx);setContext(ctx);
       return()=>{overlayContexts.delete(instance);ctx.dispose();};
-    }),[]);
+    },error=>{setOverlayInitialization('initialization-failed');console.error('[Game Hub] Control Center initialization failed; native Steam remains available.',error);}),[]);
     useLayoutEffect(()=>bindWhenReady(()=>{const doc=marker.current?.ownerDocument;return Router.WindowStore?.SteamUIWindows.find(w=>w.BrowserWindow?.document===doc);},instance=>{const doc=instance.BrowserWindow.document;const helper=connectHomeFocus(instance as any,()=>settings.enabled&&settings.controlCenter,()=>settings.motion);homeFocus.set(doc,helper);return()=>{homeFocus.delete(doc);helper.dispose();};}),[]);
     useLayoutEffect(()=>{const doc=marker.current?.ownerDocument;if(doc)homeFocus.get(doc)?.refresh();},[s]);
-    useLayoutEffect(()=>bindWhenReady(()=>{const doc=marker.current?.ownerDocument;return Router.WindowStore?.SteamUIWindows.find(w=>w.BrowserWindow?.document===doc);},instance=>{if(instance!==Router.WindowStore?.GamepadUIMainWindowInstance)return;const adapter=connectFullscreenWeb(instance as unknown as WebWindow,()=>settings.enabled&&settings.fullscreenWeb,replacePatch,callOriginal,classMap);webAdapters.add(adapter);const store=connectStoreAppearance(instance as unknown as WebWindow,()=>settings,storeApply,replacePatch,callOriginal,result=>{storeStatus=result;listeners.forEach(fn=>fn());});storeAdapters.add(store);return()=>{store.dispose();storeAdapters.delete(store);adapter.dispose();webAdapters.delete(adapter);};}),[]);
+    useLayoutEffect(()=>bindWhenReady(()=>{const doc=marker.current?.ownerDocument;return Router.WindowStore?.SteamUIWindows.find(w=>w.BrowserWindow?.document===doc);},instance=>{
+      const main=instance===Router.WindowStore?.GamepadUIMainWindowInstance,web=instance as unknown as WebWindow;
+      if(web.IsAnyVRWindow())return;
+      if(!main&&!web.IsGamepadUIOverlayWindow())return false;
+      const owner='profile-window-'+(++webOwnerSerial);
+      const adapter=connectFullscreenWeb(instance as unknown as WebWindow,()=>settings.enabled&&settings.fullscreenWeb,replacePatch,callOriginal,classMap,()=>settings.enabled&&settings.profileAppearance,id=>{
+        if(!settings.enabled||!settings.messages||!bridge.messages)return;
+        const conversation=bridge.messages.friend(id);clearProfileReturn();
+        if(main){
+          const previous=entryRequest;let returned=false;
+          const returnToProfile=()=>{if(returned)return;returned=true;entryRequest=previous;web.m_history.goBack?.();};
+          entryRequest={tab:'Messages',conversation,returnToProfile,serial:entryRequest.serial+1};requestListeners.forEach(fn=>fn());instance.Navigate(ROUTE);
+        } else {
+          let returned=false;
+          const returnToProfile=()=>{if(returned)return;returned=true;overlayContexts.get(instance as OverlayWindow)?.store.close(false);};
+          instance.BrowserWindow.document.dispatchEvent(new CustomEvent('game-hub:profile-message',{detail:{conversation,returnToProfile}}));
+        }
+      });
+      webAdapters.add(adapter);
+      const store=connectStoreAppearance(instance as unknown as WebWindow,()=>settings,(url,options)=>storeApply(url,{...options,owner}),replacePatch,callOriginal,(result,url)=>{adapter.appearance(url||'',result.applied);storeStatus=result;listeners.forEach(fn=>fn());});
+      storeAdapters.add(store);
+      return()=>{store.dispose();storeAdapters.delete(store);adapter.dispose();webAdapters.delete(adapter);};
+    }),[]);
     return <><span ref={marker} hidden/>{context&&<ControlCenter {...(context==='main'?{store:center,controls,bridge,actions,beforeProfile:profileReturn.begin}:context)} settings={s} notifications={notifications} saveSettings={setSettings}/>}</>;
   }
   try{routerHook.addGlobalComponent('GameBaseControlCenter',GlobalCenter);globalRegistered=true;}catch{/* Without a mounted component the hook always uses native Steam. */}
@@ -314,11 +346,11 @@ export default definePlugin(()=>{
 
       <Button className="gbs-button" onClick={()=>setSettings({...defaults})}>Reset preferences</Button>
 
-      <p className="gbs-note">{s.enabled?'Messages connect to Steam. Voice uses Steam’s controls.':'Game Base is disabled.'} If nothing opens, use Steam’s own social menu. {saveFailed?'Preferences are session-only.':''}</p></div></div>;
+      <p className="gbs-note">{s.enabled?'Messages connect to Steam. Voice uses Steamâ€™s controls.':'Game Base is disabled.'} If nothing opens, use Steamâ€™s own social menu. {saveFailed?'Preferences are session-only.':''}</p></div></div>;
 
   }
 
-  return {name:'Game Base Social',titleView:<span>Game Base Social</span>,content:<QuickAccess/>,icon:<span aria-hidden="true">◇</span>,onDismount(){stopAudio();stopUpdates();stopWelcome();for(const adapter of storeAdapters)adapter.dispose();storeAdapters.clear();stopWebOwner();for(const adapter of webAdapters)adapter.dispose();webAdapters.clear();window.removeEventListener("game-hub:open-music",closeForMusic);stopSoundtracks();routerHook.removeRoute(GAME_MUSIC_ROUTE);routerHook.removeRoute(GAME_MUSIC_ROUTE+"/:appid");stopHome();for(const ctx of overlayContexts.values())ctx.dispose();overlayContexts.clear();profileReturn.dispose();notifications.dispose();center.dispose();if(globalRegistered)routerHook.removeGlobalComponent('GameBaseControlCenter');entry?.dispose();requestListeners.clear();if(registered)routerHook.removeRoute(ROUTE);listeners.clear();}};
+  return {name:'Game Base Social',titleView:<span>Game Base Social</span>,content:<QuickAccess/>,icon:<span aria-hidden="true">â—‡</span>,onDismount(){stopAudio();stopUpdates();stopWelcome();for(const adapter of storeAdapters)adapter.dispose();storeAdapters.clear();stopWebOwner();for(const adapter of webAdapters)adapter.dispose();webAdapters.clear();window.removeEventListener("game-hub:open-music",closeForMusic);stopSoundtracks();routerHook.removeRoute(GAME_MUSIC_ROUTE);routerHook.removeRoute(GAME_MUSIC_ROUTE+"/:appid");stopHome();for(const ctx of overlayContexts.values())ctx.dispose();overlayContexts.clear();profileReturn.dispose();notifications.dispose();center.dispose();if(globalRegistered)routerHook.removeGlobalComponent('GameBaseControlCenter');entry?.dispose();requestListeners.clear();if(registered)routerHook.removeRoute(ROUTE);listeners.clear();}};
 
 });
 

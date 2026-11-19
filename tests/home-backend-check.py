@@ -6,6 +6,7 @@ from pathlib import Path
 import sys
 import tempfile
 import types
+from unittest.mock import patch
 
 root = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(root / 'py_modules'))
@@ -32,5 +33,24 @@ with tempfile.TemporaryDirectory() as temp:
         assert original_file.read_bytes() == original_bytes
         assert (own / 'ps5-dashboard-original-settings.json').read_bytes() == original_bytes
         assert await plugin.get_settings() == seed
+        enabled = {"active": True, "dashboard": {"enabled": True, "ps5Home": True}}
+        assert await plugin.set_settings(enabled)
+        saved = (own / 'home-dashboard.json').read_bytes()
+        with patch('builtins.open', side_effect=PermissionError('temporary Windows file lock')):
+            try:
+                await plugin.get_settings()
+                raise AssertionError('Read failure must not look like a disabled Home')
+            except RuntimeError:
+                pass
+        assert (own / 'home-dashboard.json').read_bytes() == saved
+        assert await plugin.get_settings() == enabled
+        (own / 'home-dashboard.json').write_text('[]')
+        try:
+            await plugin.get_settings()
+            raise AssertionError('Invalid settings must not count as successful startup')
+        except RuntimeError:
+            pass
+        (own / 'home-dashboard.json').write_bytes(saved)
+        assert await plugin.get_settings() == enabled
     asyncio.run(check())
 print('PASS: inactive migration, isolated persistence, original settings backup and preservation')

@@ -39,13 +39,14 @@ function ProfileIcon({avatar}:{avatar?:string}){
  const [failed,setFailed]=useState<string>();
  return avatar&&failed!==avatar?<img key={avatar} className="gcc-dock-avatar" src={avatar} alt="" referrerPolicy="no-referrer" draggable={false} onError={()=>setFailed(avatar)}/>:<Icon name="profile"/>;
 }
-class Boundary extends Component<{children:ReactNode;fail:()=>void},{failed:boolean}>{state={failed:false};static getDerivedStateFromError(){return {failed:true};}componentDidCatch(){this.props.fail();}render(){return this.state.failed?null:this.props.children;}}
+class Boundary extends Component<{children:ReactNode;fail:()=>void},{failed:boolean}>{state={failed:false};static getDerivedStateFromError(){return {failed:true};}componentDidCatch(error:unknown){console.error('[Game Hub] Control Center render failed; restoring native Steam.',error);this.props.fail();}render(){return this.state.failed?null:this.props.children;}}
 export type CenterActions={web:(url:string)=>void;library:(id?:number)=>void;hub:(tab:HubTab,conversation?:string,friend?:string)=>void;home:()=>void;games:()=>void;notifications:()=>void;downloads:()=>void;sound:()=>void;accessories:()=>void;profile:()=>Promise<()=>void>;power:(anchor:HTMLElement,onCancel:()=>void)=>void;exitGame?:()=>void|Promise<void>;decky:()=>void;deckyPage:(page:'store'|'settings')=>void;steamSettings:()=>void;voiceSettings:()=>void;notificationSettings:()=>void};
 type Props={beforeProfile:()=>void;store:ControlCenterStore;controls:Controls;bridge:SocialBridge;settings:Settings;notifications:NotificationStore;saveSettings:(s:Settings)=>void;actions:CenterActions};
 export function ControlCenter(props:Props){return <Boundary fail={()=>props.store.fail()}><Host {...props}/></Boundary>;}
 function Host(props:Props){
  const modal=useRef<ShowModalResult|undefined>(undefined);
  const [downloadRequest,setDownloadRequest]=useState<{appid:number;origin:HTMLElement|null;external:boolean;serial:number}>();
+ const [profileMessage,setProfileMessage]=useState<{conversation:string;serial:number;returnToProfile?:()=>void}>();
  const notices=useSyncExternalStore(props.notifications.subscribe,props.notifications.getSnapshot,props.notifications.getSnapshot);
  const marker=useRef<HTMLSpanElement>(null);const [main,setMain]=useState(false);
  const open=useSyncExternalStore(props.store.subscribe,props.store.getSnapshot,props.store.getSnapshot);
@@ -56,16 +57,21 @@ function Host(props:Props){
   const receive=(event:Event)=>{const d=(event as CustomEvent).detail;if(!Number.isSafeInteger(d?.appid)||d.appid<=0)return;const external=!props.store.getSnapshot();if(external&&!props.store.show())return;event.preventDefault();setDownloadRequest({appid:d.appid,origin:d.origin,external,serial:Date.now()});};
   doc.addEventListener('game-hub:open-downloads',receive);return()=>doc.removeEventListener('game-hub:open-downloads',receive);
  },[props.store]);
- useEffect(()=>{if(!open)setDownloadRequest(undefined);},[open]);
- const modalContent=()=> <ModalRoot className="gbs-modal-owner" bAllowFullSize bHideCloseIcon bDisableBackgroundDismiss onCancel={()=>{const el=marker.current?.ownerDocument.querySelector<HTMLElement>('#game-hub-control-center .gq-root .gq-category, #game-hub-control-center .gcc-settings .gcc-utility');if(el){const EventClass=el.ownerDocument.defaultView?.KeyboardEvent;if(EventClass)el.dispatchEvent(new EventClass('keydown',{key:'Escape',bubbles:true,cancelable:true}));}else props.store.requestClose();}}><Boundary fail={()=>props.store.fail()}><Surface {...props} downloadRequest={downloadRequest} closeForProfile={(preserve=true)=>{if(preserve)props.beforeProfile();else clearProfileReturn();modal.current?.Close();props.store.close(false);}}/></Boundary></ModalRoot>;
+ useEffect(()=>{const doc=marker.current?.ownerDocument;if(!doc||!props.store.owns(doc))return;
+  const receive=(event:Event)=>{const conversation=(event as CustomEvent).detail?.conversation;if(typeof conversation!=='string'||!conversation)return;setProfileMessage({conversation,serial:Date.now(),returnToProfile:typeof (event as CustomEvent).detail?.returnToProfile==='function'?(event as CustomEvent).detail.returnToProfile:undefined});props.store.show();};
+  doc.addEventListener('game-hub:profile-message',receive);return()=>doc.removeEventListener('game-hub:profile-message',receive);
+ },[props.store]);
+ useEffect(()=>{if(!open){setDownloadRequest(undefined);setProfileMessage(undefined);}},[open]);
+ const modalContent=()=> <ModalRoot className="gbs-modal-owner" bAllowFullSize bHideCloseIcon bDisableBackgroundDismiss onCancel={()=>{const el=marker.current?.ownerDocument.querySelector<HTMLElement>('#game-hub-control-center .gq-root .gq-category, #game-hub-control-center .gcc-settings .gcc-utility');if(el){const EventClass=el.ownerDocument.defaultView?.KeyboardEvent;if(EventClass)el.dispatchEvent(new EventClass('keydown',{key:'Escape',bubbles:true,cancelable:true}));}else props.store.requestClose();}}><Boundary fail={()=>props.store.fail()}><Surface {...props} profileMessage={profileMessage} downloadRequest={downloadRequest} closeForProfile={(preserve=true)=>{if(preserve)props.beforeProfile();else clearProfileReturn();modal.current?.Close();props.store.close(false);}}/></Boundary></ModalRoot>;
  useLayoutEffect(()=>{if(!open||!main)return;try{const handle=showModal(modalContent(),marker.current!.ownerDocument.defaultView!,{bNeverPopOut:true,bHideActionIcons:true,strTitle:'Game Hub',fnOnClose:()=>props.store.close()});modal.current=handle;return()=>{modal.current=undefined;handle.Close();props.store.modalClosed();};}catch{props.store.fail();}},[open,main,props.store]);
- useEffect(()=>{modal.current?.Update(modalContent());},[props.settings,props.bridge,props.controls,downloadRequest]);
+ useEffect(()=>{modal.current?.Update(modalContent());},[props.settings,props.bridge,props.controls,downloadRequest,profileMessage]);
  return <><span ref={marker} hidden/> {main&&notices.toast&&(open||marker.current?.ownerDocument.querySelector('.gbs-room'))&&<div className="gbs-notice-toast" data-motion={props.settings.motion} role="status"><style>{controlCenterCSS}</style>{notices.toast.avatar&&<img src={notices.toast.avatar} alt=""/>}<div><strong>{notices.toast.kind} · {notices.toast.title}</strong><p>{notices.toast.detail}</p></div></div>}</>;
 }
-export function Surface({store,controls,bridge,settings,notifications,saveSettings,actions,closeForProfile,downloadRequest}:Props&{closeForProfile:(preserve?:boolean)=>void;downloadRequest?:{appid:number;origin:HTMLElement|null;external:boolean;serial:number}}){
+export function Surface({store,controls,bridge,settings,notifications,saveSettings,actions,closeForProfile,downloadRequest,profileMessage}:Props&{profileMessage?:{conversation:string;serial:number;returnToProfile?:()=>void};closeForProfile:(preserve?:boolean)=>void;downloadRequest?:{appid:number;origin:HTMLElement|null;external:boolean;serial:number}}){
  const {Button,Group}=controls;
  const currentGame=useGameActivity(store.currentAppId);const [activityModal,setActivityModal]=useState(false);
- const [gamePanel,setGamePanel]=useProfileState<{tab:HubTab;serial:number;conversation?:string;friend?:string}>('center-overlay-panel');
+ const [gamePanel,setGamePanel]=useProfileState<{tab:HubTab;serial:number;conversation?:string;friend?:string;returnToProfile?:()=>void}|undefined>('center-overlay-panel',profileMessage?{tab:'Messages',...profileMessage}:undefined);
+ useEffect(()=>{if(profileMessage)setGamePanel({tab:'Messages',...profileMessage});},[profileMessage]);
  const notices=useSyncExternalStore(notifications.subscribe,notifications.getSnapshot,notifications.getSnapshot);
  const [systemMenu,setSystemMenu]=useProfileState<'Decky'|'Notifications'>("ControlCenter:[systemMenu,setSystemMenu]");
  const menuOpen=useRef(false);

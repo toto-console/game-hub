@@ -1,6 +1,7 @@
 /* Presentation only; preserve the native Store, media, commerce and focus engines. */
 function installGameHubStore(options, css) {
-  const root=document.documentElement,VERSION=16;
+  if(typeof isGameHubProfileURL==='function'&&isGameHubProfileURL(location.href))return installGameHubProfile(options,css);
+  const root=document.documentElement,VERSION=17;
   function activity(raw=location.href){try{const u=new URL(raw);return u.origin==='https://steamcommunity.com'&&!u.username&&!u.password&&/^\/(?:my|id\/[a-zA-Z0-9_-]+|profiles\/\d+)\/home\/?$/.test(u.pathname)&&[...u.searchParams.keys()].every(k=>['l','snr'].includes(k));}catch{return false;}}
   function supported(raw=location.href) {
     try{const u=new URL(raw,location.href),path=decodeURIComponent(u.pathname),query=decodeURIComponent(u.search);

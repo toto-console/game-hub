@@ -8,7 +8,7 @@ export function CenterCompatibility({controls,store:provided,resolveStore}:{cont
  const store=resolveStore?resolveStore():provided;
  const {Button}=controls;const [report,setReport]=useState(centerReport),[message,setMessage]=useState(''),[busy,setBusy]=useState(false);
  useEffect(()=>{setReport(centerReport());},[]);
- return <><p>Game Hub {report.gameHubVersion} · Decky UI: {report.deckyUI} · PlayHub plugin: {report.playHubPlugin}</p><p>Control Center: {store?store.diagnostic().enabled?'Enabled':'Disabled':'No mounted context'}</p><p>In-game integration: {report.inGameIntegration}</p>
+ return <><p>Game Hub {report.gameHubVersion} · Decky UI: {report.deckyUI} · PlayHub plugin: {report.playHubPlugin}</p><p>Control Center: {store?store.diagnostic().enabled?'Enabled':'Disabled':'No mounted context'}</p><p>In-game integration: {report.inGameIntegration}</p><p>Home integration: {report.homeIntegration} · Overlay initialization: {report.overlayInitialization}</p>
  <p>Open shortcut: Steam’s native Home / Guide menu request, when the active overlay exposes it. Controller bindings are managed by Steam.</p>
  <p>Home support does not confirm in-game support. Start a game, open Decky in its overlay, then select Game Base Social → Open Control Center. This uses the same window without remapping your controller.</p>
  <p>If Decky is absent from that overlay, Game Hub cannot replace its menu. Keep the original Steam menu available and check the installed PlayHub, Decky and Steam versions.</p>

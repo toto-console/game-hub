@@ -1,3 +1,20 @@
+## Platform downloads — dev.105
+
+Choose exactly one installer from [the same GitHub release](https://github.com/toto-console/game-hub/releases/tag/v0.13.0-dev.105):
+
+| Download | Intended system | Status |
+| --- | --- | --- |
+| [Windows x64](https://github.com/toto-console/game-hub/releases/download/v0.13.0-dev.105/Game-Hub-0.13.0-dev.105-Windows-x64.zip) | Windows 11 x64 / compatible Decky host | Experimental Windows build |
+| [SteamOS / Bazzite x64](https://github.com/toto-console/game-hub/releases/download/v0.13.0-dev.105/Game-Hub-0.13.0-dev.105-SteamOS-Bazzite-x64-EXPERIMENTAL.zip) | SteamOS / Bazzite x86-64 | **Experimental: awaiting Linux testers; not fully supported** |
+
+Both use one source tree and the existing `game-base-social` directory, `Game Base Social` plugin identity, and existing settings. Install only one; never delete settings to switch versions. The source ZIP is for development, not installation.
+
+Package-bound frontend and backend checks refuse activation on the wrong OS. Decky's manual ZIP installer may still copy an incompatible archive; reinstall the correct package to recover. Native Steam remains available. Windows-specific battery/storage integrations retain their OS guards; Linux uses the shared Linux paths, without Windows DLL calls.
+
+**Leave Decky Direct Updater automatic installation OFF for Game Hub.** The inspected updater does not select OS-specific assets. These explicitly labeled assets deliberately do not match its generic plugin filename selection. Game Hub's own schema-3 update manifest also disables automatic installation and has no certified loader targets yet. Do not rename either ZIP to a generic updater filename.
+
+Linux testers must verify cold startup with saved Home preferences, in-game overlay, profiles, keyboard, messages and Back, library installation, storage and native Steam recovery. Record Steam, Decky, host integration and Game Hub versions. CI checks are not SteamOS/Bazzite hardware certification.
+
 # Game Hub
 
 PS5-inspired Home, Welcome widgets, Library, Control Center, Game News, Friends, Messages and Party for Steam Big Picture with Decky Loader. Includes controller navigation, media shortcuts and optional integration adapters.
@@ -12,7 +29,7 @@ Screenshot of the included browser preview, not a live Steam account. Home uses 
 
 ## Download
 
-Open [Releases](https://github.com/toto-console/game-hub/releases) and download **Game-Hub-0.13.0-dev.67-decky.zip** from the newest pre-release. The automatic GitHub “Source code” archives are **not installable plugins**. Compare the file's SHA-256 with `SHA256SUMS.txt` from the same release.
+Open [Releases](https://github.com/toto-console/game-hub/releases) and download **Game-Hub-0.13.0-dev.69-decky.zip** from the newest pre-release. The automatic GitHub “Source code” archives are **not installable plugins**. Compare the file's SHA-256 with `SHA256SUMS.txt` from the same release.
 
 ## Platform status
 

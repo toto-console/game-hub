@@ -1,0 +1,12 @@
+import React from 'react';
+import {it,expect,afterEach} from 'vitest';
+import {render,screen,cleanup} from '@testing-library/react';
+import {FriendActivity} from '../src/FriendActivity';
+import {friendPlatform} from '../src/friend-platform';
+import {readSteamFriends} from '../src/model';
+afterEach(cleanup);
+it('recognizes only confirmed hardware device types',()=>{expect(friendPlatform(546)).toBe('steam-machine');expect(friendPlatform(544)).toBe('steam-deck');expect(friendPlatform(545)).toBe('legion-go-s');for(const value of [undefined,0,1,256,'546','PS5',999])expect(friendPlatform(value)).toBeUndefined();});
+it('renders supplied PNG and game text without adding navigation targets',()=>{const {container}=render(<FriendActivity friend={{id:'1',name:'Friend',state:'playing',game:'A very long game name',platform:'steam-machine'}}/>);expect(screen.getByRole('img',{name:'Playing on Steam'})).toBeTruthy();expect(screen.getByText('A very long game name')).toBeTruthy();expect(container.querySelector('img')?.src).toMatch(/^data:image\/png;base64,/);expect(container.querySelector('button,a,[tabindex]')).toBeNull();});
+it.each(['online','away','offline'] as const)('preserves %s status and omits a stale device',state=>{render(<FriendActivity friend={{id:'1',name:'Friend',state,platform:'steam-machine'}}/>);expect(screen.queryByRole('img')).toBeNull();expect(screen.getByText(state[0].toUpperCase()+state.slice(1))).toBeTruthy();});
+it('shows Steam activity even when hardware is unknown',()=>{const {container}=render(<FriendActivity friend={{id:'1',name:'Friend',state:'playing',game:'PS5 game title'}}/>);expect(container.querySelector('.gbs-platform img')).not.toBeNull();});
+it('passes confirmed persona hardware through the friend adapter only while playing',()=>{const persona={m_strPlayerName:'Friend',is_online:true,is_ingame:true,is_awayOrSnooze:false,m_strGameExtraInfo:'Game',m_eGamingDeviceType:546};const read=()=>readSteamFriends({friendStore:{allFriends:[{is_ready:true,steamid64:'76561198000000001',persona}]}}).friends[0];expect(read().platform).toBe('steam-machine');persona.is_ingame=false;expect(read().platform).toBeUndefined();});

@@ -3,14 +3,14 @@ import json, hashlib, sys, zipfile
 root=Path.cwd();out=root.parent
 version=json.loads((root/'package.json').read_text())['version']
 if len(sys.argv)>1 and sys.argv[1]!='v'+version:raise SystemExit('Tag must match package version exactly')
-name=f'Game-Hub-{version}-decky.zip';digest=hashlib.sha256((out/name).read_bytes()).hexdigest()
-compat=json.loads((root/'release-compatibility.json').read_text())
-manifest={'schema':2,'version':version,'asset':name,'sha256':digest,'targets':compat['targets'],'automaticInstall':False,'compatibilityNote':compat['reason']}
-(out/'game-hub-update.json').write_text(json.dumps(manifest,indent=2)+'\n')
-source=out/f'Game-Hub-{version}-source.zip'
-with zipfile.ZipFile(source) as z:
-    assert z.testzip() is None
-    for required in ('src/index.tsx','package-lock.json','.github/workflows/release.yml','scripts/release-manifest.py'):z.getinfo('game-base-social/'+required)
-files=[out/'Game-Base-Social.zip',out/name,out/f'Game-Hub-{version}-source.zip',out/'game-hub-update.json']
+artifacts=[];files=[]
+for label,target in [('Windows-x64','windows-x86_64'),('SteamOS-Bazzite-x64-EXPERIMENTAL','linux-x86_64')]:
+ p=out/f'Game-Hub-{version}-{label}.zip';files.append(p)
+ with zipfile.ZipFile(p) as z:
+  assert json.loads(z.read('game-base-social/platform-target.json'))['platform']==target
+  assert b'__GAMEHUB_PACKAGE_TARGET__' not in z.read('game-base-social/dist/index.js')
+ artifacts.append({'platform':target,'asset':p.name,'sha256':hashlib.sha256(p.read_bytes()).hexdigest(),'certifiedLoaders':[],'experimental':True})
+manifest={'schema':3,'version':version,'artifacts':artifacts,'automaticInstall':False,'compatibilityNote':'Linux requires SteamOS/Bazzite tester confirmation. Decky Direct Updater platform selection is not verified; use manual matching downloads.'}
+p=out/'game-hub-update.json';p.write_text(json.dumps(manifest,indent=2)+'\n');files.extend([out/f'Game-Hub-{version}-source.zip',p])
 (out/'SHA256SUMS.txt').write_text(''.join(hashlib.sha256(p.read_bytes()).hexdigest()+'  '+p.name+'\n' for p in files))
-print('Release manifest and checksums verified for',version)
+print('Both platform manifests and checksums verified:',version)

@@ -14,3 +14,17 @@ it('moves Steam controller focus down through games/pictures/actions and back up
 it('A activates exactly once, B stays native, disposal restores temporary attributes',()=>{const [,picture]=fixture();dir(10);dir(10);const click=vi.fn();picture.onclick=click;picture.dispatchEvent(new CustomEvent('vgp_onok',{bubbles:true,cancelable:true}));expect(click).toHaveBeenCalledOnce();const b=new CustomEvent('vgp_oncancel',{bubbles:true,cancelable:true});picture.dispatchEvent(b);expect(b.defaultPrevented).toBe(false);stop();expect(picture.hasAttribute('tabindex')).toBe(false);expect(picture.classList.contains('gh-activity-focus')).toBe(false);expect(dir(9).defaultPrevented).toBe(false);});
 it('leaves text editing and visible dialogs to Steam',()=>{const items=fixture();items[3].focus();expect(dir(10).defaultPrevented).toBe(false);items[0].focus();items[2].setAttribute('role','dialog');expect(dir(10).defaultPrevented).toBe(false);});
 it('re-queries newly loaded feed items rather than holding a stale list',()=>{const items=fixture();dir(10);items[1].remove();dir(10);expect(document.activeElement).toBe(items[2]);});
+
+it('moves the focus ring when Steam or mouse focus changes outside the direction handler',()=>{
+ const [game,,button]=fixture();dir(10);expect(game.classList.contains('gh-activity-focus')).toBe(true);button.focus();expect(game.classList.contains('gh-activity-focus')).toBe(false);expect(button.classList.contains('gh-activity-focus')).toBe(true);dir(9);expect(button.classList.contains('gh-activity-focus')).toBe(false);
+});
+
+it('synchronizes native focus even when Steam’s old ready flag is false',()=>{const native=vi.fn(),instrument=vi.fn();(window as any).g_bGamepadNavReady=false;(window as any).GPNavFocusChild=native;(window as any).InstrumentFocusElements=instrument;const [first]=fixture();dir(10);expect(native).toHaveBeenCalledWith([first]);expect(instrument).toHaveBeenCalledWith([first]);delete (window as any).GPNavFocusChild;delete (window as any).InstrumentFocusElements;});
+it('treats an inactive readonly search as navigable instead of trapping focus',()=>{const [game,,button,input]=fixture();input.setAttribute('readonly','');input.focus();dir(9);expect(document.activeElement).toBe(button);});
+
+it('uses whole cards as grid targets and skips their nested actions',()=>{
+ document.body.innerHTML='<section class="ghp-shell"><div class="ghp-game-grid">'+Array.from({length:6},(_,i)=>`<article data-ghp-focus data-ghp-card tabindex="0"><button data-ghp-focus>Game ${i}</button><a data-ghp-focus href="#">Extra action</a></article>`).join('')+'</div></section>';
+ const cards=Array.from(document.querySelectorAll<HTMLElement>('article'));cards.forEach((el,i)=>{const x=(i%3)*150,y=Math.floor(i/3)*200;const r={left:x,right:x+120,top:y,bottom:y+180,width:120,height:180} as DOMRect;[el,...Array.from(el.children)].forEach(n=>{(n as HTMLElement).getClientRects=()=>[r] as any;(n as HTMLElement).getBoundingClientRect=()=>r;(n as HTMLElement).scrollIntoView=vi.fn();});});
+ stop=connect(document,()=>true,{region:'.ghp-shell',targets:'[data-ghp-focus]',cardSelector:'[data-ghp-card]',gridNavigation:true,focusClass:'ghp-focus'});cards[0].focus();dir(12);expect(document.activeElement).toBe(cards[1]);dir(10);expect(document.activeElement).toBe(cards[4]);dir(11);expect(document.activeElement).toBe(cards[3]);dir(9);expect(document.activeElement).toBe(cards[0]);expect(document.querySelectorAll('.ghp-focus')).toHaveLength(1);
+});
+

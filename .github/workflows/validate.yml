@@ -7,7 +7,10 @@ permissions:
   contents: read
 jobs:
   validate:
-    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
@@ -24,13 +27,15 @@ jobs:
       - run: npm test
       - run: python -m unittest discover -s tests -p 'test_*.py'
       - run: python scripts/package-public.py
+      - run: python scripts/verify-platform-packages.py
       - run: python scripts/release-manifest.py
-      - run: |
+      - shell: bash
+        run: |
           mkdir artifacts
-          cp ../Game-Hub-*-decky.zip ../Game-Hub-*-source.zip ../game-hub-update.json ../SHA256SUMS.txt artifacts/
+          cp ../Game-Hub-*-Windows-x64.zip ../Game-Hub-*-SteamOS-Bazzite-x64-EXPERIMENTAL.zip ../Game-Hub-*-source.zip ../game-hub-update.json ../SHA256SUMS.txt artifacts/
       - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
-          name: validated-build
+          name: validated-build-${{ matrix.os }}
           path: artifacts/*
           if-no-files-found: error
 

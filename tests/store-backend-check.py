@@ -30,6 +30,11 @@ class Tests(unittest.IsolatedAsyncioTestCase):
             self.assertTrue(module.allowed_url('https://store.steampowered.com'+path))
         for url in ['http://store.steampowered.com/','https://store.steampowered.com.evil/','https://user@store.steampowered.com/','https://store.steampowered.com:444/','https://store.steampowered.com/agecheck/app/620/','https://store.steampowered.com/account/','https://store.steampowered.com/?token=secret','https://store.steampowered.com/app/620/%6cogin','https://checkout.steampowered.com/','https://store.steampowered.com/unknown/']:
             self.assertFalse(module.allowed_url(url),url)
+    def test_profile_overview_boundaries(self):
+        for url in ['https://steamcommunity.com/id/example','https://steamcommunity.com/profiles/76561190000000000/?insideModal=0']:
+            self.assertTrue(module.allowed_url(url))
+        for url in ['https://steamcommunity.com/id/example/edit','https://steamcommunity.com/id/example/inventory','https://steamcommunity.com/login','https://steamcommunity.com/id/example?token=x']:
+            self.assertFalse(module.allowed_url(url))
     async def test_endpoint_boundary(self):
         a=module.StoreAppearance(Path(__file__).resolve().parents[1])
         for endpoint in ['ws://example.com:8080/','ws://127.0.0.1:9999/','http://127.0.0.1:8080/']:
@@ -42,7 +47,7 @@ class Tests(unittest.IsolatedAsyncioTestCase):
         with patch.object(module.aiohttp,'ClientSession',lambda **kw:Session(),create=True):
             result=await a.update('https://store.steampowered.com/',dict(enabled=True,gloss=True))
             self.assertTrue(result['applied']);self.assertEqual(len(calls),1)
-            self.assertIn('location.href!==',calls[0][1]);self.assertEqual(list(a.owned),['store'])
+            self.assertIn('location.href.split',calls[0][1]);self.assertEqual(list(a.owned),['store'])
             await a.update('https://store.steampowered.com/',dict(enabled=True,gloss=True));self.assertEqual(len(calls),2);self.assertNotIn('window.__gameHubStoreAppearance?.dispose(); true',calls[1][1]);await a.close();self.assertEqual(len(calls),3);self.assertIn('dispose()',calls[2][1]);self.assertEqual(a.owned,{})
     async def test_stale_requests_do_not_apply(self):
         a=module.StoreAppearance(Path(__file__).resolve().parents[1]);calls=[]
@@ -59,5 +64,28 @@ class Tests(unittest.IsolatedAsyncioTestCase):
         a=module.StoreAppearance(Path(__file__).resolve().parents[1])
         with patch.object(module.aiohttp,'ClientSession',lambda **kw:Session(),create=True):
             self.assertFalse((await a.update('https://checkout.steampowered.com/',dict(enabled=True)))['applied'])
+
+    async def test_profile_hash_tabs_match_without_disposing_the_document(self):
+        a=module.StoreAppearance(Path(__file__).resolve().parents[1]);calls=[]
+        url='https://steamcommunity.com/id/example/'
+        async def targets(_): return [dict(id='profile',type='page',url=url+'#ghp-inventory',webSocketDebuggerUrl='ws://127.0.0.1:8080/devtools/page/profile')]
+        async def evaluate(session,endpoint,script): calls.append(script);return {'applied':True}
+        async def preload(*args): pass
+        a.evaluate=evaluate;a.start_preload=preload
+        with patch.object(module.aiohttp,'ClientSession',lambda **kw:Session(),create=True),patch.object(Response,'json',targets):
+            self.assertTrue((await a.update(url,dict(enabled=True)))['applied'])
+            self.assertTrue((await a.update(url+'#ghp-games',dict(enabled=True)))['applied'])
+        self.assertEqual(len(calls),2);self.assertTrue(all('dispose(); true' not in s for s in calls))
+
+    async def test_one_window_does_not_dispose_another_windows_theme(self):
+        a=module.StoreAppearance(Path(__file__).resolve().parents[1]);calls=[]
+        async def evaluate(session,endpoint,script): calls.append(script);return {'applied':True}
+        a.evaluate=evaluate
+        with patch.object(module.aiohttp,'ClientSession',lambda **kw:Session(),create=True):
+            await a.update('https://store.steampowered.com/',dict(enabled=True,owner='main'))
+            await a.update('',dict(owner='overlay'))
+            self.assertEqual(len(calls),1);self.assertIn('store',a.owned)
+            await a.update('',dict(owner='main'))
+            self.assertEqual(len(calls),2);self.assertFalse(a.owned)
 
 if __name__=='__main__': unittest.main()

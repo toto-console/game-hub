@@ -1,3 +1,4 @@
+import {FriendActivity} from './FriendActivity';
 import {PlayerBio} from './PlayerBio';
 import {LanguageSettings} from './LanguageSettings';
 import {T} from "./i18n";
@@ -36,7 +37,7 @@ export type Controls = {Message?:ComponentType<HTMLAttributes<HTMLDivElement>>;H
 
 export type PreviewContent = {messages:{author:string;text:string;time:string;self?:boolean}[];members:Friend[]};
 
-type Props = {bridge:SocialBridge;controls:Controls;settings:Settings;setSettings:(s:Settings)=>void;onBack:()=>void;preview?:PreviewContent;initialTab?:HubTab;entryRequest?:{tab:HubTab;serial:number;conversation?:string;friend?:string}};
+type Props = {bridge:SocialBridge;controls:Controls;settings:Settings;setSettings:(s:Settings)=>void;onBack:()=>void;preview?:PreviewContent;initialTab?:HubTab;entryRequest?:{tab:HubTab;serial:number;conversation?:string;friend?:string;returnToProfile?:()=>void}};
 
 export type HubTab = 'Friends' | 'Messages' | 'Party' | 'Search for Players' | 'Friend Requests' | 'Settings';
 type Tab=HubTab;
@@ -55,7 +56,7 @@ export function Panel({bridge,controls,settings,setSettings,onBack,preview,initi
 
   const {Button,Group}=controls;
 
-  const [conversation,setConversation]=useProfileState<string>("Panel:[conversation,setConversation]");
+  const [conversation,setConversation]=useProfileState<string|undefined>("Panel:[conversation,setConversation]",entryRequest?.conversation);
   const [partyGroup,setPartyGroup]=useProfileState<string>("Panel:[partyGroup,setPartyGroup]");
  const [partyPlayers,setPartyPlayers]=useProfileState<string[]>("Panel:[partyPlayers,setPartyPlayers]",[]);
  const [menuFriend,setMenuFriend]=useProfileState<Friend>("Panel:[menuFriend,setMenuFriend]");
@@ -79,7 +80,6 @@ export function Panel({bridge,controls,settings,setSettings,onBack,preview,initi
 
   const [error,setError] = useProfileState("Panel:[error,setError]",'');
 
-  const [refresh,setRefresh] = useProfileState("Panel:[refresh,setRefresh]",0);
 
   const [limit,setLimit] = useProfileState("Panel:[limit,setLimit]",40);
 
@@ -101,7 +101,7 @@ export function Panel({bridge,controls,settings,setSettings,onBack,preview,initi
 
     return ()=>{active=false;clearInterval(timer);};
 
-  },[bridge,settings.enabled,settings.liveFriends,activeTab,refresh]);
+  },[bridge,settings.enabled,settings.liveFriends,activeTab]);
 
   const friends=settings.liveFriends ? snapshot.friends : [];
 
@@ -111,7 +111,7 @@ export function Panel({bridge,controls,settings,setSettings,onBack,preview,initi
 
   const native=()=>act(()=>bridge.openNative());
 
-  const back=()=>{if(menuFriend){closeMenu();return;}if((activeTab==='Messages'||activeTab==='Party')&&childBack.current){childBack.current();return;}if(activeTab!=='Friends')setTab('Friends');else onBack();};
+  const back=()=>{if(menuFriend){closeMenu();return;}if(activeTab==='Messages'&&entryRequest?.returnToProfile){entryRequest.returnToProfile();return;}if((activeTab==='Messages'||activeTab==='Party')&&childBack.current){childBack.current();return;}if(activeTab!=='Friends')setTab('Friends');else onBack();};
   const root=useRoomNavigation(back,controls.keyboard);useProfileFocus(root,'panel-focus');useFocusPresentation(root);
   useLayoutEffect(()=>{if(activeTab==='Messages'||activeTab==='Party')return;const frame=requestAnimationFrame(()=>focusControl(root.current?.querySelector('.gbs-tab[aria-pressed="true"]')));return()=>cancelAnimationFrame(frame);},[activeTab]);
   useTabNavigation(root,activeTab,tabs,next=>{setConversation(undefined);setPartyGroup(undefined);setPartyPlayers([]);setTab(next);setError('');},!!menuFriend||menuClosing||threadOpen,controls.keyboard);
@@ -123,7 +123,7 @@ export function Panel({bridge,controls,settings,setSettings,onBack,preview,initi
 
     ['enabled','Enable Game Hub','Show this social panel.'],['friendsEntry','Open from Friends & Chat','Open Game Hub from Steam’s social menu entry.'],['liveFriends','Read Steam friends · experimental','Read loaded names, presence and avatars on this device.'],
 
-    ['controlCenter','Control Center','Replace the main Big Picture menu. Native gameplay overlays remain available.'],['messages','Messages tab','Read and send Steam messages in Game Hub.'],['party','Party tab','Start and manage Steam voice calls.'],['motion','Quiet transitions','Respects your system’s reduced-motion preference.']
+    ['profileAppearance','Console-style Steam profiles','Use the player’s equipped background and real Steam profile details.'],['controlCenter','Control Center','Replace the main Big Picture menu. Native gameplay overlays remain available.'],['messages','Messages tab','Read and send Steam messages in Game Hub.'],['party','Party tab','Start and manage Steam voice calls.'],['motion','Quiet transitions','Respects your system’s reduced-motion preference.']
 
   ] as [keyof Settings,string,string][]).map(([key,label,hint])=><Button key={key} className="gbs-button gbs-setting" aria-pressed={settings[key]} onClick={()=>toggle(key)}><span><T text={label}/><small><T text={hint}/></small></span><span className="gbs-switch">{settings[key]?<T text="ON"/>:<T text="OFF"/>}</span></Button>)}<p className="gbs-note">Only preferences are saved. Friends and messages are never saved by this plugin. Native voice, messaging and notifications remain under Steam’s control.</p></div>;
 
@@ -138,9 +138,9 @@ export function Panel({bridge,controls,settings,setSettings,onBack,preview,initi
       {error&&<p role="alert" className="gbs-error">{error}</p>}
 
       {!settings.enabled ? <div className="gbs-panel gbs-empty"><h2><T text="Game Hub is off"/></h2><p><T text="Your native Steam social experience is available as usual."/></p><Button className="gbs-button gbs-primary" onClick={()=>toggle('enabled')}><T text="Enable Game Hub"/></Button></div> : activeTab==='Settings' ? settingsView : activeTab==='Search for Players'||activeTab==='Friend Requests'?<FindPlayers main key={activeTab} bridge={bridge} controls={controls} initial={activeTab==='Search for Players'?'search':'incoming'} close={()=>setTab('Friends')} message={settings.messages&&bridge.messages?id=>{messageParent.current=activeTab;setConversation(bridge.messages!.friend(id));setTab('Messages');}:undefined}/>:activeTab==='Friends'?
-      <div className="gbs-layout" ref={friendsRoot}><section className="gbs-panel" aria-label="Steam friends"><div className="gbs-panelhead"><span className="gbs-label"><T text="Friends"/> {friends.length>0&&`· ${friends.length}`}</span><Button className="gbs-button" onClick={()=>setRefresh(v=>v+1)}><T text="Refresh"/></Button></div>
+      <div className="gbs-layout" ref={friendsRoot}><section className="gbs-panel" aria-label="Steam friends"><div className="gbs-panelhead"><span className="gbs-label"><T text="Friends"/> {friends.length>0&&`· ${friends.length}`}</span></div>
 
-      {!settings.liveFriends ? <div className="gbs-empty"><div className="gbs-symbol" aria-hidden="true">♧</div><h2>A place for your people</h2><p>Enable the experimental read-only connection to see friends loaded by Steam.</p><Button className="gbs-button gbs-primary" onClick={()=>toggle('liveFriends')}>Enable Steam friends</Button><p className="gbs-note">Names, status and avatars stay on this device.</p></div> : friends.length ? <Group className="gbs-list">{friends.slice(0,limit).map(f=><Button key={f.id} className="gbs-button gbs-friend" aria-pressed={f.id===friend?.id} onClick={()=>setSelected(f.id)}><Avatar friend={f}/><span className="gbs-person" data-friend-id={f.id}><strong>{f.name}</strong><small>{f.game || ({playing:'In game',online:'Online',away:'Away',offline:'Offline'}[f.state])}</small></span><span className="gbs-chevron" aria-hidden="true">›</span></Button>)}{friends.length>limit&&<Button className="gbs-button" onClick={()=>setLimit(n=>n+40)}>Show more friends</Button>}</Group> : <div className="gbs-empty" role="status"><h2>{snapshot.kind==='unavailable'?'Steam connection unavailable':'Waiting for your friends'}</h2><p>{snapshot.detail}</p><Button className="gbs-button" onClick={native}>Open native chat</Button></div>}</section>
+      {!settings.liveFriends ? <div className="gbs-empty"><div className="gbs-symbol" aria-hidden="true">♧</div><h2>A place for your people</h2><p>Enable the experimental read-only connection to see friends loaded by Steam.</p><Button className="gbs-button gbs-primary" onClick={()=>toggle('liveFriends')}>Enable Steam friends</Button><p className="gbs-note">Names, status and avatars stay on this device.</p></div> : friends.length ? <Group className="gbs-list">{friends.slice(0,limit).map(f=><Button key={f.id} className="gbs-button gbs-friend" aria-pressed={f.id===friend?.id} onClick={()=>setSelected(f.id)}><Avatar friend={f}/><span className="gbs-person" data-friend-id={f.id}><strong>{f.name}</strong><FriendActivity friend={f}/></span><span className="gbs-chevron" aria-hidden="true">›</span></Button>)}{friends.length>limit&&<Button className="gbs-button" onClick={()=>setLimit(n=>n+40)}>Show more friends</Button>}</Group> : <div className="gbs-empty" role="status"><h2>{snapshot.kind==='unavailable'?'Steam connection unavailable':'Waiting for your friends'}</h2><p>{snapshot.detail}</p><Button className="gbs-button" onClick={native}>Open native chat</Button></div>}</section>
 
       <section className="gbs-panel gbs-detail" aria-label="Selected friend">{friend&&<MiniProfile key={friend.id} id={friend.id} motion={settings.motion}/>} {friend ? <><Avatar friend={friend}/><h2>{friend.name}</h2><span className="gbs-badge">{friend.state==='playing'?'In game':friend.state}</span><p>{friend.game || 'Stay close, even between games.'}</p><Group className="gbs-actions" horizontal><Button className="gbs-button gbs-primary" onClick={()=>{if(bridge.messages&&settings.messages){try{messageParent.current='Friends';setConversation(bridge.messages.friend(friend.id));setTab('Messages');}catch{setError('Steam messaging is unavailable. Try again after Steam connects.');}}else native();}}>{bridge.messages&&settings.messages?<T text="Message"/>:'Open native chat'}</Button>{bridge.voice&&settings.party&&<Button className="gbs-button" onClick={()=>act(()=>{bridge.voice!.start(friend.id);setTab('Party');})}>Start voice chat</Button>}<Button className="gbs-button" onClick={()=>act(()=>bridge.openProfile(friend.id))}><T text="View profile"/></Button></Group><p className="gbs-note">Send a message to {friend.name} or view their Steam profile.</p></> : <><div className="gbs-symbol" aria-hidden="true">◇</div><h2>Good games. Better company.</h2><p>Choose a friend to see their activity and open their Steam profile.</p><Button className="gbs-button" onClick={native}>Open native chat</Button></>}{friend?<PlayerBio key={friend.id} id={friend.id} Button={Button}/>:snapshot.kind!=='ready'&&<p className="gbs-note" role="status">{settings.liveFriends&&snapshot.detail}</p>}</section></div>
 

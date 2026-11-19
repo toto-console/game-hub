@@ -11,9 +11,13 @@ HLTB_CACHE_FILE = os.path.join(decky.DECKY_PLUGIN_RUNTIME_DIR, "home-hltb-cache.
 
 
 class Plugin:
+    def _require_platform(self):
+        from package_platform import require_package
+        require_package(os.path.dirname(__file__))
+
     async def export_center_diagnostic(self, report: dict) -> dict:
         from center_diagnostic import export_report
-        return await asyncio.to_thread(export_report, report, os.path.dirname(__file__))
+        return await asyncio.to_thread(export_report, report, os.path.dirname(__file__), decky.DECKY_PLUGIN_SETTINGS_DIR)
 
     async def player_bio(self, steamid: str) -> dict:
         from player_bio import read_bio
@@ -44,6 +48,7 @@ class Plugin:
             raise ValueError('Unknown update action')
 
     async def store_appearance(self, url: str, options: dict) -> dict:
+        self._require_platform()
         try:
             if self.store_appearance_adapter is None:
                 from store_appearance import StoreAppearance
@@ -62,7 +67,10 @@ class Plugin:
     async def get_settings(self) -> dict:
         try:
             with open(SETTINGS_FILE, "r", encoding="utf-8") as f:
-                return json.load(f)
+                value = json.load(f)
+            if not isinstance(value, dict):
+                raise ValueError("Home preferences must be an object")
+            return value
         except FileNotFoundError:
             # Read-only migration seed: the original plugin and its settings remain untouched.
             original = os.path.join(os.path.dirname(decky.DECKY_PLUGIN_SETTINGS_DIR), "ps5-dashboard", "settings.json")
@@ -74,9 +82,12 @@ class Plugin:
                 return {"active": False}
         except Exception as e:
             decky.logger.error(f"Could not read settings: {e}")
-            return {}
+            # A read failure is not a saved choice to disable Home. Reject so the
+            # frontend's dependency recovery can retry without changing preferences.
+            raise RuntimeError("Saved Home preferences are temporarily unavailable") from e
 
     async def set_settings(self, settings: dict) -> bool:
+        self._require_platform()
         try:
             os.makedirs(decky.DECKY_PLUGIN_SETTINGS_DIR, exist_ok=True)
             original = os.path.join(os.path.dirname(decky.DECKY_PLUGIN_SETTINGS_DIR), "ps5-dashboard", "settings.json")
@@ -103,6 +114,7 @@ class Plugin:
             return {}
 
     async def save_welcome_settings(self, settings: dict) -> bool:
+        self._require_platform()
         # Separate atomic preferences; never overwrite Home/other plugin settings.
         if not isinstance(settings, dict) or len(json.dumps(settings)) > 7_100_000:
             return False
@@ -141,6 +153,7 @@ class Plugin:
         return await asyncio.to_thread(read)
 
     async def _main(self):
+        self._require_platform()
         decky.logger.info("PS5 Dashboard loaded")
 
     async def _unload(self):

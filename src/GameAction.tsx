@@ -16,7 +16,7 @@ export function GameAction({app,onFocus}:{app:LibraryApp;onFocus?:()=>void}){
   const host=window as any,current=host.appStore?.GetAppOverviewByAppID(app.appid)??app;
   const now=gameAction(host,current,runningAppId()===app.appid);
   if(now.kind==='downloads')openGameDownloads(app.appid,anchor as HTMLElement);
-  else if(now.kind==='install'){if(typeof host.SteamClient?.Installs?.OpenInstallWizard==='function')await host.SteamClient.Installs.OpenInstallWizard([app.appid]);else openDetails(app);}
+  else if(now.kind==='install'){if(typeof host.SteamClient?.Installs?.OpenInstallWizard==='function')await host.SteamClient.Installs.OpenInstallWizard([app.appid], '0');else openDetails(app);}
   else if(now.kind==='running'||now.kind==='details')openDetails(app);
   else await launch(current);
  }catch(e){setError(e instanceof Error?e.message:'Action unavailable.');}};

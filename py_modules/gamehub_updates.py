@@ -45,7 +45,7 @@ def get(url,limit=1048576):
         if len(data)>limit:raise ValueError('Release file exceeds size limit')
         return data
 
-def validate_package(data,digest,expected):
+def validate_package(data,digest,expected, expected_target=None):
     if not re.fullmatch('[0-9a-f]{64}',digest) or hashlib.sha256(data).hexdigest()!=digest:raise ValueError('Package checksum mismatch')
     with zipfile.ZipFile(io.BytesIO(data)) as z:
         seen=set();total=0
@@ -57,6 +57,9 @@ def validate_package(data,digest,expected):
         package=json.loads(z.read(PREFIX+'package.json'));plugin=json.loads(z.read(PREFIX+'plugin.json'))
         if package.get('version')!=expected or plugin.get('name')!='Game Base Social' or package.get('remote_binary') or plugin.get('flags'):raise ValueError('Unexpected package identity or privileges')
         for name in ('main.py','dist/index.js'):z.getinfo(PREFIX+name)
+        if expected_target is not None:
+            from package_platform import require_target
+            require_target(json.loads(z.read(PREFIX+'platform-target.json'))['platform'],expected_target)
 
 class Updates:
     def __init__(self,root,settings,runtime):
@@ -103,7 +106,20 @@ class Updates:
                 meta=next((a for a in r.get('assets',[]) if a.get('name')=='game-hub-update.json' and a.get('browser_download_url')==base+'game-hub-update.json'),None)
                 if not meta:continue
                 manifest=json.loads(get(meta['browser_download_url']))
-                if manifest.get('schema')!=2 or manifest.get('version')!=v:continue
+                if manifest.get('schema') not in (2,3) or manifest.get('version')!=v:continue
+                if manifest.get('schema')==3:
+                    from package_platform import host_target
+                    host=host_target()
+                    matches=[a for a in manifest.get('artifacts',[]) if a.get('platform')==host]
+                    if len(matches)!=1 or not loader or loader not in matches[0].get('certifiedLoaders',[]):
+                        self.result={'status':'incompatible','message':'Platform package exists but this Decky/platform combination is not certified. Automatic installation is disabled; choose the matching experimental GitHub download.'}
+                        continue
+                    item=matches[0];asset=item.get('asset','');digest=item.get('sha256','')
+                    label={'windows-x86_64':'Windows-x64','linux-x86_64':'SteamOS-Bazzite-x64-EXPERIMENTAL'}.get(host)
+                    if not label or asset!=f'Game-Hub-{v}-{label}.zip' or not re.fullmatch('[0-9a-f]{64}',digest):continue
+                    if not any(a.get('browser_download_url')==base+asset for a in r.get('assets',[])):continue
+                    self.result={'status':'available','message':'Verified platform package available for manual staging only.','version':v,'url':base+asset,'sha256':digest,'platform':host,'changelog':str(r.get('body') or '')[:12000]}
+                    break
                 host=platform.system().lower()+'-'+platform.machine().lower()
                 target=next((t for t in manifest.get('targets',[]) if t.get('platform')==host and t.get('loader')==loader),None)
                 if not target:
@@ -121,7 +137,7 @@ class Updates:
         self.attempt=0;self.check(loader,True)
         r=self.result
         if not r or r.get('status')!='available':raise ValueError('No verified compatible update available')
-        data=get(r['url'],32_000_000);validate_package(data,r['sha256'],r['version'])
+        data=get(r['url'],32_000_000);validate_package(data,r['sha256'],r['version'],r.get('platform'))
         self.backup()
         staged=self.runtime/'verified-update.zip';tmp=staged.with_suffix('.tmp');tmp.write_bytes(data);tmp.replace(staged)
         return {'path':str(staged),'version':r['version'],'hash':r['sha256']}

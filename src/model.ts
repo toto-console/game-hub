@@ -1,9 +1,10 @@
+import {friendPlatform,type FriendPlatform} from './friend-platform';
 import type {PlayerActions} from './player-actions';
 import type {SteamGroupAdapter} from './groups';
 import type {SteamVoiceAdapter} from './voice';
 import type {MessagesBridge} from './messages';
 
-export type Friend = { id: string; name: string; state: 'playing' | 'online' | 'away' | 'offline'; game?: string; avatar?: string };
+export type Friend = { id: string; name: string; state: 'playing' | 'online' | 'away' | 'offline'; game?: string; platform?: FriendPlatform; avatar?: string };
 
 export type Snapshot = { kind: 'ready' | 'unavailable' | 'loading'; friends: Friend[]; detail: string };
 
@@ -104,6 +105,7 @@ export function readSteamFriends(host: unknown): Snapshot {
         state: !p.is_online || p.m_ePersonaState===7 ? 'offline' : p.is_ingame ? 'playing' : p.is_awayOrSnooze ? 'away' : 'online',
 
         game,
+        platform:p.is_online&&p.is_ingame&&p.m_ePersonaState!==7?friendPlatform(p.m_eGamingDeviceType):undefined,
 
         avatar:safeAvatar(p.avatar_url_medium)});
 

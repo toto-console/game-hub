@@ -78,3 +78,35 @@ class UpdatesTest(unittest.TestCase):
         self.assertEqual(service.status()['channel'],'stable')
         self.assertRaises(ValueError,service.preferences,'unknown',True)
 if __name__=='__main__':unittest.main()
+
+class PlatformReleaseTest(UpdatesTest):
+    def platform_feed(self, host, certified=True, duplicate=False):
+        v='1.1.0';base=f'https://github.com/{u.REPO}/releases/download/v{v}/'
+        artifacts=[];assets=[{'name':'game-hub-update.json','browser_download_url':base+'game-hub-update.json'}];packages={}
+        for target,label in [('windows-x86_64','Windows-x64'),('linux-x86_64','SteamOS-Bazzite-x64-EXPERIMENTAL')]:
+            name=f'Game-Hub-{v}-{label}.zip'
+            data=package((u.PREFIX+'platform-target.json',json.dumps({'platform':target})))
+            packages[base+name]=data
+            artifacts.append({'platform':target,'asset':name,'sha256':hashlib.sha256(data).hexdigest(),'certifiedLoaders':['3.0.0'] if certified else []})
+            assets.append({'name':name,'browser_download_url':base+name})
+        if duplicate:artifacts.append(next(a for a in artifacts if a['platform']==host))
+        manifest={'schema':3,'version':v,'automaticInstall':False,'artifacts':artifacts}
+        release={'tag_name':'v'+v,'prerelease':False,'assets':assets}
+        return lambda url,*args:json.dumps([release]).encode() if 'api.github.com' in url else json.dumps(manifest).encode() if url.endswith('.json') else packages[url]
+    def test_schema3_selects_exact_platform_and_stages_matching_archive(self):
+        import package_platform
+        for host in ['windows-x86_64','linux-x86_64']:
+            with self.subTest(host=host),patch.object(package_platform,'host_target',return_value=host),patch.object(u,'get',side_effect=self.platform_feed(host)):
+                self.service.check_key=None
+                status=self.service.check('3.0.0')
+                self.assertFalse(status['automaticInstall'])
+                self.assertEqual(status['result']['platform'],host)
+                result=self.service.prepare('3.0.0')
+                with zipfile.ZipFile(result['path']) as z:self.assertEqual(json.loads(z.read(u.PREFIX+'platform-target.json'))['platform'],host)
+    def test_schema3_unknown_uncertified_and_duplicate_targets_refuse_staging(self):
+        import package_platform
+        for host,certified,duplicate in [('unsupported',True,False),('linux-x86_64',False,False),('windows-x86_64',True,True)]:
+            with self.subTest(host=host),patch.object(package_platform,'host_target',return_value=host),patch.object(u,'get',side_effect=self.platform_feed(host,certified,duplicate)):
+                self.service.check_key=None
+                self.assertEqual(self.service.check('3.0.0')['result']['status'],'incompatible')
+                self.assertRaises(ValueError,self.service.prepare,'3.0.0')

@@ -10,7 +10,7 @@ function headerClasses(modules:unknown):string[] {
   return [...headers];
 }
 export function fullscreenCSS(modules:unknown):string {
-  return headerClasses(modules).map(c=>`body:has(.gbs-root.gbs-room) .${c}{visibility:hidden!important;pointer-events:none!important;}`).join('\n');
+  return headerClasses(modules).map(c=>`body:has(.gbs-root.gbs-room) .${c}{display:none!important;visibility:hidden!important;pointer-events:none!important;transition:none!important;animation:none!important;}`).join('\n');
 }
 /** Top Bar Padding animates all properties, including visibility and native opacity.
  * Keep transition suppression through the close style commit, not a timed delay. */

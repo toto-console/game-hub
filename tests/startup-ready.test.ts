@@ -46,3 +46,10 @@ it('waits for a published window to acquire its overlay identity without duplica
  classified=true;vi.advanceTimersByTime(250);expect(bind).toHaveBeenCalledTimes(5);
  vi.advanceTimersByTime(2000);expect(bind).toHaveBeenCalledTimes(5);stop();expect(release).toHaveBeenCalledOnce();
 });
+
+it('contains a broken overlay initializer without an infinite retry or Steam error page',()=>{
+ vi.useFakeTimers();const error=Error("Cannot read properties of undefined (reading 'Overlay')"),failed=vi.fn(),bind=vi.fn(()=>{throw error;});
+ const stop=bindWhenReady(()=>({}),bind,failed);
+ expect(failed).toHaveBeenCalledWith(error);vi.advanceTimersByTime(60000);expect(bind).toHaveBeenCalledOnce();stop();
+ const release=vi.fn();const stopFresh=bindWhenReady(()=>({}),()=>release,failed);stopFresh();expect(release).toHaveBeenCalledOnce();
+});

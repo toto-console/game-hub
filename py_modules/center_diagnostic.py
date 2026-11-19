@@ -4,9 +4,11 @@ import platform
 import re
 from pathlib import Path
 
-REASONS = {'ready','disposed','disabled','ui-not-mounted','window-unavailable','navigation-unavailable','vr-unsupported','overlay-activation-unavailable','overlay-app-context-unavailable','overlay-composition-unavailable','overlay-route-unsupported','game-running-in-main-window','another-modal-active','steam-menu-suppressed','steam-interface-unavailable','open-failed','opened','none'}
+REASONS = {'ready','disposed','disabled','ui-not-mounted','window-unavailable','navigation-unavailable','vr-unsupported','overlay-activation-unavailable','overlay-app-context-unavailable','overlay-composition-unavailable','overlay-route-unsupported','game-running-in-main-window','another-modal-active','steam-menu-suppressed','steam-interface-unavailable','render-failed','open-failed','opened','none'}
 def sanitize(report):
     result = {'inputMethod':'Steam MenuStore request (not raw controller input)'}
+    result['overlayInitialization']=report.get('overlayInitialization') if report.get('overlayInitialization') in ('not-observed','ready','initialization-failed') else 'unknown'
+    result['homeIntegration']=report.get('homeIntegration') if report.get('homeIntegration') in ('loading','enabled','disabled','conflict','disposed') else 'unknown'
     result['inGameIntegration'] = report.get('inGameIntegration') if report.get('inGameIntegration') in ('available','unavailable','unknown') else 'unknown'
     for field in ('controllerModel','steamInputConfiguration','launchMethod','displayMode','steamVersion','deckyVersion','playHubVersion'):
         result[field]='unknown'
@@ -30,8 +32,22 @@ def metadata_version(path):
         return value if isinstance(value,str) and re.fullmatch(r'[0-9][0-9A-Za-z.+-]{0,47}',value) else 'unknown'
     except (OSError,ValueError):return 'unknown'
 
-def export_report(report, plugin_dir):
+def home_preferences(settings_dir):
+    try:
+        value=json.loads((Path(settings_dir)/'home-dashboard.json').read_text(encoding='utf-8'))
+        if not isinstance(value,dict): raise ValueError('Invalid Home settings')
+        dashboard=value.get('dashboard',{})
+        if not isinstance(dashboard,dict): raise ValueError('Invalid dashboard settings')
+        flag=lambda v: v if isinstance(v,bool) else None
+        return {'status':'loaded','active':flag(value.get('active')),'enabled':flag(dashboard.get('enabled')),'ps5Home':flag(dashboard.get('ps5Home'))}
+    except FileNotFoundError:
+        return {'status':'missing'}
+    except (OSError,ValueError):
+        return {'status':'read-error'}
+
+def export_report(report, plugin_dir, settings_dir=None):
     result=sanitize(report)
+    if settings_dir is not None: result['savedHomePreferences']=home_preferences(settings_dir)
     root=Path(plugin_dir)
     result['gameHubVersion']=metadata_version(root/'package.json')
     result['platform']=platform.system() if platform.system() in ('Windows','Linux','Darwin') else 'unknown'

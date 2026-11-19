@@ -11,12 +11,18 @@ export function loadWhenReady<T>(load:()=>Promise<T>,apply:(value:T)=>void,faile
 
 /** A global component can mount before Steam publishes/classifies its window.
  * Return false from bind while its dependencies are still starting. */
-export function bindWhenReady<T>(resolve:()=>T|undefined,bind:(owner:T)=>void|false|(()=>void)){
+export function bindWhenReady<T>(resolve:()=>T|undefined,bind:(owner:T)=>void|false|(()=>void),failed:(error:unknown)=>void=()=>{}){
  let active=true,timer:ReturnType<typeof setTimeout>|undefined,release:void|(()=>void);
  const attempt=()=>{
   if(!active)return;
-  const owner=resolve();
-  if(owner){const result=bind(owner);if(result!==false){release=result;return;}}
+  try {
+   const owner=resolve();
+   if(owner){const result=bind(owner);if(result!==false){release=result;return;}}
+  } catch(error) {
+   // A broken integration must not escape a React layout effect into Steam.
+   // Do not retry an exception on a timer; a remount/reload gets a fresh attempt.
+   failed(error);return;
+  }
   timer=setTimeout(attempt,250);
  };
  attempt();

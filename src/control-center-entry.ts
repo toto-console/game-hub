@@ -12,7 +12,7 @@ export function createControlCenter(candidate:unknown,patch:PatchFunction,origin
  let focusHandle:PatchHandle|undefined,returningToGame=false,returnedAt=0;
  let compositionHeld=false,stopActivation:(()=>void)|undefined;
  const compositionLabel='Game Hub Control Center';
- const releaseComposition=()=>{if(!compositionHeld)return;compositionHeld=false;main?.CompositionStateStore?.RemoveMinimumCompositionStateRequest(overlay!.mode,compositionLabel);};
+ const releaseComposition=()=>{if(!compositionHeld)return;compositionHeld=false;try{main?.CompositionStateStore?.RemoveMinimumCompositionStateRequest(overlay!.mode,compositionLabel);}catch(error){console.error('[Game Hub] Overlay composition release failed',error);}};
  let headerStyle:HTMLStyleElement|undefined,headerObserver:MutationObserver|undefined;
  const releaseHeader=()=>{
   if(open||!owner||owner.querySelector('.gbs-modal-owner')||!owner.documentElement.hasAttribute('data-game-hub-center'))return;
@@ -100,9 +100,9 @@ export function createControlCenter(candidate:unknown,patch:PatchFunction,origin
   setExitTransition(fn:(restore:boolean)=>void){exitTransition=fn;return()=>{if(exitTransition===fn)exitTransition=undefined;};},
   modalClosed(){if(!open)releaseComposition();},
   owns:(doc:Document)=>!!main&&doc===main.BrowserWindow?.document,
-  mount(doc:Document){if(!main||doc!==main.BrowserWindow?.document)return()=>{};owner=doc;headerStyle=doc.createElement('style');headerStyle.textContent=headers.css;doc.head.append(headerStyle);const Observer=doc.defaultView?.MutationObserver;if(Observer){headerObserver=new Observer(releaseHeader);headerObserver.observe(doc.body,{childList:true,subtree:true});}ensureActivation();ready=true;return()=>{ready=false;close(false);stopActivation?.();stopActivation=undefined;releaseComposition();cleanupHeader();owner=undefined;};},
-  fail(){ready=false;close(false);releaseComposition();try{native();}catch{/* Decky remains available. */}},
-  dispose(){unregisterDiagnostic();disposed=true;ready=false;close();stopActivation?.();stopActivation=undefined;releaseComposition();cleanupHeader();focusHandle?.unpatch();focusHandle=undefined;handle?.unpatch();handle=undefined;listeners.clear();}
+  mount(doc:Document){if(!main||doc!==main.BrowserWindow?.document)return()=>{};owner=doc;headerStyle=doc.createElement('style');headerStyle.textContent=headers.css;doc.head.append(headerStyle);const Observer=doc.defaultView?.MutationObserver;if(Observer){headerObserver=new Observer(releaseHeader);headerObserver.observe(doc.body,{childList:true,subtree:true});}ensureActivation();ready=true;return()=>{ready=false;close(false);try{stopActivation?.();}catch(error){console.error('[Game Hub] Overlay subscription cleanup failed',error);}stopActivation=undefined;releaseComposition();cleanupHeader();owner=undefined;};},
+  fail(){lastResult='render-failed';ready=false;close(false);releaseComposition();try{native();}catch{/* Decky remains available. */}},
+  dispose(){unregisterDiagnostic();disposed=true;ready=false;close();try{stopActivation?.();}catch(error){console.error('[Game Hub] Overlay subscription cleanup failed',error);}stopActivation=undefined;releaseComposition();cleanupHeader();focusHandle?.unpatch();focusHandle=undefined;handle?.unpatch();handle=undefined;listeners.clear();}
  };
 }
 export type ControlCenterStore=ReturnType<typeof createControlCenter>;

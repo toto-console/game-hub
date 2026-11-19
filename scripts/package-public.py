@@ -14,13 +14,19 @@ for folder in ['py_modules','licenses','third_party','store-theme']:
 for folder in ['src','tests','integrations','.github','docs']:
  source += [p for p in (root/folder).rglob('*') if p.is_file() and '__pycache__' not in p.parts]
 source += [root/'preview'/n for n in ['controls.tsx','fixtures.ts','messages.ts','index.html','main.tsx','decky-stub.tsx']]
-source += [root/'scripts'/n for n in ['build-store.mjs','package-public.py','release-manifest.py']]
-for label,files in [('decky',runtime),('source',source)]:
+source += [root/'scripts'/n for n in ['build-store.mjs','package-public.py','release-manifest.py','verify-platform-packages.py']]
+for label,files in [('Windows-x64',runtime),('SteamOS-Bazzite-x64-EXPERIMENTAL',runtime),('source',source)]:
  dest=out/f'Game-Hub-{version}-{label}.zip'
  with zipfile.ZipFile(dest,'w',zipfile.ZIP_DEFLATED) as z:
+  if label!='source':
+   target='windows-x86_64' if label=='Windows-x64' else 'linux-x86_64'
+   z.writestr('game-base-social/platform-target.json',json.dumps({'schema':1,'platform':target,'automaticInstall':False,'experimental':True}))
   for p in sorted(set(files)):
    if p.is_symlink():raise ValueError('Symlinks not distributed')
    data=p.read_bytes()
+   if label!='source' and p==root/'dist/index.js':
+    if b'__GAMEHUB_PACKAGE_TARGET__' not in data:raise ValueError('Missing frontend platform gate')
+    data=data.replace(b'__GAMEHUB_PACKAGE_TARGET__',target.encode())
    if p.suffix in ('.ts','.tsx','.js','.mjs','.py','.json','.md','.html','.yml'):
     text=data.decode('utf-8-sig')
     if re.search(r'[A-Z]:[\\/]+Users[\\/]+[a-zA-Z0-9_.-]+',text):raise ValueError('Private path in '+str(p))
@@ -30,7 +36,3 @@ for label,files in [('decky',runtime),('source',source)]:
  digest=hashlib.sha256(dest.read_bytes()).hexdigest()
  validate_package(dest.read_bytes(),digest,version)
  print(dest.name,digest)
-
-# Stable asset basename matches Decky identity without changing installed directories.
-import shutil
-shutil.copyfile(out/f"Game-Hub-{version}-decky.zip", out/"Game-Base-Social.zip")
