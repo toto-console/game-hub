@@ -1,7 +1,7 @@
 /* Profile presentation over the signed-in Steam document. Never reconstruct account actions. */
 function isGameHubProfileURL(raw){try{const u=new URL(raw);return u.origin==='https://steamcommunity.com'&&!u.username&&!u.password&&/^\/(?:id\/[a-zA-Z0-9_-]+|profiles\/\d+)\/?$/.test(u.pathname)&&[...u.searchParams.keys()].every(k=>['l','snr','insideModal'].includes(k));}catch{return false;}}
 function installGameHubProfile(options,css){
- const doc=document,win=window,root=doc.documentElement,version=123,originalURL=location.href,previous=win.__gameHubStoreAppearance;
+ const doc=document,win=window,root=doc.documentElement,version=124,originalURL=location.href,previous=win.__gameHubStoreAppearance;
  if(!options.enabled||!isGameHubProfileURL(originalURL)||!root.classList.contains('GamepadMode')){previous?.dispose();return {applied:false,reason:'Native Steam profile'};}
  if(win.__gameHubStoreOriginalURL===originalURL)return {applied:false,reason:'Original Steam profile selected for this visit'};
  const ready=()=>{try{win.SteamClient?.BrowserView?.PostMessageToParent?.('GameHubProfileReady',location.href);}catch{}};

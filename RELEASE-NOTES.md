@@ -14,3 +14,7 @@ Includes the accumulated profile/controller fixes and dev.104 saved-Home read-fa
 Both packages are validated independently in Windows/Linux CI. Linux CI does not certify SteamOS or Bazzite integration. Please report exact Steam, Decky, PlayHub/host and Game Hub versions alongside startup and in-game results.
 
 Store hotfix: preserve ownership of hidden CEF views across Back and restore show requests suppressed during profile-to-Store transitions. Verified live on Windows with completed and interrupted profile loads; 74 focused regression tests pass.
+
+Quick-menu Friends now show the custom white Steam Machine icon before game activity and Online on Steam. The icon is decorative, preserving whole-row navigation. Verified visually in the running Windows quick menu.
+
+Fully completed games now use the supplied platinum trophy with moving sparkles confined to its sphere. Incomplete games retain their regular trophy; empty or unknown achievement totals do not count as completion. Verified live on Windows.

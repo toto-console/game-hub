@@ -27,4 +27,8 @@ export const quickMenuCSS=`
 .gq-root .gq-inline-chat .gbs-button{font-size:1vw!important;min-height:0!important;padding:.5vh .7vw!important}.gq-root .gq-inline-chat .gq-chat-back{align-self:flex-start;flex-shrink:0}.gq-root .gq-inline-chat .gbs-chat-feedback,.gq-root .gq-inline-chat .gbs-chat-error{font-size:.85vw;flex-shrink:0;max-height:9vh;overflow:auto;margin:0}.gq-root .gq-inline-chat :is(.gbs-button,input):is(.gbs-focus,:focus-visible){outline:2px solid #fff!important;outline-offset:-2px!important}
 @keyframes gq-enter{from{opacity:0;transform:translateX(-8px)}to{opacity:1;transform:none}}
 .gq-root[data-motion=false] .gq-panel{animation:none}@media(prefers-reduced-motion:reduce){.gq-root .gq-panel{animation:none}}
+
+.gq-row .gq-presence{display:flex;align-items:center;gap:.45em;min-width:0;overflow:hidden}
+.gq-presence .gq-steam-device{display:block;width:1.45em;height:1.15em;flex:0 0 1.45em;object-fit:contain;pointer-events:none}
+.gq-presence .gq-presence-text{display:block;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 `;

@@ -1,5 +1,8 @@
 ## 0.13.0-dev.105
 
+- Add the custom white Steam Machine icon before game activity and Online on Steam in quick-menu Friends rows.
+- Show the supplied animated platinum trophy only for fully completed games, with sparkles contained inside the sphere.
+
 - Split Windows x64 and experimental SteamOS/Bazzite x64 downloads from the shared source tree, preserving plugin identity and settings.
 - Bind each runtime archive to its platform; keep automatic installs disabled until exact updater/loader compatibility is certified.
 - Restore browser visibility after completed or interrupted profile navigation so Store pages do not remain black.
