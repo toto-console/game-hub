@@ -13,10 +13,10 @@ function scan(dir){for(const ent of readdirSync(dir,{withFileTypes:true})){const
  function walk(n){if(ts.isCallExpression(n)&&ts.isPropertyAccessExpression(n.expression)&&methods.has(n.expression.name.text)){if(n.expression.name.text!=='contains'||n.expression.expression.getText(ast).endsWith('classList'))add(file,line(n),'DOM '+n.expression.name.text,n.arguments[0]?.getText(ast)??'');}
  if(ts.isNewExpression(n)&&n.expression.getText(ast).includes('MutationObserver'))add(file,line(n),'MutationObserver',n.getText(ast));
  if(ts.isCallExpression(n)&&/findModule|resolveSteamUI|headerClasses|footerSelector/.test(n.expression.getText(ast)))add(file,line(n),'Resolver',n.getText(ast));
- if((ts.isStringLiteral(n)||ts.isNoSubstitutionTemplateLiteral(n)||ts.isTemplateExpression(n))&&n.getText(ast).includes('{')&&n.getText(ast).includes('}')){const v=n.getText(ast);for(const m of v.matchAll(/(?:^|[{}])\s*([^{};]+)\{/g)){if(/[.#\[]/.test(m[1])&&!m[1].includes('=>'))add(file,line(n),'Embedded CSS candidate',m[1]);}}
+ if((ts.isStringLiteral(n)||ts.isNoSubstitutionTemplateLiteral(n)||ts.isTemplateExpression(n))&&n.getText(ast).includes('{')&&n.getText(ast).includes('}')){const v=n.getText(ast);for(const m of v.matchAll(/(?:^|[{}])\s*([^{};]+)\{/g)){if(/[.#[]/.test(m[1])&&!m[1].includes('=>'))add(file,line(n),'Embedded CSS candidate',m[1]);}}
  ts.forEachChild(n,walk);
  }walk(ast);
 }}
 for(const folder of ['src','store-theme','integrations'])scan(folder);
-mkdirSync('docs/steam-css-compat',{recursive:true});writeFileSync('docs/steam-css-compat/selector-inventory.json',JSON.stringify(rows,null,2)+'\n');
+mkdirSync('docs/steam-css-compat',{recursive:true});writeFileSync('docs/steam-css-compat/selector-inventory.json','[\n'+rows.map(r=>JSON.stringify(r)).join(',\n')+'\n]\n');
 console.log(JSON.stringify({entries:rows.length,files:new Set(rows.map(r=>r.file)).size,review:rows.filter(r=>r.ownership!=='Game Hub').length}));
