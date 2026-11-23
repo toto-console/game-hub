@@ -1,3 +1,4 @@
+import {resolveSteamUI,classSelector} from './steam-ui-compat';
 import {controlCenterHeaders} from './fullscreen';
 import {footerSelector} from './center-footer';
 import type {PatchFunction} from './social-entry';
@@ -32,7 +33,7 @@ export function compatibleSteamPage(raw:unknown):boolean{
 const samePage=(a:string,b:string)=>{try{const x=new URL(a),y=new URL(b);x.hash='';y.hash='';return x.href===y.href;}catch{return false;}};
 /** Main Big Picture shell only; never reaches into the Store/Community document. */
 export function connectFullscreenWeb(main:WebWindow,enabled:()=>boolean,patch:PatchFunction,original:symbol,modules:unknown,profileEnabled:()=>boolean=()=>false,openMessage?:(id:string)=>void):Adapter{
- let session=false,recovery=false,entered=false,deadline=0,held=false,disposed=false,failed=false;
+ let connected=false,session=false,recovery=false,entered=false,deadline=0,held=false,disposed=false,failed=false;
  let pendingProfile='',profileTarget='',profileReady=false,profileFailed=false;
  const profileParents:string[]=[];let lastExit=-Infinity;
  const exitProfile=()=>{if(Date.now()-lastExit<300)return;lastExit=Date.now();const parent=profileParents.pop();if(parent&&browser?.LoadURL){adapter.begin(parent);browser.LoadURL(parent);}else main.m_history.goBack?.();};
@@ -52,29 +53,31 @@ export function connectFullscreenWeb(main:WebWindow,enabled:()=>boolean,patch:Pa
  const profileLayout=(active:boolean,waiting:boolean)=>{
   if(!active){clearProfile();return;}
   doc.documentElement.setAttribute('data-gh-profile-fullscreen','');
-  if(!profileStyle){const classes=(Array.isArray(modules)?modules:[]).find(m=>m?.MainBrowserContainer&&m?.BrowserContainer&&m?.URLBar);const selector=(v:string)=>v.split(/\s+/).filter(x=>/^[a-zA-Z0-9_-]+$/.test(x)).map(x=>'.'+x).join('');
+  if(!profileStyle){const classes=browserClasses!;const selector=classSelector;
    profileStyle=doc.createElement('style');profileStyle.textContent=`html[data-gh-profile-fullscreen] .BasicUI{--basicui-header-height:0px!important;--gamepadui-current-footer-height:0px!important}html[data-gh-profile-fullscreen] ${selector(classes.MainBrowserContainer)}{position:fixed!important;inset:0!important;height:100vh!important;width:100vw!important}html[data-gh-profile-fullscreen] ${selector(classes.BrowserContainer)}{height:100%!important}`;profileStyle.textContent+=footerSelector(modules).split(',').filter(Boolean).map(s=>`html[data-gh-profile-fullscreen] ${s}{display:none!important}`).join('');doc.head.append(profileStyle);}
   if(waiting&&!cover){cover=doc.createElement('div');cover.id='game-hub-profile-loading';cover.setAttribute('role','status');cover.setAttribute('aria-live','polite');cover.textContent='Loading GameHub profile…';cover.style.cssText='position:fixed;inset:0;z-index:2147483000;display:grid;place-items:center;background:radial-gradient(ellipse at top,#183455,#071326 65%);color:#e5f2ff;font:24px sans-serif;pointer-events:none';doc.body.append(cover);}
   else if(!waiting){cover?.remove();cover=undefined;}
   // Steam's BrowserView is a separate CEF surface: CSS alone changes the host
   // rectangle but not its native viewport. Match Steam's own SetBounds contract.
-  const view=browser?.GetBrowser();const classes=(Array.isArray(modules)?modules:[]).find(m=>m?.MainBrowserContainer&&m?.BrowserContainer&&m?.URLBar);
+  const view=browser?.GetBrowser();const classes=browserClasses;
   const host=classes&&doc.getElementsByClassName(classes.MainBrowserContainer)[0];
   if(view&&host&&view.GetBounds&&view.SetBounds){const measured=host.getBoundingClientRect(),r={x:measured.x,y:measured.y,width:measured.width,height:main.VirtualKeyboardManager?.IsShowingVirtualKeyboard?.Value?Math.min(measured.height,doc.documentElement.clientHeight*.66):measured.height},key=[r.x,r.y,r.width,r.height].join(',');if(r.width>0&&r.height>0&&key!==lastBounds){if(!sizedView){savedBounds=view.GetBounds();sizedView=view;}view.SetBounds(r.x,r.y,r.width,r.height);lastBounds=key;}}
   // Hide only the owned CEF surface while the parent shows the loading cover.
   if(waiting&&view?.SetVisible){view.SetVisible(false);hiddenViews.add(view);}else if(!waiting)revealBrowser();
- }; 
+ };
  const profile=(raw:string)=>{try{const u=new URL(raw);return u.origin==='https://steamcommunity.com'&&/^\/(?:profiles\/\d+|id\/[a-zA-Z0-9_-]+)\/?$/.test(u.pathname)&&compatibleSteamPage(raw);}catch{return false;}};
  let browser:Browser|undefined,secureURL='',loaded=false,blocked=false;
  let timer:ReturnType<typeof setInterval>|undefined;
  const stopWatch=()=>{clearInterval(timer);timer=undefined;};
  const cleanups:(()=>void)[]=[];let releaseBrowser=()=>{};
  const header=main.HeaderStore;
- const valid=Array.isArray(modules)&&modules.some(m=>m?.MainBrowserContainer&&m?.BrowserContainer&&m?.URLBar)&&modules.some(m=>m?.Header&&m?.DashboardBar&&m?.Clock&&m?.CurrentUserAvatar);
+ const browserClasses=resolveSteamUI(modules,'browser'),headerClasses=resolveSteamUI(modules,'header');
+ const valid=!!browserClasses&&!!headerClasses&&!!classSelector(headerClasses.Header);
  // Route ownership must hide native chrome before React mounts the destination.
- const syncOwnedRoute=()=>{const path=main.LocationPathName;const owned=!disposed&&enabled()&&(path==='/game-base-social'||/^\/game-hub(?:\/|$)/.test(path));doc.documentElement.toggleAttribute('data-gh-owned-route',owned);};
+ const syncOwnedRoute=()=>{if(!valid)return;const path=main.LocationPathName;const owned=!disposed&&enabled()&&(path==='/game-base-social'||/^\/game-hub(?:\/|$)/.test(path));doc.documentElement.toggleAttribute('data-gh-owned-route',owned);};
  const release=()=>{clearProfile();if(held){held=false;try{header.DecrementHideHeader();}catch{failed=true;}}};
  const refresh=()=>{
+  if(!valid||!connected||disposed)return;
   syncOwnedRoute();
   try{
    if(!disposed&&!failed&&(session||profileEnabled()&&profile(browser?.URL||''))&&!recovery&&enabled()){if(!timer)timer=setInterval(()=>{if(!entered&&Date.now()>deadline)session=false;refresh();},100);}else stopWatch();
@@ -117,6 +120,7 @@ export function connectFullscreenWeb(main:WebWindow,enabled:()=>boolean,patch:Pa
  const adapter:Adapter={appearance(url,applied){if(profileTarget&&samePage(url,profileTarget)){if(applied)profileReady=true;profileFailed=!applied&&!profileReady;refresh();}},begin(url){profileTarget=profile(url||'')?url!:'';profileReady=false;profileFailed=false;pendingProfile=profile(url||'')?url!:'';if(!pendingProfile)release();secureURL='';loaded=false;session=true;recovery=false;entered=main.LocationPathName==='/steamweb';deadline=Date.now()+8000;refresh();},refresh,original(){recovery=true;stopWatch();release();},dispose(){if(disposed)return;disposed=true;stopWatch();release();releaseBrowser();for(const stop of cleanups.splice(0))stop();adapters.delete(main);}};
  try{
   if(!valid||main.IsAnyVRWindow()||typeof header.IncrementHideHeader!=='function'||typeof header.DecrementHideHeader!=='function'||typeof header.GetCurrentBrowserAndBackstack!=='function'||typeof header.SetCurrentBrowserAndBackstack!=='function')return adapter;
+  connected=true;
   const routeStyle=doc.createElement('style');routeStyle.id='game-hub-route-chrome';
   routeStyle.textContent=controlCenterHeaders(modules).selector.split(',').filter(Boolean).map(selector=>`html[data-gh-owned-route] ${selector},html[data-gh-profile-fullscreen] ${selector}{display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;transition:none!important;animation:none!important}`).join('')+'html[data-gh-owned-route] .BasicUI{--basicui-header-height:0px!important}';
   doc.head.append(routeStyle);syncOwnedRoute();cleanups.push(()=>{routeStyle.remove();doc.documentElement.removeAttribute('data-gh-owned-route');});
@@ -129,7 +133,7 @@ export function connectFullscreenWeb(main:WebWindow,enabled:()=>boolean,patch:Pa
   // Events revoke suppression immediately; this watchdog covers route/modal changes and API failures.
   cleanups.push(stopWatch);
   adapters.set(main,adapter);
- }catch{failed=true;release();releaseBrowser();for(const stop of cleanups.splice(0))stop();}
+ }catch{connected=false;failed=true;release();releaseBrowser();for(const stop of cleanups.splice(0))stop();}
  return adapter;
 }
 

@@ -1,8 +1,8 @@
+import {resolveSteamUI,classSelector} from './steam-ui-compat';
 import {useLayoutEffect,type RefObject} from 'react';
 /** Verified Steam BasicFooter module, not a guessed theme selector. Scope suppression to Game Hub. */
 export function footerSelector(modules:unknown):string{
- if(!Array.isArray(modules))return '';
- return modules.filter(m=>m&&typeof m.BasicFooter==='string'&&m.FooterLegend&&/^[\w-]+$/.test(m.BasicFooter)).map(m=>'.'+m.BasicFooter).join(',');
+ const footer=resolveSteamUI(modules,'footer');return footer?classSelector(footer.BasicFooter):'';
 }
 export function useCenterFooter(root:RefObject<HTMLElement|null>,modules:unknown){
  useLayoutEffect(()=>{

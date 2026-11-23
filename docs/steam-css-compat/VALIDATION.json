@@ -1,0 +1,39 @@
+{
+  "baselineCommit": "e79cc3caa777b35c6277c79dd6b10dc8c71ddf56",
+  "baselineFrontend": {
+    "suites": 67,
+    "tests": 382,
+    "result": "PASS"
+  },
+  "baselineBackend": {
+    "tests": 41,
+    "result": "PASS"
+  },
+  "baselineLint": {
+    "errors": 385,
+    "warnings": 0,
+    "result": "FAIL"
+  },
+  "branchFullFrontend": {
+    "suites": 68,
+    "tests": 395,
+    "result": "PASS",
+    "note": "Before final missing-browser-API guard; final affected suite separately rerun"
+  },
+  "finalAffectedFrontend": {
+    "suites": 3,
+    "tests": 63,
+    "result": "PASS"
+  },
+  "branchBackend": {
+    "tests": 41,
+    "result": "PASS"
+  },
+  "newResolverLint": "PASS",
+  "typescript": "PASS",
+  "build": "PASS",
+  "realStableCandidate": "UNTESTED",
+  "realBetaCandidate": "UNTESTED",
+  "deployed": false,
+  "published": false
+}

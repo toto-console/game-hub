@@ -1,0 +1,25 @@
+{
+  "provenance": {
+    "source": "read-only local DFL.classMap capture",
+    "build": "1794536281 (bootstrap_log)",
+    "channel": "unconfirmed; no package/beta file",
+    "betaVerified": false
+  },
+  "modules": [
+    {
+      "DashboardBar": "_2IsmzUdOq5mgVorXJRqLSo",
+      "Header": "_1E_SL1bTibeQ3PQRBZoS_-",
+      "Clock": "_1HhLUvHH6BZLIOyOE80TVh",
+      "CurrentUserAvatar": "_2HXdbihGflFicz2hg8UNEV"
+    },
+    {
+      "MainBrowserContainer": "_2B7WsaKHDSav8vpQUxkVRB",
+      "BrowserContainer": "_3-G5o_dy0uF5Q1xHJSCajl",
+      "URLBar": "_1CwIxtn7jzsKgebTf7Vep9"
+    },
+    {
+      "BasicFooter": "_3T1iFy2maYycwqgFuzERyf",
+      "FooterLegend": "_2JJDHoMl4ArT89aNzlYM3N"
+    }
+  ]
+}

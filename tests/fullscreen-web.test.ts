@@ -139,3 +139,20 @@ it('repays a Steam show request blocked while the browser still reports its prev
  x.browser.URL=x.browser.DisplayURL=store;x.emit('finished-request');
  expect(x.visible).toHaveBeenLastCalledWith(true);
 });
+
+it('unsupported browser adapter stays inert even when begin is called directly',()=>{
+ const x=setup(false,true);x.main.LocationPathName='/game-hub/home';x.adapter.begin('https://steamcommunity.com/id/example');
+ expect(vi.getTimerCount()).toBe(0);
+ expect(document.documentElement.hasAttribute('data-gh-owned-route')).toBe(false);
+ expect(x.view.SetVisible).not.toHaveBeenCalled();
+ expect(document.getElementById('game-hub-profile-loading')).toBeNull();
+ x.adapter.dispose();
+});
+
+it('keeps direct begin inert when class exports exist but a required browser API is missing',()=>{
+ const x=setup();x.adapter.dispose();
+ const header={...x.header,IncrementHideHeader:undefined};
+ const adapter=connectFullscreenWeb({...x.main,HeaderStore:header} as unknown as WebWindow,()=>true,patch,original,modules,()=>true);
+ adapter.begin('https://steamcommunity.com/id/example');
+ expect(vi.getTimerCount()).toBe(0);expect(x.view.SetVisible).not.toHaveBeenCalled();adapter.dispose();
+});
