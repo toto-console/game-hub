@@ -1,3 +1,4 @@
+vi.mock('@decky/api',()=>({toaster:{toast:vi.fn()}}));
 import {afterEach,describe,expect,it,vi} from 'vitest';
 import {createElement} from 'react';
 import {createNotificationStore} from '../src/notification-store';
