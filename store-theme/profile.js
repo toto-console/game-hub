@@ -1,7 +1,7 @@
 /* Profile presentation over the signed-in Steam document. Never reconstruct account actions. */
 function isGameHubProfileURL(raw){try{const u=new URL(raw);return u.origin==='https://steamcommunity.com'&&!u.username&&!u.password&&/^\/(?:id\/[a-zA-Z0-9_-]+|profiles\/\d+)\/?$/.test(u.pathname)&&[...u.searchParams.keys()].every(k=>['l','snr','insideModal'].includes(k));}catch{return false;}}
 function installGameHubProfile(options,css){
- const doc=document,win=window,root=doc.documentElement,version=124,originalURL=location.href,previous=win.__gameHubStoreAppearance;
+ const doc=document,win=window,root=doc.documentElement,version=125,originalURL=location.href,previous=win.__gameHubStoreAppearance;
  if(!options.enabled||!isGameHubProfileURL(originalURL)||!root.classList.contains('GamepadMode')){previous?.dispose();return {applied:false,reason:'Native Steam profile'};}
  if(win.__gameHubStoreOriginalURL===originalURL)return {applied:false,reason:'Original Steam profile selected for this visit'};
  const ready=()=>{try{win.SteamClient?.BrowserView?.PostMessageToParent?.('GameHubProfileReady',location.href);}catch{}};
@@ -100,7 +100,10 @@ function installGameHubProfile(options,css){
  }};
  doc.addEventListener('visibilitychange',syncMedia);media?.addEventListener('change',syncMedia);syncMedia();
  cleanups.push(()=>{doc.removeEventListener('visibilitychange',syncMedia);media?.removeEventListener('change',syncMedia);for(const v of pausedByTheme){if(!doc.hidden)v.play()?.catch(()=>{});}pausedByTheme.clear();});
- const stopNavigation=connectActivityNavigation(doc,()=>!disposed&&isGameHubProfileURL(location.href),{region:'.ghp-shell,[data-ghp-remaining]',targets:'[data-ghp-focus],[data-ghp-remaining] a[href],[data-ghp-remaining] button,[data-ghp-remaining] textarea,[data-ghp-remaining] [contenteditable=true],[data-ghp-remaining] [role="button"]',focusClass:'ghp-focus',gridNavigation:true,cardSelector:'[data-ghp-card]'});
+ const axis=createScrollAxis('y',consoleMotion.scrollRate.y,()=>options.motion!==false&&!win.matchMedia('(prefers-reduced-motion: reduce)').matches);
+ const wheel=e=>{const pane=e.target.closest?.('.ghp-scroll-content');if(pane&&!e.target.closest('textarea,select,[role="dialog"]'))wheelVertical(axis,pane,e)};
+ shell.addEventListener('wheel',wheel,{passive:false});cleanups.push(()=>{axis.stop();shell.removeEventListener('wheel',wheel)});
+ const stopNavigation=connectActivityNavigation(doc,()=>!disposed&&isGameHubProfileURL(location.href),{axis,region:'.ghp-shell,[data-ghp-remaining]',targets:'[data-ghp-focus],[data-ghp-remaining] a[href],[data-ghp-remaining] button,[data-ghp-remaining] textarea,[data-ghp-remaining] [contenteditable=true],[data-ghp-remaining] [role="button"]',focusClass:'ghp-focus',gridNavigation:true,cardSelector:'[data-ghp-card]'});
  // Profile cards own their reflection; do not layer the floating feed outline over them.
  const stopGloss=()=>{};
  cleanups.push(stopNavigation,stopGloss);
@@ -119,7 +122,7 @@ function installGameHubProfile(options,css){
  };
  for(const key of Object.keys(before)){wrapped[key]=function(...args){if(args[2]!=null&&!sameProfile(args[2]))dispose();return before[key].apply(this,args);};history[key]=wrapped[key];}
  win.addEventListener('pagehide',hide);win.addEventListener('popstate',changed);win.addEventListener('pageshow',changed);
- if(typeof connectGameHubProfileTabs==='function')cleanups.push(connectGameHubProfileTabs({doc,win,shell,nav,tabs,base,make,focusable,options:()=>options}));
+ if(typeof connectGameHubProfileTabs==='function')cleanups.push(connectGameHubProfileTabs({axis,doc,win,shell,nav,tabs,base,make,focusable,options:()=>options}));
  win.__gameHubStoreAppearance={version,dispose,update(next,nextCSS){options=next;style.textContent=nextCSS;syncMedia();root.dataset.ghProfileMotion=String(next.motion);},original(){win.__gameHubStoreOriginalURL=location.href;dispose();}};
  ready();return {applied:true,reason:'Steam profile overview with console layout'};
  }catch{
@@ -130,3 +133,4 @@ function installGameHubProfile(options,css){
   return {applied:false,reason:'Profile layout unavailable; original Steam profile restored'};
  }
 }
+

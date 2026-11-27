@@ -11,18 +11,19 @@ it.each(['https://store.steampowered.com/','https://store.steampowered.com/app/4
 it.each(['https://store.steampowered.com/cart/','https://checkout.steampowered.com/','https://store.steampowered.com/login/','https://steamcommunity.com/openid/login','https://steamcommunity.com/id/friend/edit','https://steamcommunity.com/linkfilter/?url=https://example.com','https://steamcommunity.com/groups/test/login','https://store.steampowered.com/?return_to=https://example.com','https://steamcommunity.com/id/friend/?token=secret','https://store.steampowered.com.evil.test/','https://user@store.steampowered.com/','http://store.steampowered.com/','https://store.steampowered.com:444/','https://store.steampowered.com/unknown/','https://store.steampowered.com/agecheck/app/42/'])('retains native controls for %s',url=>expect(compatibleSteamPage(url)).toBe(false));
 function setup(supported=true,profile=false,overlay=false){
  vi.useFakeTimers();const listeners=new Map<string,Set<(...args:any[])=>void>>();
- const visible=vi.fn();const view={SetVisible:visible,on:vi.fn((event:string,fn:(...args:any[])=>void)=>{if(!listeners.has(event))listeners.set(event,new Set());listeners.get(event)!.add(fn);}),off:vi.fn((event:string,fn:(...args:any[])=>void)=>listeners.get(event)?.delete(fn))};
+ const visible=vi.fn();const nativeBack=vi.fn();const view={GoBack:nativeBack,SetVisible:visible,on:vi.fn((event:string,fn:(...args:any[])=>void)=>{if(!listeners.has(event))listeners.set(event,new Set());listeners.get(event)!.add(fn);}),off:vi.fn((event:string,fn:(...args:any[])=>void)=>listeners.get(event)?.delete(fn))};
  let loading=false,enabled=true,routeListener:(location:{pathname:string})=>void=()=>{};
  const browser={URL:'https://store.steampowered.com/',DisplayURL:'https://store.steampowered.com/',LoadErrorCode:null as number|null,BIsLoadingURL:()=>loading,GetBrowser:()=>view};
  let current:typeof browser|undefined=browser;
  const header={IncrementHideHeader:vi.fn(),DecrementHideHeader:vi.fn(),GetCurrentBrowserAndBackstack:()=>({browser:current,bExternal:false}),SetCurrentBrowserAndBackstack:(next:typeof browser|undefined)=>{current=next;}};
- const main:WebWindow={BrowserWindow:window,LocationPathName:'/library/home',HeaderStore:header,m_StoreBrowser:browser,IsGamepadUIOverlayWindow:()=>overlay,IsAnyVRWindow:()=>false,GetShowingGlobalModal:()=>false,MenuStore:{GetOpenSideMenu:()=>0},m_history:{listen:fn=>{routeListener=fn;return vi.fn();}}};
+ const shellBack=vi.fn();
+ const main:WebWindow={BrowserWindow:window,LocationPathName:'/library/home',HeaderStore:header,m_StoreBrowser:browser,IsGamepadUIOverlayWindow:()=>overlay,IsAnyVRWindow:()=>false,GetShowingGlobalModal:()=>false,MenuStore:{GetOpenSideMenu:()=>0},m_history:{goBack:shellBack,listen:fn=>{routeListener=fn;return vi.fn();}}};
  const adapter=connectFullscreenWeb(main,()=>enabled,patch,original,supported?modules:[],()=>profile);stops.push(adapter.dispose);
  const emit=(event:string,...args:any[])=>{for(const fn of listeners.get(event)??[])fn(...args);};
  const route=(pathname:string)=>{main.LocationPathName=pathname;routeListener({pathname});};
  const begin=()=>openGameHubWeb(browser.URL,()=>route('/steamweb'),main);
  const load=(secure=true)=>{loading=true;emit('start-request',browser.URL);emit('start-loading',browser.URL,true);emit('page-security',browser.URL,{bIsSecure:true,bHasCertError:!secure});loading=false;emit('finished-request',browser.URL,'Title');};
- return {main,browser,header,adapter,emit,route,begin,load,listeners,view,visible,enabled:(v:boolean)=>{enabled=v;adapter.refresh();}};
+ return {shellBack,nativeBack,main,browser,header,adapter,emit,route,begin,load,listeners,view,visible,enabled:(v:boolean)=>{enabled=v;adapter.refresh();}};
 }
 it('hides only after an owned navigation has matching successful certificate and load events',()=>{const x=setup();x.route('/steamweb');x.load();expect(x.header.IncrementHideHeader).not.toHaveBeenCalled();x.begin();x.load();expect(x.header.IncrementHideHeader).toHaveBeenCalledOnce();x.adapter.refresh();expect(x.header.IncrementHideHeader).toHaveBeenCalledOnce();x.emit('start-request',x.browser.URL);expect(x.header.DecrementHideHeader).toHaveBeenCalledOnce();});
 it('restores immediately on security/load errors, external redirects and prompts',()=>{const x=setup();x.begin();x.load();x.emit('page-security',x.browser.URL,{bIsSecure:true,bHasCertError:true});expect(x.header.DecrementHideHeader).toHaveBeenCalledOnce();x.load();x.emit('alert-dialog','warning');expect(x.header.DecrementHideHeader).toHaveBeenCalledTimes(2);x.load();x.emit('load-error',-1);expect(x.header.DecrementHideHeader).toHaveBeenCalledTimes(3);x.browser.URL=x.browser.DisplayURL='https://example.com/';x.load();expect(x.header.IncrementHideHeader).toHaveBeenCalledTimes(3);});
@@ -155,4 +156,25 @@ it('keeps direct begin inert when class exports exist but a required browser API
  const adapter=connectFullscreenWeb({...x.main,HeaderStore:header} as unknown as WebWindow,()=>true,patch,original,modules,()=>true);
  adapter.begin('https://steamcommunity.com/id/example');
  expect(vi.getTimerCount()).toBe(0);expect(x.view.SetVisible).not.toHaveBeenCalled();adapter.dispose();
+});
+
+it('keeps Store Back inside its session and drops the trailing CEF Back after a shell exit',()=>{
+ const x=setup(true,true);
+ x.main.m_history.goBack=vi.fn(()=>x.route('/game-hub/home'));
+ x.main.m_history.location={state:{initialIndex:4}};
+ const history={index:5,entries:[]};
+ Object.assign(x.browser,{History:history});
+ x.begin();x.load();
+ x.view.GoBack();expect(x.nativeBack).toHaveBeenCalledTimes(1);
+ history.index=4;x.view.GoBack();expect(x.main.m_history.goBack).toHaveBeenCalledOnce();
+ x.view.GoBack();expect(x.nativeBack).toHaveBeenCalledTimes(1);
+});
+
+it('consumes the extra browser Back while the Store exit is waiting on the router',()=>{
+ const x=setup(true,true);
+ x.begin();x.load();
+ x.main.m_history.goBack!();x.view.GoBack();
+ expect(x.shellBack).toHaveBeenCalledOnce();
+ expect(x.nativeBack).not.toHaveBeenCalled();
+ x.route('/game-hub/home');
 });

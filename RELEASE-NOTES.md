@@ -1,20 +1,7 @@
-# Game Hub dev.105 — separate platform downloads
+# Game Hub dev.107
 
-- **Windows:** `Game-Hub-0.13.0-dev.105-Windows-x64.zip`
-- **SteamOS / Bazzite:** `Game-Hub-0.13.0-dev.105-SteamOS-Bazzite-x64-EXPERIMENTAL.zip`
+- [Windows · Steam Stable](https://github.com/toto-console/game-hub/releases/download/v0.13.0-dev.107/Game-Hub-0.13.0-dev.107-Windows-Steam-Stable-x64.zip)
+- [Windows · Steam Beta](https://github.com/toto-console/game-hub/releases/download/v0.13.0-dev.107/Game-Hub-0.13.0-dev.107-Windows-Steam-Beta-x64.zip)
+- [SteamOS / Bazzite · x86-64](https://github.com/toto-console/game-hub/releases/download/v0.13.0-dev.107/Game-Hub-0.13.0-dev.107-SteamOS-Bazzite-x64-EXPERIMENTAL.zip)
 
-Choose only the download matching your OS. Linux is experimental and awaits tester confirmation, not fully supported. One shared source tree; plugin identity and settings paths are unchanged. No bundled replacement Decky Loader or PlayHub.
-
-Wrong-platform packages refuse Game Hub activation. Decky's manual installer can still copy the wrong ZIP: reinstall the matching package without deleting settings. Native Steam recovery remains available.
-
-Automatic installation stays disabled. The inspected Decky Direct Updater lacks OS selection; do not enable its automatic installation for Game Hub or rename these packages. Game Hub verifies the host and archive target before staging certified schema-3 updates; no loader/platform combinations are certified yet.
-
-Includes the accumulated profile/controller fixes and dev.104 saved-Home read-failure recovery. The tester's restart issue still requires cold-start confirmation; no arbitrary startup delay was added.
-
-Both packages are validated independently in Windows/Linux CI. Linux CI does not certify SteamOS or Bazzite integration. Please report exact Steam, Decky, PlayHub/host and Game Hub versions alongside startup and in-game results.
-
-Store hotfix: preserve ownership of hidden CEF views across Back and restore show requests suppressed during profile-to-Store transitions. Verified live on Windows with completed and interrupted profile loads; 74 focused regression tests pass.
-
-Quick-menu Friends now show the custom white Steam Machine icon before game activity and Online on Steam. The icon is decorative, preserving whole-row navigation. Verified visually in the running Windows quick menu.
-
-Fully completed games now use the supplied platinum trophy with moving sparkles confined to its sphere. Incomplete games retain their regular trophy; empty or unknown achievement totals do not count as completion. Verified live on Windows.
+Install one matching ZIP using Decky. Includes the updated Store, Home, game menu and PS5-style notifications. On Linux, popups use the Steam/Decky interface. Live Steam Stable, SteamOS and Bazzite hardware validation is pending.

@@ -11,6 +11,16 @@ HLTB_CACHE_FILE = os.path.join(decky.DECKY_PLUGIN_RUNTIME_DIR, "home-hltb-cache.
 
 
 class Plugin:
+    notices = None
+
+    async def ps5_notifications_ready(self):
+        return bool(self.notices and self.notices.ready())
+
+    async def emit_ps5_notification(self, payload):
+        if not await self.ps5_notifications_ready():
+            return {"ok": False, "queued": False}
+        return self.notices.enqueue(payload)
+
     def _require_platform(self):
         from package_platform import require_package
         require_package(os.path.dirname(__file__))
@@ -152,11 +162,53 @@ class Plugin:
             return result
         return await asyncio.to_thread(read)
 
+    _display_preview = None
+    _display_timer = None
+
+    async def display_modes(self):
+        import display_modes
+        return {**display_modes.info(), "preview": self._display_preview is not None}
+
+    def _restore_display(self):
+        import display_modes
+        if self._display_preview is not None:
+            display_modes.apply(self._display_preview[0], 0)
+        self._clear_display_preview()
+
+    def _clear_display_preview(self):
+        if self._display_timer:
+            self._display_timer.cancel()
+        self._display_timer = self._display_preview = None
+
+    async def display_resolution(self, action: str, key: str):
+        import display_modes
+        if action == "preview":
+            self._restore_display()
+            current, choices = display_modes.modes()
+            choice = choices.get(key)
+            if choice is None:
+                raise ValueError("This resolution is unavailable.")
+            display_modes.apply(choice, 2)  # CDS_TEST
+            display_modes.apply(choice, 0)
+            self._display_preview = (current, choice)
+            self._display_timer = asyncio.get_running_loop().call_later(15, self._restore_display)
+        elif action == "keep" and self._display_preview:
+            display_modes.apply(self._display_preview[1], 1)  # CDS_UPDATEREGISTRY
+            self._clear_display_preview()
+        elif action == "restore":
+            self._restore_display()
+        return {**display_modes.info(), "preview": self._display_preview is not None}
+
     async def _main(self):
         self._require_platform()
+        from gamehub_ps5_notifications import Notifications
+        self.notices = Notifications(decky.DECKY_PLUGIN_RUNTIME_DIR, decky.logger)
         decky.logger.info("PS5 Dashboard loaded")
 
     async def _unload(self):
+        if self.notices:
+            await self.notices.close()
+        self._restore_display()
         if self.store_appearance_adapter is not None:
             await self.store_appearance_adapter.close()
         decky.logger.info("PS5 Dashboard unloaded")

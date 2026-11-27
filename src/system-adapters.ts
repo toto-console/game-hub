@@ -16,7 +16,7 @@ export function readTray():TrayRow[]{
   const g=String(field('chat_group_id')??''),c=String(field('chat_id')??''),cls=String(field('getClassName')??'');
   const conversation=!synthetic&&/GroupChatMessage/.test(cls)&&/^[1-9]\d*$/.test(g)&&/^[1-9]\d*$/.test(c)?`group:${g}:${c}`:!synthetic&&/Friend(?:Chat)?Message/.test(cls)&&friend?.is_friend?`friend:${account}`:undefined;
   const source=n.decky?'Decky':synthetic?'Plugin alert via Steamcord':'Steam';
-  let kind=n.decky||synthetic?'Plugin alert':conversation?.startsWith('group:')?'Group message':conversation?'Message':/FriendRequest/.test(cls)?'Friend request':/Invite/.test(cls)?'Invitation':/Achievement/.test(cls)?'Achievement':/FriendMessage/.test(cls)?'Message':'Steam notification';
+  let kind=n.decky||synthetic?'Plugin alert':conversation?.startsWith('group:')?'Group message':conversation?'Message':/FriendOnline/.test(cls)?'Friend online':/FriendRequest/.test(cls)?'Friend request':/Invite/.test(cls)?'Invitation':/Achievement/.test(cls)?'Achievement':/FriendMessage/.test(cls)?'Message':'Steam notification';
   let rollup:Record<string,unknown>={};
   try{const item=field('item') as {body_data?:unknown}|undefined;if(typeof item?.body_data==='string'&&item.body_data.length<32768){const parsed=JSON.parse(item.body_data);if(parsed&&typeof parsed==='object'&&!Array.isArray(parsed))rollup=parsed;}}catch{/* Unknown Steam payload: use the generic notification fallback. */}
   const inventory=n.eType===20&&field('type')===4;
@@ -31,7 +31,7 @@ export function readTray():TrayRow[]{
   const detail=(kind==='Achievement'?text(field('description')):'')||text(field('body'))||text(field('description'))||(conversation?'Open conversation in Game Hub':inventory?'New Steam inventory items':kind);
   const id=String(n.notificationID??n.nNotificationID??`${n.eType}:${n.rtCreated}:${gi}:${ni}`);
   const time=n.rtCreated>1e12?n.rtCreated:Math.max(0,n.rtCreated)*1000;
-  return {id:`tray:${id}`,title,detail,source,kind,time,unread:n.bNewIndicator,conversation,avatar:/Message|Friend|Voice/.test(kind)||synthetic?safeNoticeArtwork(field('icon'))??safeNoticeArtwork(persona?.avatar_url_medium):undefined,artwork,
+  return {id:`tray:${id}`,title,detail,source,kind,time,unread:n.bNewIndicator,conversation,avatar:persona||/Message|Friend|Voice/.test(kind)||synthetic?safeNoticeArtwork(field('icon'))??safeNoticeArtwork(persona?.avatar_url_medium):undefined,artwork,
    clear:typeof store.RemoveGroupFromTray==='function'?()=>{const current=store.GetNotificationsInTray()[0].find(v=>v===group||(n.notificationID??n.nNotificationID)!=null&&v.notifications.some(x=>String(x.notificationID??x.nNotificationID)===id));if(!current)return;store.RemoveGroupFromTray!(current);if(store.GetNotificationsInTray()[0].includes(current))throw Error('Steam did not remove this tray group.');}:undefined};
  }));
 }

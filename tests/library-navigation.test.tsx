@@ -2,6 +2,7 @@ import React from 'react';
 import {it,expect,vi,afterEach} from 'vitest';
 import {render,act,cleanup,waitFor} from '@testing-library/react';
 const fixture=vi.hoisted(()=>({apps:Array.from({length:12},(_,i)=>({appid:i+1,display_name:`Game ${i+1}`,app_type:1,installed:true}))}));
+vi.mock('@decky/api',()=>({callable:()=>vi.fn()}));
 vi.mock('@decky/ui',async()=>{const React=await import('react');return {Navigation:{Navigate:vi.fn()},GamepadButton:{BUMPER_LEFT:4,BUMPER_RIGHT:5},Focusable:React.forwardRef(({children,focusClassName,noFocusRing,onActivate,onCancelButton,'flow-children':flow,...props}:any,ref:any)=><div {...props} ref={ref} tabIndex={0} onClick={onActivate}>{children}</div>)};});
 vi.mock('../src/home/GameDetail',()=>({GameDetail:()=>null}));
 vi.mock('../src/themedeck-adapter',()=>({useSoundtrackScope:vi.fn()}));

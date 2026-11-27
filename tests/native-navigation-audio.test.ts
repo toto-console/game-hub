@@ -1,5 +1,5 @@
 import {it,expect,vi,afterEach} from 'vitest';
-const native=vi.hoisted(()=>({PlayNavSound:vi.fn()}));
+const native=vi.hoisted(()=>({PlayNavSound:vi.fn(),RegisterCallbackOnPlaySound:()=>({Unregister:vi.fn()})}));
 vi.mock('@decky/ui',()=>({findModuleChild:(find:any)=>find({audio:{GamepadUIAudio:native}})??find({sounds:{BasicNav:24,FailedNav:25,DefaultOk:1}})}));
 import {startNavigationAudio} from '../src/native-navigation-audio';
 import {focusControl,focusNavigation,playSelectionSound} from '../src/navigation';

@@ -1,6 +1,7 @@
 import {useEffect,useRef,useState} from 'react';
 import type {WelcomeSettings} from './welcome-layout';
 import {heroUrls,type App} from './upstream/steam';
+import {motionAllowed} from '../focus-motion';
 import {welcomeCSS} from './welcome-style';
 function Media({src,animate}:{src:string;animate:boolean}){
  const video=useRef<HTMLVideoElement>(null),canvas=useRef<HTMLCanvasElement>(null);const [failed,setFailed]=useState(false),[frozen,setFrozen]=useState(false);
@@ -19,5 +20,19 @@ export function WelcomeBackground({settings,app,home=false,hidden=false,active=t
  useEffect(()=>{const doc=root.current?.ownerDocument;if(!doc)return;const change=()=>setVisible(!doc.hidden),mq=doc.defaultView?.matchMedia?.('(prefers-reduced-motion: reduce)'),motion=()=>setReduced(mq?.matches??false);change();motion();doc.addEventListener('visibilitychange',change);mq?.addEventListener?.('change',motion);return()=>{doc.removeEventListener('visibilitychange',change);mq?.removeEventListener?.('change',motion);};},[]);
  const bg=settings.background==='local'?settings.image:settings.background==='game'&&app?heroUrls(app)[0]:undefined;
  const animate=settings.animateWallpaper!==false&&!settings.reducedMotion&&!reduced;
- return <><style>{welcomeCSS}</style><div ref={root} hidden={hidden||!active} className={`ghw-background ${home?'ghw-home-background':''} ${settings.background==='existing'?'ghw-existing':''}`} aria-hidden="true">{bg?((!hidden&&active&&visible||!bg.startsWith('data:video/')&&!/^data:image\/(gif|webp|apng)/.test(bg))&&<Media src={bg} animate={animate}/>):<div className="ghw-sculpture"><i/><b/><em/></div>}</div></>;
+ // Keep animated media painted during the exit, then release its decoder.
+ const [exitingMedia,setExitingMedia]=useState(false);
+ useEffect(()=>{
+  if(!home||!active||!visible||settings.reducedMotion||!root.current||!motionAllowed(root.current)){
+   setExitingMedia(false);
+  }else if(!hidden)setExitingMedia(true);
+ },[home,hidden,active,visible,settings.reducedMotion,reduced]);
+ const moving=bg&&/^data:(video\/|image\/(gif|webp|apng))/.test(bg);
+ const showMedia=!moving||(active&&visible&&(!hidden||exitingMedia));
+ return <><style>{welcomeCSS}</style>
+  <div ref={root} hidden={!active||(!home&&hidden)} data-shown={!hidden} data-motion={!settings.reducedMotion}
+   onTransitionEnd={e=>{if(e.target===e.currentTarget&&e.propertyName==='opacity'&&hidden)setExitingMedia(false);}}
+   className={`ghw-background ${home?'ghw-home-background':''} ${settings.background==='existing'?'ghw-existing':''}`} aria-hidden="true">
+   {bg?(showMedia&&<Media src={bg} animate={animate}/>):<div className="ghw-sculpture"><i/><b/><em/></div>}
+  </div></>;
 }

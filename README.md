@@ -1,17 +1,16 @@
-## Platform downloads — dev.105
+## Game Hub downloads · dev.107
 
-Choose exactly one installer from [the same GitHub release](https://github.com/toto-console/game-hub/releases/tag/v0.13.0-dev.105):
+Choose the ZIP for your Steam installation. Install it with Decky’s **Install Plugin from ZIP** option.
 
-| Download | Intended system | Status |
-| --- | --- | --- |
-| [Windows x64](https://github.com/toto-console/game-hub/releases/download/v0.13.0-dev.105/Game-Hub-0.13.0-dev.105-Windows-x64.zip) | Windows 11 x64 / compatible Decky host | Experimental Windows build |
-| [SteamOS / Bazzite x64](https://github.com/toto-console/game-hub/releases/download/v0.13.0-dev.105/Game-Hub-0.13.0-dev.105-SteamOS-Bazzite-x64-EXPERIMENTAL.zip) | SteamOS / Bazzite x86-64 | **Experimental: awaiting Linux testers; not fully supported** |
+- [Windows · Steam Stable](https://github.com/toto-console/game-hub/releases/download/v0.13.0-dev.107/Game-Hub-0.13.0-dev.107-Windows-Steam-Stable-x64.zip)
+- [Windows · Steam Beta](https://github.com/toto-console/game-hub/releases/download/v0.13.0-dev.107/Game-Hub-0.13.0-dev.107-Windows-Steam-Beta-x64.zip)
+- [SteamOS / Bazzite · x86-64](https://github.com/toto-console/game-hub/releases/download/v0.13.0-dev.107/Game-Hub-0.13.0-dev.107-SteamOS-Bazzite-x64-EXPERIMENTAL.zip)
 
-Both use one source tree and the existing `game-base-social` directory, `Game Base Social` plugin identity, and existing settings. Install only one; never delete settings to switch versions. The source ZIP is for development, not installation.
+All three include the same Home, Library, Store and Control Center. Windows displays PS5 notifications through its bundled overlay. SteamOS and Bazzite use Decky’s in-client popup and bundled sound cues. Display mode selection on Linux opens Steam display settings. Linux hardware verification is pending.
 
 Package-bound frontend and backend checks refuse activation on the wrong OS. Decky's manual ZIP installer may still copy an incompatible archive; reinstall the correct package to recover. Native Steam remains available. Windows-specific battery/storage integrations retain their OS guards; Linux uses the shared Linux paths, without Windows DLL calls.
 
-**Leave Decky Direct Updater automatic installation OFF for Game Hub.** The inspected updater does not select OS-specific assets. These explicitly labeled assets deliberately do not match its generic plugin filename selection. Game Hub's own schema-3 update manifest also disables automatic installation and has no certified loader targets yet. Do not rename either ZIP to a generic updater filename.
+**Leave Decky Direct Updater automatic installation OFF for Game Hub.** The inspected updater does not select OS-specific assets. These explicitly labeled assets deliberately do not match its generic plugin filename selection. Game Hub's own schema-3 update manifest also disables automatic installation and has no certified loader targets yet. Do not rename any ZIP to a generic updater filename.
 
 Linux testers must verify cold startup with saved Home preferences, in-game overlay, profiles, keyboard, messages and Back, library installation, storage and native Steam recovery. Record Steam, Decky, host integration and Game Hub versions. CI checks are not SteamOS/Bazzite hardware certification.
 

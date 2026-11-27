@@ -1,13 +1,16 @@
 import React from 'react';
 import {it,expect,vi,afterEach,beforeAll} from 'vitest';
 import {render,screen,fireEvent,waitFor,cleanup} from '@testing-library/react';
+vi.mock('@decky/api',()=>({callable:()=>async()=>({controllers:[{index:1,wired:true}]})}));
+vi.mock('../src/home/upstream/gameinfo',()=>({useAchievements:()=>({state:'done',value:{medals:[0,1,2,5]}})}));
+vi.mock('../src/home/welcome-services',()=>({welcomeServices:()=>undefined}));
 vi.mock('@decky/ui',async()=>{const React=await import('react');return {Navigation:{NavigateToSteamWeb:vi.fn()},GamepadButton:{SELECT:3},Focusable:React.forwardRef(({children,onActivate,focusClassName,noFocusRing,preferredFocus,onOKActionDescription,onOptionsButton,onOptionsActionDescription,onMenuButton,onMenuActionDescription,onButtonDown,actionDescriptionMap,'flow-children':flow,...props}:any,ref:any)=><div {...props} ref={ref} tabIndex={0} onClick={onActivate}>{children}</div>)};});
 vi.mock('../src/themedeck-adapter',()=>({useSoundtrackScope:vi.fn(),highlightSoundtrack:vi.fn()}));
 vi.mock('../src/GameAction',()=>({GameAction:()=> <button className="ghd-button">Play</button>}));
 vi.mock('../src/home/upstream/steam',()=>({heroUrls:()=>[],landscapeUrls:()=>[],portraitUrls:()=>[],logoUrls:()=>[],openGameMenu:vi.fn()}));
 vi.mock('../src/game-adapter',()=>({gameById:()=>({id:42}),loadGame:async()=>({achievements:[{id:'a',name:'Real achievement',description:'Genuine description',done:false}],total:99,done:8,news:[{title:'Patch notes',url:'https://steamcommunity.com/games/42/announcements/detail/1',date:1,author:'Developer',contents:'Real changes',official:true}],shots:[],movies:[]})}));
 import {GameDetail} from '../src/home/GameDetail';
-beforeAll(()=>{HTMLElement.prototype.scrollIntoView=vi.fn();window.matchMedia=vi.fn().mockReturnValue({matches:false});});
+beforeAll(()=>{vi.stubGlobal("IntersectionObserver",class {observe(){} disconnect(){}});HTMLElement.prototype.scrollIntoView=vi.fn();window.matchMedia=vi.fn().mockReturnValue({matches:false});});
 afterEach(cleanup);
 it('shows real summary and returns one level to the same activity focus target before leaving Library detail',async()=>{
  const back=vi.fn();render(<GameDetail app={{appid:42,display_name:'Game',app_type:1,installed:true}} back={back}/>);
@@ -30,9 +33,9 @@ it.each(['keyboard','controller'])('restores the full hero when navigating up fr
 });
 
 it('embeds the same achievements and official news without a second hero or soundtrack scope',async()=>{
- const back=vi.fn();render(<GameDetail app={{appid:42,display_name:'Game',app_type:1,installed:true}} homeMode back={back}/>);
+ const back=vi.fn();render(<GameDetail app={{appid:42,display_name:'Game',app_type:1,installed:true}} homeMode homeFocus={el=>el?.focus()} back={back}/>);
  expect(document.querySelector('.gh-detail-hero')).toBeNull();expect(document.querySelector('.gh-detail-background')).toBeNull();
- await screen.findByText('8 / 99 earned · 8%');expect(screen.getByText('Friends Playing')).toBeTruthy();expect(screen.getByText('Activities')).toBeTruthy();
+ await screen.findByText('Wired connection');await screen.findByText('Real achievement');expect(screen.getByText('Total: 8')).toBeTruthy();expect(screen.getByText('Friends who Play this Game')).toBeTruthy();expect(screen.getByText('Activities')).toBeTruthy();
  const summary=document.querySelector<HTMLElement>('.gh-home-trophy')!;summary.focus();fireEvent.keyDown(summary,{key:'ArrowDown'});expect(document.activeElement?.closest('.gh-achievement-filters')).toBeTruthy();
  fireEvent.keyDown(document.activeElement!,{key:'Escape'});expect(document.activeElement).toBe(summary);expect(back).not.toHaveBeenCalled();
  fireEvent.keyDown(summary,{key:'ArrowUp'});expect(back).toHaveBeenCalledOnce();

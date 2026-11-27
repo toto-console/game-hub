@@ -419,3 +419,12 @@ html[data-gh-profile] .ghp-completion-trophy[data-visible=true] .ghp-trophy-snow
 html[data-gh-profile-motion=false] .ghp-trophy-snow i{animation:none!important}
 @keyframes ghp-snow-drift{0%{transform:translate(-3px,5px) scale(.65);opacity:.2}45%{opacity:.95}100%{transform:translate(var(--drift),-12px) scale(1.1);opacity:.45}}
 @media(prefers-reduced-motion:reduce){html[data-gh-profile] .ghp-trophy-snow i{animation:none!important}}
+
+html[data-gh-profile] .ghp-platinum-total{display:flex;align-items:center;gap:.7vw}
+html[data-gh-profile] .ghp-platinum-total .ghp-completion-trophy{width:3.6vw;height:4.5vw}
+
+html[data-gh-profile] svg.ghp-metal-trophy{width:clamp(36px,3.4vw,80px);height:auto;flex:none;stroke:none;filter:drop-shadow(0 2px 3px #0008)}
+html[data-gh-profile] .ghp-metal-trophy[data-tier=bronze]{--shade:#633d32;--metal:#bf8066;--shine:#f4cbad}
+html[data-gh-profile] .ghp-metal-trophy[data-tier=silver]{--shade:#515965;--metal:#b9c1cb;--shine:#f6fbff}
+html[data-gh-profile] .ghp-metal-trophy[data-tier=gold]{--shade:#866022;--metal:#e5b246;--shine:#fff0b0}
+html[data-gh-profile] .ghp-pane-toolbar>.ghp-metal-trophy{margin-left:auto}

@@ -1,6 +1,10 @@
+import {scrollAxis} from '../scroll-axis';
+import {followVertical,wheelVertical} from '../scroll-engine';
 import {T} from "../../i18n";
 import {useDownloadsSnapshot} from '../../downloads-live';
 import {openNativeLibraryRecovery} from '../native-library';
+import {gameAction} from '../../game-action';
+import {openGameHubDetails} from './steam';
 import {GameDetail} from '../GameDetail';
 import {useSoundtrackScope} from '../../themedeck-adapter';
 import {Focusable,GamepadButton,Navigation} from '@decky/ui';
@@ -45,11 +49,12 @@ export function LibraryTab({initialView='installed',back}:{initialView?:string;b
  const transfers=useMemo(()=>new Map(downloads.rows.filter(r=>r.section!=='completed'&&r.section!=='uploads').map(r=>[r.appid,r])),[downloads]);
  const key=`${tab}:${effective}:${sort}`;
  const state=useRef({menu,key,list,tab});state.current={menu,key,list,tab};
+ const vertical=useMemo(()=>scrollAxis('y'),[]);
  const remember=useCallback(()=>{const g=grid.current;if(!g)return;const previous=memories.get(state.current.key);const selected=g.querySelector<HTMLElement>('.ghd-focused')?.closest<HTMLElement>('[data-library-id]');memories.set(state.current.key,{id:selected?Number(selected.dataset.libraryId):previous?.id,top:g.scrollTop});},[]);
- const openGame=useCallback((a:LibraryApp)=>{playSelectionSound();remember();detailAppId=a.appid;setSelectedGame(a);},[remember]);
+ const openGame=useCallback((a:LibraryApp)=>{playSelectionSound();remember();if(gameAction(window as any,a).kind==='downloads'){openGameHubDetails(a);return;}detailAppId=a.appid;setSelectedGame(a);},[remember]);
  useEffect(()=>{try{sessionStorage.setItem(preferenceKey,JSON.stringify({filter,sort,tab}));}catch{}},[filter,sort,tab]);
  useLayoutEffect(()=>{
-  if(selectedGame)return;
+  vertical.stop();if(selectedGame)return;
   const frame=requestAnimationFrame(()=>{const r=root.current;if(!r)return;if(menu){focusControl(r.querySelector<HTMLElement>('.ghl-menu .ghl-control'));return;}
    const saved=memories.get(key);const target=saved?.id?r.querySelector<HTMLElement>(`[data-library-id="${saved.id}"] .ghd-tile`):null;
    focusControl(target??r.querySelector<HTMLElement>('.ghl-grid .ghd-tile')??r.querySelector<HTMLElement>('.ghl-tabs .ghl-control'));
@@ -82,10 +87,17 @@ export function LibraryTab({initialView='installed',back}:{initialView?:string;b
    focusNavigation(savedTile??activeTab);
 
   };
-  const focus=(e:Event)=>{const t=e.target as HTMLElement;const menuItem=t.closest<HTMLElement>('.ghl-menu .ghl-control');if(menuItem){menuItem.scrollIntoView({block:'nearest'});return;}if(!t.closest('.ghl-grid'))return;const g=grid.current,item=t.closest<HTMLElement>('[data-library-id]');if(g&&item){const a=g.getBoundingClientRect(),b=item.getBoundingClientRect();if(b.top<a.top+5)g.scrollTop+=b.top-a.top-5;else if(b.bottom>a.bottom-5)g.scrollTop+=b.bottom-a.bottom+5;memories.set(state.current.key,{id:Number(item.dataset.libraryId),top:g.scrollTop});}};
+  const panel=(el:HTMLElement)=>el.closest<HTMLElement>('.ghl-menu,.ghl-grid');
+  const focus=(e:Event)=>{const t=e.target as HTMLElement,g=panel(t);if(!g)return;
+   const item=t.closest<HTMLElement>('[data-library-id],.ghl-menu .ghl-control');if(!item)return;
+   followVertical(vertical,g,item);
+   if(item.dataset.libraryId)memories.set(state.current.key,{id:Number(item.dataset.libraryId),top:vertical.destination(g)});
+  };
+  const wheel=(e:WheelEvent)=>{const g=panel(e.target as HTMLElement);if(g)wheelVertical(vertical,g,e)};
+  r.addEventListener('wheel',wheel,{passive:false});
   for(const ev of ['keydown','vgp_ondirection','vgp_onbuttondown'])r.addEventListener(ev,handler,true);
   for(const ev of ['focusin','vgp_onfocus'])r.addEventListener(ev,focus,true);
-  return()=>{remember();for(const ev of ['keydown','vgp_ondirection','vgp_onbuttondown'])r.removeEventListener(ev,handler,true);for(const ev of ['focusin','vgp_onfocus'])r.removeEventListener(ev,focus,true);};
+  return()=>{vertical.stop();r.removeEventListener('wheel',wheel);remember();for(const ev of ['keydown','vgp_ondirection','vgp_onbuttondown'])r.removeEventListener(ev,handler,true);for(const ev of ['focusin','vgp_onfocus'])r.removeEventListener(ev,focus,true);};
  },[back]);
  return <><div hidden={!!selectedGame}><Focusable ref={root} className="ghl-root" flow-children="column" onCancelButton={(e:any)=>{e?.stopPropagation?.();e?.preventDefault?.();if(menu)setMenu(false);else{remember();back();}}}>
   <header className="ghl-header"><span className="ghl-library-icon"><svg viewBox="0 0 32 32" width="1em" height="1em" fill="currentColor" aria-hidden="true"><path d="M3 3h6v6H3zm8 0h6v6h-6zm8 0h6v6h-6zM3 11h6v6H3zm8 0h6v6h-6zm8 0h6v4h-6zM3 19h6v6H3z"/><path d="M15 18c-3 0-4 2-5 6l-1 5c0 2 2 2 3 1l3-3h10l3 3c1 1 3 1 3-1l-1-5c-1-4-2-6-5-6z"/><path d="M15 21v5m-2.5-2.5h5" stroke="#111318" strokeWidth="1.8"/><circle cx="25" cy="22" r="1.2" fill="#111318"/><circle cx="27" cy="25" r="1.2" fill="#111318"/></svg></span><h1><T text="Game Library"/></h1></header>

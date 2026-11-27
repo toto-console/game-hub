@@ -2,6 +2,7 @@
 export const SHORTCUT=1073741824;
 export interface LibraryApp {
  appid:number;display_name:string;app_type:number;installed:boolean;gameid?:string;m_gameid?:string;
+ rt_steam_release_date?:number;
  visible_in_game_list?:boolean;subscribed_to?:boolean;rt_last_time_played?:number;rt_last_time_locally_played?:number;rt_last_time_played_or_installed?:number;rt_purchased_time?:number;
  minutes_playtime_forever?:number;minutes_playtime_last_two_weeks?:number;size_on_disk?:string;
  review_percentage_with_bombs?:number;metacritic_score?:number;rt_custom_image_mtime?:number;rt_store_asset_mtime?:number;

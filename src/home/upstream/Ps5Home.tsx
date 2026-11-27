@@ -1,3 +1,8 @@
+import {homeSequence} from '../console-motion';
+import {catalogItems} from '../store-account';
+import {plainText} from '../../game-content';
+import {HomeTrailer} from '../HomeTrailer';
+import {HomeBackdrop,prepareHomeArt} from '../HomeBackdrop';
 import {cachedWelcomeSettings,loadWelcomeSettings,rememberWelcomeSettings} from '../welcome-settings-cache';
 import {useLanguage} from "../../i18n";
 import {T} from "../../i18n";
@@ -6,10 +11,12 @@ import {WelcomeBackground} from '../WelcomeBackground';
 import {sanitizeSettings,type WelcomeSettings} from '../welcome-layout';
 import {WelcomeHub,WelcomeIcon} from '../WelcomeHub';
 import {welcomeReturn,rememberWelcome} from '../welcome-layout';
+import {openFriendsWhoPlay} from '../FriendsWhoPlay';
 import {GameDetail} from '../GameDetail';
 import {homeHubCSS} from '../home-hub-style';
 import {homeHubReturn,clearHomeHubReturn} from '../home-hub-data';
-import {focusControl} from '../../navigation';
+
+import {focusControl,focusNavigation} from '../../navigation';
 import {motionAllowed} from '../../focus-motion';
 import {StoreBag,LibraryIcon} from '../HomeIcons';
 import {StorePreview} from '../StorePreview';
@@ -18,6 +25,8 @@ import {useLibraryRevision} from '../../library-live';
 import {GameAction} from "../../GameAction";
 import { Focusable, Navigation } from "@decky/ui";
 import { ReactNode, memo, useCallback, useEffect, useMemo, useRef, useState, useLayoutEffect } from "react";
+import {useAchievements} from "./gameinfo";
+import {BsClockFill} from "react-icons/bs";
 import { FaSteam } from "react-icons/fa";
 import { IoLibrary } from "react-icons/io5";
 import {
@@ -40,7 +49,7 @@ import { ActionCard, ActionCards, GameCards } from "./InfoCards";
 import { currentSettings } from "./settings";
 import { t } from "./i18n";
 import {
-  APP_TYPE_SHORTCUT,
+  APP_TYPE_GAME, APP_TYPE_SHORTCUT,
   App,
   byRecent,
   favoriteApps,
@@ -64,8 +73,6 @@ import type { TabId } from "./Shell";
 
 const RECENT_COUNT = 8; // Store + Welcome + eight recent entries + Library = eleven.
 const ROW_COUNT = 14;
-/** Wait a moment before swapping the big background, so flicking through tiles doesn't strobe. */
-const BACKDROP_DELAY_MS = 140;
 /** Where a lower row sits once focused, as a share of the screen height from the top. */
 const LOWER_ROW_ANCHOR = 0.3;
 /** Kept on the top-row tile the game info belongs to, so it stays big while the Play button has focus. */
@@ -90,42 +97,61 @@ function slideTo(el: HTMLElement) {
   row.style.transform = `translate3d(calc(${-i} * (var(--ghd-slot) + var(--ghd-gap))), 0, 0)`;
 }
 
-/**
- * The full-screen game art. The new picture fades in over the old one (a PS5 crossfade) and the old
- * one is dropped once it's covered, so at most two images are ever on screen.
- */
-function Backdrop({ app, dim }: { app?: App; dim: boolean }) {
- useLanguage();
-  const [layers, setLayers] = useState<App[]>(app ? [app] : []);
-  useEffect(() => {
-    if (app) setLayers((l) => (l[l.length - 1]?.appid === app.appid ? l : [...l.slice(-1), app]));
-  }, [app]);
-  const drop = () => setLayers((l) => (l.length > 1 ? l.slice(-1) : l));
-  return (
-    <div className={`ghd-backdrop ${dim ? "ghd-dim" : ""} ${app ? "" : "ghd-backdrop-empty"}`}>
-      <div className="ghd-backdrop-art">
-        {layers.map((a, i) => (
-          <div
-            key={a.appid}
-            className={`ghd-backdrop-layer ${i === layers.length - 1 ? "ghd-backdrop-new" : ""}`}
-            onAnimationEnd={i === layers.length - 1 ? drop : undefined}
-          >
-            <Art
-              className="ghd-backdrop-img"
-              sources={[...heroUrls(a), ...landscapeUrls(a)]}
-              fallback={<div className="ghd-backdrop-img ghd-backdrop-none" />}
-            />
-          </div>
-        ))}
-      </div>
-      <div className="ghd-backdrop-shade" />
-    </div>
-  );
+function useHomePlaytime(app?:App){
+  const shortcutId=app?.app_type===APP_TYPE_SHORTCUT?app.appid:undefined;
+  const [details,setDetails]=useState<{id:number;minutes:number}>();
+  useEffect(()=>{
+    if(shortcutId===undefined)return;
+    const store=(window as any).appDetailsStore;
+    let active=true;
+    const update=(value:{nPlaytimeForever?:number}|undefined)=>{
+      const minutes=value?.nPlaytimeForever;
+      if(active&&typeof minutes==='number'&&Number.isFinite(minutes)&&minutes>=0)
+        setDetails({id:shortcutId,minutes});
+    };
+    if(store?.RegisterForAppData){
+      const subscription=store.RegisterForAppData(shortcutId,update);
+      return ()=>{active=false;subscription?.unregister?.();};
+    }
+    Promise.resolve(store?.RequestAppDetails?.(shortcutId)).then(update).catch(()=>{});
+    return ()=>{active=false;};
+  },[shortcutId]);
+  if(shortcutId!==undefined){
+    if(details?.id===shortcutId)return details.minutes;
+    const cached=(window as any).appDetailsStore?.GetAppDetails?.(shortcutId)?.nPlaytimeForever;
+    if(typeof cached==='number'&&Number.isFinite(cached)&&cached>=0)return cached;
+    return app?.minutes_playtime_forever||undefined;
+  }
+  return app?.minutes_playtime_forever;
+}
+
+function GameStats({app,minutes}:{app:App;minutes?:number}){
+  const result=useAchievements(app);
+  const stats=result.state==='done'?result.value:null;
+  const progress=stats&&stats.total>0?Math.floor(100*stats.done/stats.total):undefined;
+  const played=minutes==null||minutes<0?'—':minutes===0?'0h':minutes<60?`${minutes}m`:`${Math.floor(minutes/60)}h`;
+  return <div className="gh-home-game-stats">
+    <span aria-label={progress===undefined?'Achievement progress unavailable':`Achievement progress ${progress}%`}>
+      <svg aria-hidden="true" viewBox="0 0 24 24" fill="currentColor"><path d="M3 18h6v-4h5v-4h7v12H3zM18 10V2h1v1l-7 3 6 1v3z"/></svg>
+      {progress===undefined?'—':progress+'%'}
+    </span>
+    <span aria-label={played==='—'?'Playtime unavailable':`Played for ${played}`}><BsClockFill aria-hidden="true"/>{played}</span>
+  </div>;
 }
 
 /** Logo (or name), "Played today · 42 h played", then the white Play pill and the round "…" button. */
-function GameInfo({ pick, onFocus }: { pick?: Pick; onFocus: () => void }) {
+function GameInfo({ pick, selected=pick, presented=true, descriptions, onFocus }: { descriptions:Record<number,string>; presented?:boolean; pick?: Pick; selected?:Pick; onFocus: () => void }) {
  useLanguage();
+  const info=useRef<HTMLDivElement>(null);
+  const minutes=useHomePlaytime(pick&&"app" in pick?pick.app:undefined);
+  const shownId=pick&&"app" in pick?pick.app.appid:undefined;
+  useLayoutEffect(()=>{
+    const buttons=info.current?.querySelector<HTMLElement>('.ghd-buttons');
+    if(!presented||!buttons||!motionAllowed(buttons)||buttons.contains(buttons.ownerDocument.activeElement)||typeof buttons.animate!=='function')return;
+    const entry=buttons.animate([{opacity:0,transform:'translateY(14px)'},{opacity:1,transform:'none'}],
+      {duration:homeSequence.reveal,delay:homeSequence.actionLag,easing:homeSequence.glide,fill:'backwards'});
+    return ()=>entry.cancel();
+  },[shownId,presented]);
   if (!pick) return null;
   if (!("app" in pick)) {
     return (
@@ -134,7 +160,7 @@ function GameInfo({ pick, onFocus }: { pick?: Pick; onFocus: () => void }) {
         <div className="ghd-info-title">{pick.title}</div>
         <div className="ghd-info-sub">{pick.description}</div>
         <Focusable className="ghd-buttons" flow-children="row">
-          <Button label={t.open} preferredFocus onActivate={pick.go} onFocus={onFocus}>
+          <Button label={t.open} preferredFocus onActivate={()=>{if(selected&&!("app" in selected))selected.go();}} onFocus={onFocus}>
             {t.open}
           </Button>
         </Focusable>
@@ -146,20 +172,22 @@ function GameInfo({ pick, onFocus }: { pick?: Pick; onFocus: () => void }) {
   const running = runningAppId() === app.appid;
   const playable = app.installed || app.app_type === APP_TYPE_SHORTCUT;
   const label = running ? t.resume : playable ? t.play : t.viewGame;
-  const sub = [lastPlayedText(app), playtimeText(app)].filter(Boolean).join("  ·  ");
+  const sub = [lastPlayedText(app), playtimeText(app,minutes)].filter(Boolean).join("  ·  ");
   return (
-    <div className="ghd-info" key={app.appid}>
+    <div className="ghd-info" ref={info}>
       <Art
-        className="ghd-info-logo"
+        key={app.appid} className="ghd-info-logo"
         sources={logoUrls(app)}
         fallback={<div className="ghd-info-title">{app.display_name}</div>}
       />
-      <div className="ghd-info-sub">{sub}</div>
+      {descriptions[app.appid]&&<div key={"description-"+app.appid} className="ghd-info-sub gh-home-synopsis">{descriptions[app.appid]}</div>}
+      <div key={"meta-"+app.appid} className="ghd-info-sub gh-home-meta">{sub}</div>
       <Focusable className="ghd-buttons" flow-children="row">
-        <GameAction app={app} onFocus={onFocus}/>
-        <Button round label={t.moreOptions} onActivate={(anchor) => openGameMenu(app, anchor)} onFocus={onFocus}>
+        {selected&&"app" in selected&&<GameAction app={selected.app} onFocus={onFocus}/>}
+        <Button round label={t.moreOptions} onActivate={(anchor) => {if(selected&&"app" in selected)openGameMenu(selected.app, anchor);}} onFocus={onFocus}>
           <MdMoreHoriz />
         </Button>
+        <GameStats key={app.appid} app={app} minutes={minutes}/>
       </Focusable>
 
     </div>
@@ -292,7 +320,19 @@ export function HomeTab({ goTab,active=true }: { goTab: GoTab;active?:boolean })
   const restore=useRef(homeHubReturn);
   const initialApp=recents.find(a=>a.appid===restore.current?.appid)??recents[0];
   const [pick, setPick] = useState<Pick | undefined>(startWelcome.current?{welcome:true,title:"Welcome",description:"",icon:<WelcomeIcon/>,go:()=>{},cards:[]}:initialApp ? { app: initialApp } : undefined);
-  const [backdrop, setBackdrop] = useState<App | undefined>(initialApp);
+  const descriptionIds=recents.filter(a=>a.app_type===APP_TYPE_GAME).map(a=>a.appid).join(',');
+  const [descriptions,setDescriptions]=useState<Record<number,string>>({});
+  useEffect(()=>{
+    if(!active||!descriptionIds)return;
+    let live=true;
+    void catalogItems(descriptionIds.split(',').map(id=>({appid:Number(id)})),false,true).then(rows=>{
+      if(live)setDescriptions(Object.fromEntries(rows.filter(r=>r.basic_info?.short_description).map(r=>[r.id,plainText(r.basic_info.short_description)])));
+    }).catch(()=>{});
+    return ()=>{live=false;};
+  },[active,descriptionIds]);
+  const [settled,setSettled]=useState(pick);
+  const [scene,setScene]=useState(pick);
+  const [missingArt,setMissingArt]=useState(false);
   const [lowered, setLowered] = useState(false);
   const [expanded,setExpanded]=useState(!!restore.current||!!welcomeRestore.current);
   const [hubOpened,setHubOpened]=useState<number|undefined>(restore.current?.appid);
@@ -305,7 +345,7 @@ export function HomeTab({ goTab,active=true }: { goTab: GoTab;active?:boolean })
     if(el){el.classList.add(SELECTED_CLASS);selectedEl.current=el;slideTo(el);}
   },[]);
   useLayoutEffect(()=>{const row=scroller.current?.querySelector<HTMLElement>('.ghd-home-row');if(row)row.inert=expanded;},[expanded]);
-  const [storeHero,setStoreHero]=useState<string>();
+  const [storeHero,setStoreHero]=useState<string[]>([]);
   const [wallpaper,setWallpaper]=useState<WelcomeSettings|undefined>(cachedWelcomeSettings);
   const wallpaperRevision=useRef(0);
   const updateWallpaper=useCallback((next:WelcomeSettings)=>{wallpaperRevision.current++;setWallpaper(rememberWelcomeSettings(next));},[]);
@@ -321,10 +361,29 @@ export function HomeTab({ goTab,active=true }: { goTab: GoTab;active?:boolean })
   const storeSelected=!!pick&&!("app" in pick)&&!!pick.store;
   const pickedApp = pick && "app" in pick ? pick.app : undefined;
   useSoundtrackScope("home",active,pickedApp?.appid);
-  useEffect(() => {
-    const t = window.setTimeout(() => setBackdrop(pickedApp), BACKDROP_DELAY_MS);
-    return () => window.clearTimeout(t);
-  }, [pickedApp]);
+  useLayoutEffect(()=>{
+    const el=scroller.current;
+    if(!pickedApp||!el||!motionAllowed(el)){
+      setScene(pick);setSettled(pick);setMissingArt(false);return;
+    }
+    let live=true,artTimer=0,revealTimer=0;
+    const start=performance.now();
+    // Decode immediately; all deadlines are relative to this selection.
+    void prepareHomeArt(pickedApp,true);
+    const image=globalWallpaper?Promise.resolve(true):prepareHomeArt(pickedApp);
+    void image.then(ready=>{
+      if(!live)return;
+      artTimer=window.setTimeout(()=>{
+        setMissingArt(!ready);setScene(pick);
+        // A slow decode may move the dissolve later. Give it the same head
+        // start before showing the title, even on an uncached game.
+        revealTimer=window.setTimeout(()=>setSettled(pick),homeSequence.titleAt-homeSequence.artAt);
+      },Math.max(0,homeSequence.artAt-(performance.now()-start)));
+    });
+    return ()=>{live=false;window.clearTimeout(artTimer);window.clearTimeout(revealTimer);};
+  },[pick,pickedApp,globalWallpaper]);
+  const summaryApp=!expanded&&settled&&"app" in settled?settled.app:pickedApp;
+  const sceneApp=scene&&"app" in scene?scene.app:undefined;
 
   // Steam focuses tiles with element.focus(), which can make the browser scroll a clipped box by itself
   // and push the selected game out of view. Undo that the moment it happens.
@@ -342,11 +401,45 @@ export function HomeTab({ goTab,active=true }: { goTab: GoTab;active?:boolean })
     return () => root.removeEventListener("scroll", onScroll, true);
   }, []);
 
+  // Native smooth scrolling can run on the compositor during React commits.
+  const destination=useRef<number|undefined>(undefined);
+  const scrollHome=useCallback((el:HTMLElement,value:number)=>{
+    const top=Math.max(0,Math.min(value,el.scrollHeight-el.clientHeight));
+    if(destination.current===top&&Math.abs(el.scrollTop-top)<1)return;
+    destination.current=top;
+    el.scrollTo({top,behavior:motionAllowed(el)?'smooth':'instant'});
+  },[]);
+  const focusGameControl=(target:HTMLElement|null|undefined,follow=false)=>{
+    const el=scroller.current;if(!el||!target)return;
+    const top=el.scrollTop;
+    focusNavigation(target);
+    if(el.scrollTop!==top)el.scrollTo({top,behavior:'instant'});
+    if(!follow)return;
+    const strip=target.closest<HTMLElement>('.gh-detail-row,.gh-achievement-filters');
+    if(strip){const r=target.getBoundingClientRect(),v=strip.getBoundingClientRect();
+      if(r.left<v.left||r.right>v.right)strip.scrollLeft+=r.left<v.left?r.left-v.left:r.right-v.right;}
+    const r=target.getBoundingClientRect(),v=el.getBoundingClientRect();
+    const dest=(destination.current??el.scrollTop),pad=Math.min(42,v.height*.055);
+    const low=r.top-v.top+top-pad,high=r.bottom-v.bottom+top+pad;
+    if(dest>low)scrollHome(el,low);else if(dest<high)scrollHome(el,high);
+  };
   const toTop = useCallback(() => {
     rememberWelcome(undefined);setLowered(false);setExpanded(false);
     const row=scroller.current?.querySelector<HTMLElement>('.ghd-home-row');if(row)row.inert=false;
-    scroller.current?.scrollTo({ top: 0, behavior: scroller.current&&motionAllowed(scroller.current)?"smooth":"auto" });
+    const el=scroller.current;if(el?.hasAttribute("data-game-hub"))scrollHome(el,0);else el?.scrollTo({top:0,behavior:motionAllowed(el)?"smooth":"auto"});
   }, []);
+  const returnToGameRow=useCallback(()=>{
+    const el=scroller.current,tile=selectedEl.current;
+    if(!el||!tile)return;
+    const row=tile.closest<HTMLElement>('.ghd-home-row');
+    if(row)row.inert=false;
+    const top=el.scrollTop;
+    focusNavigation(tile);
+    // Steam may scroll synchronously during focus. Restore the starting point
+    // before issuing the final scroll so focus cannot cancel the trip to zero.
+    if(el.scrollTop!==top)el.scrollTo({top,behavior:'instant'});
+    toTop();
+  },[toTop]);
   const onTopRow = useCallback(
     (next: Pick, el: HTMLElement) => {
       // Steam can restore a stale top-row focus while returning from a widget.
@@ -366,11 +459,28 @@ export function HomeTab({ goTab,active=true }: { goTab: GoTab;active?:boolean })
     setLowered(true);
     const section = el.closest<HTMLElement>(".ghd-section");
     const s = scroller.current;
-    if (section && s) s.scrollTo({ top: section.offsetTop - s.clientHeight * LOWER_ROW_ANCHOR, behavior: "smooth" });
+    if (section && s) scrollHome(s,section.offsetTop - s.clientHeight * LOWER_ROW_ANCHOR);
   }, []);
 
-  const enterPlay=useCallback(()=>{if(!pickedApp)return;setLowered(false);setExpanded(true);setHubOpened(pickedApp.appid);const el=scroller.current;const hero=el?.querySelector<HTMLElement>('.ghd-hero');if(el&&hero)el.scrollTo({top:Math.max(0,hero.offsetTop-el.clientHeight*.1),behavior:motionAllowed(el)?'smooth':'auto'});},[pickedApp?.appid]);
-  const playFocus=()=>{enterPlay();focusControl(scroller.current?.querySelector<HTMLElement>('.ghd-hero .gh-primary-action .ghd-button'));};
+  const enterPlay=useCallback(()=>{if(!pickedApp)return;setLowered(false);setExpanded(true);setHubOpened(pickedApp.appid);const el=scroller.current;const hero=el?.querySelector<HTMLElement>('.ghd-hero');if(el&&hero)scrollHome(el,hero.offsetTop-el.clientHeight*.05);},[pickedApp?.appid]);
+  useEffect(()=>{
+    const el=scroller.current;if(!active||!el||!pickedApp)return;
+    const wheel=(event:WheelEvent)=>{
+      if(event.ctrlKey||!event.deltaY||Math.abs(event.deltaX)>Math.abs(event.deltaY)||(event.target as Element).closest('.gh-detail-dialog'))return;
+      destination.current=undefined;
+      if(event.deltaY>0){setExpanded(true);setHubOpened(pickedApp.appid);setLowered(false);}
+      else if(el.scrollTop<=1&&el.dataset.expanded==='true')returnToGameRow();
+    };
+    const settled=(event:Event)=>{
+      if(event.target!==el)return;
+      destination.current=undefined;
+      if(el.scrollTop<=1&&el.dataset.expanded==='true')returnToGameRow();
+    };
+    el.addEventListener('wheel',wheel,{passive:true});
+    el.addEventListener('scrollend',settled);
+    return()=>{el.removeEventListener('wheel',wheel);el.removeEventListener('scrollend',settled);destination.current=undefined};
+  },[active,pickedApp,returnToGameRow]);
+  const playFocus=()=>{enterPlay();focusGameControl(scroller.current?.querySelector<HTMLElement>('.ghd-hero .gh-primary-action .ghd-button'));};
   const navigation=useRef({active,pickedApp,enterPlay,toTop});navigation.current={active,pickedApp,enterPlay,toTop};
   useEffect(()=>{const el=scroller.current;if(!el)return;const handle=(e:Event)=>{const state=navigation.current;if(!state.active)return;
    const topTarget=(e.target as HTMLElement).closest(".ghd-home-row");if(topTarget&&el.querySelector(".gh-welcome")){const b=(e as CustomEvent).detail?.button,k=(e as KeyboardEvent).key;if((e.type==="vgp_ondirection"&&b===10)||k==="ArrowDown"||e.type==="vgp_onmenu"||k==="ContextMenu"){e.preventDefault();e.stopImmediatePropagation();const menu=e.type==="vgp_onmenu"||k==="ContextMenu";if(menu){if(!(e as KeyboardEvent).repeat&&!(e as CustomEvent).detail?.is_repeat){const welcome=el.querySelector<HTMLElement>(".gh-welcome");const E=el.ownerDocument.defaultView?.Event;if(welcome&&E)welcome.dispatchEvent(new E("gh-welcome-edit",{bubbles:true}));}}else focusControl(el.querySelector<HTMLElement>("[data-welcome-entry]"));return;}}
@@ -378,12 +488,13 @@ export function HomeTab({ goTab,active=true }: { goTab: GoTab;active?:boolean })
    const k=e as KeyboardEvent,d=(e as CustomEvent).detail;const dir=e.type==='vgp_ondirection'?d?.button:({ArrowUp:9,ArrowDown:10,ArrowLeft:11,ArrowRight:12} as Record<string,number>)[k.key];const cancel=e.type==='vgp_oncancel'||k.key==='Escape';
    const stop=()=>{e.preventDefault();e.stopImmediatePropagation();};
    if(buttons&&(e.type==='vgp_onmenu'||k.key==='ContextMenu')){stop();if(!k.repeat&&!d?.is_repeat)openGameMenu(state.pickedApp,target);return;}
-   if(top&&dir===10){stop();state.enterPlay();focusControl(el.querySelector<HTMLElement>('.ghd-hero .gh-primary-action .ghd-button'));return;}
-   if(buttons&&(dir===9||cancel)){stop();state.toTop();focusControl(selectedEl.current);return;}
-   if(buttons&&dir===10){stop();state.enterPlay();focusControl(el.querySelector<HTMLElement>('.gh-home-summary .gh-detail-control'));return;}
+   if(top&&dir===10){stop();state.enterPlay();focusGameControl(el.querySelector<HTMLElement>('.ghd-hero .gh-primary-action .ghd-button'));return;}
+   if(buttons&&(dir===9||cancel)){stop();returnToGameRow();return;}
+   if(top&&dir===9&&(k.repeat||d?.is_repeat)){stop();return;}
+   if(buttons&&dir===10){stop();focusGameControl(el.querySelector<HTMLElement>('.gh-home-summary .gh-detail-control'),true);return;}
    if(buttons&&(dir===11||dir===12)){stop();const nodes=Array.from(buttons.querySelectorAll<HTMLElement>('.ghd-button'));const i=nodes.indexOf(target.closest('.ghd-button')!);focusControl(nodes[Math.max(0,Math.min(nodes.length-1,i+(dir===11?-1:1)))]);}
   };for(const name of ['keydown','vgp_ondirection','vgp_oncancel','vgp_onmenu'])el.addEventListener(name,handle,true);return()=>{for(const name of ['keydown','vgp_ondirection','vgp_oncancel','vgp_onmenu'])el.removeEventListener(name,handle,true);};},[]);
-  useEffect(()=>{if(!restore.current)return;const saved=restore.current;restore.current=undefined;clearHomeHubReturn();const frame=requestAnimationFrame(()=>{enterPlay();if(saved.friends||!scroller.current?.querySelector('.gh-detail-dialog'))focusControl(scroller.current?.querySelector<HTMLElement>(saved.friends?'.gh-home-friends':'.gh-home-trophy'));});return()=>cancelAnimationFrame(frame);},[]);
+  useEffect(()=>{if(!restore.current)return;const saved=restore.current;restore.current=undefined;clearHomeHubReturn();const frame=requestAnimationFrame(()=>{enterPlay();const card=scroller.current?.querySelector<HTMLElement>('.gh-home-friends');if(saved.friendId&&initialApp?.appid===saved.appid&&card){openFriendsWhoPlay(initialApp,card,saved.friendId);return;}if(saved.friends||!scroller.current?.querySelector('.gh-detail-dialog'))focusControl(scroller.current?.querySelector<HTMLElement>(saved.friends?'.gh-home-friends':'.gh-home-trophy'));});return()=>cancelAnimationFrame(frame);},[]);
 
   return (
     <>
@@ -392,18 +503,18 @@ export function HomeTab({ goTab,active=true }: { goTab: GoTab;active?:boolean })
         <span className={`gh-home-game-thumb${welcomeSelected?' gh-home-welcome-thumb':''}`}>{welcomeSelected?<WelcomeIcon/>:pickedApp&&<Art sources={[...portraitUrls(pickedApp),...landscapeUrls(pickedApp)]} fallback={<span aria-hidden="true">{pickedApp.display_name.slice(0,1)}</span>}/>}</span>
         <span className="gh-home-game-name">{welcomeSelected?<T text="Welcome"/>:pickedApp?.display_name}</span>
       </div>}
-      {wallpaper&&!globalWallpaper&&!(welcomeSelected&&wallpaper.background!=='existing')&&<Backdrop app={welcomeSelected?initialApp:backdrop} dim={lowered} />}
-      {wallpaper&&wallpaper.background!=='existing'&&<WelcomeBackground home active={active} hidden={!globalWallpaper&&!welcomeSelected} settings={wallpaper} app={recents.find(a=>a.app_type!==APP_TYPE_SHORTCUT)}/>}
-      <div hidden={!wallpaper||globalWallpaper} className={`gh-store-backdrop ${storeSelected?'gh-store-visible':''}`}>{storeHero&&<img key={storeHero} src={storeHero} alt=""/>}</div>
-      <style>{`.ghd-store-hero{justify-content:flex-start;padding-top:6vh;padding-bottom:3vh}.gh-store-backdrop{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity 300ms ease;background:linear-gradient(120deg,#030911,#102e4c);overflow:hidden}.gh-store-backdrop.gh-store-visible{opacity:1}.gh-store-backdrop img{animation:gh-store-art-in 300ms ease; width:100%;height:100%;object-fit:cover}.gh-store-backdrop:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#010714df,transparent 85%),linear-gradient(0deg,#020914b8,transparent 60%)}.ghd-tile-action .ghd-action{background:#25272d}.ghd-tile-accent .ghd-action{background:linear-gradient(135deg,#349be5,#0874cd)}.ghd-tile:active .ghd-action-icon{opacity:.8}@keyframes gh-store-art-in{from{opacity:0}to{opacity:1}}`}</style>
+      {wallpaper&&!globalWallpaper&&<HomeBackdrop retain={welcomeSelected&&wallpaper.background!=='existing'} app={welcomeSelected&&wallpaper.background==='existing'?initialApp:missingArt?undefined:sceneApp} nearby={recents} dim={lowered}>{active&&pickedApp&&pickedApp.appid===sceneApp?.appid&&pickedApp.app_type!==APP_TYPE_SHORTCUT&&<HomeTrailer key={pickedApp.appid} appid={pickedApp.appid}/>}</HomeBackdrop>}
+      {wallpaper&&wallpaper.background!=='existing'&&<WelcomeBackground home active={active} hidden={!globalWallpaper&&!welcomeSelected&&!(pickedApp&&scene&&"welcome" in scene&&scene.welcome)} settings={wallpaper} app={recents.find(a=>a.app_type!==APP_TYPE_SHORTCUT)}/>}
+      <div aria-hidden="true" className={`gh-store-backdrop ${(storeSelected||(pickedApp&&scene&&'store' in scene&&scene.store))?'gh-store-visible':''}`}>{storeHero.length>0&&<Art sources={storeHero}/>}</div>
+      <style>{`.ghd-store-hero{justify-content:flex-start;padding-top:6vh;padding-bottom:3vh}.gh-store-backdrop{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity 300ms ease;background:linear-gradient(120deg,#030911,#102e4c);overflow:hidden}.gh-store-backdrop.gh-store-visible{opacity:1}.gh-store-backdrop img{animation:gh-store-art-in 300ms ease; width:100%;height:100%;object-fit:cover}.gh-store-backdrop:after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,#02071255,transparent 58%),linear-gradient(0deg,#02061070,transparent 31%,transparent 81%,#02061045)}.ghd-tile-action .ghd-action{background:#25272d}.ghd-tile-accent .ghd-action{background:linear-gradient(135deg,#349be5,#0874cd)}.ghd-tile:active .ghd-action-icon{opacity:.8}@keyframes gh-store-art-in{from{opacity:0}to{opacity:1}}`}</style>
       <Focusable className={`ghd-scroller ${lowered ? "ghd-lowered" : ""}`} ref={scroller} data-game-hub={pickedApp?true:undefined} data-welcome-hub={welcomeSelected?true:undefined} data-expanded={expanded} flow-children="column">
         <div className="ghd-top-space" />
         <TopRow recents={recents} goTab={goTab} onTopRow={onTopRow} />
         {welcomeSelected&&<WelcomeHub onContentFocus={()=>{if(active){setExpanded(true);setLowered(false);}}} initialSettings={wallpaper} backgroundManaged onSettings={updateWallpaper} active={active} app={recents.find(a=>a.app_type!==APP_TYPE_SHORTCUT)} favorite={favorites[0]} back={()=>{toTop();focusControl(selectedEl.current);}}/>}
         {!welcomeSelected&&<div className={`ghd-hero ${storeSelected?"ghd-store-hero":""}`}>
-          {storeSelected?<StorePreview onHero={setStoreHero} onFocus={toTop}/>:<GameInfo pick={pick} onFocus={pickedApp?enterPlay:toTop} />}
+          {storeSelected?<StorePreview onHero={setStoreHero} onFocus={toTop}/>:<div className="gh-game-presentation" data-leaving={settled!==pick} onFocusCapture={()=>setSettled(pick)}><GameInfo descriptions={descriptions} presented={settled===pick} selected={pick} pick={pickedApp&&settled&&"app" in settled?settled:pick} onFocus={pickedApp?enterPlay:toTop} /></div>}
         </div>}
-        {pickedApp&&<div inert={!expanded||!active}><GameDetail key={pickedApp.appid} app={pickedApp} homeMode active={active&&expanded&&hubOpened===pickedApp.appid} back={playFocus}/></div>}
+        {pickedApp&&summaryApp&&<div className="gh-home-secondary" data-leaving={!expanded&&settled!==pick} inert={!active||summaryApp.appid!==pickedApp.appid} onFocusCapture={()=>{if(active&&!expanded){setExpanded(true);setHubOpened(pickedApp.appid);}}}><GameDetail key={summaryApp.appid} app={summaryApp} homeFocus={focusGameControl} homeMode active={active&&expanded&&hubOpened===pickedApp.appid} back={playFocus}/></div>}
         {/* Legacy discovery rows must not enter the selected-game scroll/focus surface. */}
         {!pickedApp&&!welcomeSelected&&<LowerRows favorites={favorites} installed={installed} goTab={goTab} onLowerRow={onLowerRow} />}
         <div className="ghd-bottom-space" />

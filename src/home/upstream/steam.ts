@@ -1,11 +1,15 @@
+import {gameOptionsCSS} from '../game-options-style';
+import {gameAction} from '../../game-action';
 import {openGameHubWeb} from '../../fullscreen-web';
 import {openGameMusic} from '../../GameMusicSettings';
 import {stopSoundtrackForLaunch} from '../../themedeck-adapter';
-import {Menu,MenuItem} from '@decky/ui';
+import {Menu,MenuItem,MenuGroup} from '@decky/ui';
 import {playGame,gameById} from "../../game-adapter";
 import {launchShortcutFromLibrary} from "../shortcut-launch";
 import { Navigation, Router, findModuleByExport, showContextMenu } from "@decky/ui";
-import { createElement } from "react";
+import {pluginInventory} from "../../decky-adapter";
+import {openDeckyPlugin} from "../../system-adapters";
+import { createElement, type ComponentType } from "react";
 
 import { t } from "./i18n";
 
@@ -47,6 +51,11 @@ export function openDonate() {
 
 /** The Store in Game Mode is a Steam web page, not a route of its own. */
 export function openStore(path = "") {
+  const product=/^app\/(\d+)\/?$/.exec(path);
+  if(!path||product){
+    Navigation.Navigate('/game-hub/store'+(product?'/'+product[1]:''));
+    return;
+  }
   openGameHubWeb(STORE_URL + path,url=>Navigation.NavigateToSteamWeb(url));
 }
 
@@ -73,50 +82,50 @@ export function runningAppId(): number | undefined {
   }
 }
 
-export function openDetails(app: App) {
-  Navigation.Navigate(`/library/app/${app.appid}`);
+export function openGameHubDetails(app: App) {
+  Navigation.Navigate('/game-hub/post-game/'+app.appid);
 }
 
-type AnyFn = (...args: any[]) => any;
-/** Steam's game context menu: the component that renders it and its placement options. */
-let gameMenu: { component: AnyFn; options?: AnyFn } | null | undefined;
+export const openDetails = openGameHubDetails;
 
-function findGameMenu() {
-  if (gameMenu !== undefined) return gameMenu;
-  gameMenu = null;
-  try {
-    // The module that builds the library's game menu; the same one SteamGridDB hooks to add "Change artwork".
-    const isOptions = (e: any) => typeof e === "function" && String(e).includes("().LibraryContextMenu");
-    const mod = findModuleByExport(isOptions);
-    const exports: any[] = mod ? Object.values(mod) : [];
-    // The wrapper hands Steam's navigator to the menu class; it's what Steam itself renders.
-    const component = exports.find((e) => typeof e === "function" && String(e).includes("navigator:"));
-    if (component) gameMenu = { component, options: exports.find(isOptions) };
-  } catch (e) {
-    console.error("[ps5-dashboard] game menu not found", e);
-  }
-  return gameMenu;
+interface LibraryMenuProps {
+  overview: App;
+  client: string;
+  launchSource: number;
+  bInGamepadUI: boolean;
+  instance: unknown;
+  navigator: unknown;
+  additionalActions: ReturnType<typeof createElement>[];
 }
 
-/**
- * Opens Steam's own menu for a game (Play, Favorites, Manage, Properties...), with whatever other
- * plugins add to it, like SteamGridDB's "Change artwork". Falls back to the game's page.
- */
+let libraryMenu: ComponentType<LibraryMenuProps> | undefined;
 export function openGameMenu(app: App, anchor?: EventTarget | null) {
-  showContextMenu(createElement(Menu,{label:app.display_name},createElement(MenuItem,{onSelected:()=>openGameMusic(app.appid)},"Game Music"),createElement(MenuItem,{onSelected:()=>openNativeGameMenu(app,anchor)},"Steam game options")),anchor??undefined);
-}
-function openNativeGameMenu(app: App, anchor?: EventTarget | null) {
-  const menu = findGameMenu();
-  if (menu) {
-    try {
-      const props = { overview: app, client: "mostavailable", launchSource: LAUNCH_SOURCE, bInGamepadUI: true };
-      showContextMenu(createElement(menu.component, props), anchor ?? undefined, menu.options?.());
-      return;
-    } catch (e) {
-      console.error("[ps5-dashboard] game menu failed", e);
-    }
+  const instance = Router.WindowStore?.GamepadUIMainWindowInstance;
+  const item = (label: string, action: () => void, disabled = false) =>
+    createElement(MenuItem, {key: label, disabled, onSelected: action}, label);
+  const actions: ReturnType<typeof createElement>[] = [
+    createElement(MenuItem, {key: 'music', onSelected: () => openGameMusic(app.appid)},
+      createElement('span', {className: 'gh-game-options-marker'}, createElement('style', null, gameOptionsCSS), 'Game Music')),
+  ];
+  let plugins: ReturnType<typeof pluginInventory> = [];
+  try { plugins = pluginInventory(); } catch { /* Decky is still loading its inventory. */ }
+  actions.push(item('Trailer settings',()=>Navigation.Navigate('/game-hub/trailers/'+app.appid)));
+  if (plugins.length) actions.push(createElement(MenuGroup, {key: 'plugins', label: 'Plugins'},
+    plugins.map(p => item(p.name, () => openDeckyPlugin(p.name, () => Navigation.OpenQuickAccessMenu(999)), p.disabled || !p.loaded))));
+  // Render the same patched per-game menu that other Decky plugins extend.
+  if (!libraryMenu) {
+    const isLibraryMenu = (e: any) => typeof e?.prototype?.GetTargetApps === 'function' &&
+      typeof e.prototype.BuildManageSubmenu === 'function';
+    const scope = (window as any).DFL?.findModuleScopeByVar?.(isLibraryMenu) ?? findModuleByExport(isLibraryMenu);
+    libraryMenu = Object.values(scope ?? {}).find(isLibraryMenu) as ComponentType<LibraryMenuProps> | undefined;
   }
-  openDetails(app);
+  const menu = libraryMenu ? createElement(libraryMenu, {
+    overview: app, client: 'mostavailable', launchSource: LAUNCH_SOURCE,
+    bInGamepadUI: true, instance, navigator: (instance as any).Navigator, additionalActions: actions,
+  }) : createElement(Menu, {label: app.display_name}, ...actions,
+    item('Achievements', () => openAchievements(app)),
+    item('Properties', () => ((instance as any).Navigator as any).AppProperties(app.appid)));
+  showContextMenu(menu, anchor ?? undefined);
 }
 
 export function openAchievements(app: App) {
@@ -129,8 +138,13 @@ export function openExternal(url: string) {
 
 /** X (A) on a tile: start the game like on the PS5; open its page when it can't start right away. */
 export async function launch(app: App) {
-  const playable = isInstalled(app) || app.app_type === APP_TYPE_SHORTCUT;
-  if (!playable || runningAppId() === app.appid) {
+  const current=appStore.GetAppOverviewByAppID(app.appid)??app;
+  const action=gameAction(window as any,current);
+  if (action.kind==='downloads'||action.kind==='install') {
+    openGameHubDetails(app);
+    return;
+  }
+  if (runningAppId() === app.appid) {
     openDetails(app);
     return;
   }
@@ -170,8 +184,8 @@ export function lastPlayedText(app: App): string {
   return t.playedOverAYear;
 }
 
-export function playtimeText(app: App): string {
-  const m = app.minutes_playtime_forever ?? 0;
+export function playtimeText(app: App, minutes=app.minutes_playtime_forever): string {
+  const m = minutes ?? 0;
   if (m < 60) return m > 0 ? t.minutesPlayed(m) : "";
   return t.hoursPlayed(Math.round(m / 60));
 }

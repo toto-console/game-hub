@@ -9,7 +9,7 @@ function gameHubProfileGames(parsed){
  const get=name=>queries.find(q=>q.queryKey?.[0]===name&&String(q.queryKey[1])===String(id))?.state?.data;
  const list=owner?.listData||{},owned=get('OwnedGames');if(!Array.isArray(owned))throw Error('Steam has not shared this game library.');
  const progress=get('AchievementGroupsProgress')||{},followed=get('FollowedGamesList')||[];
- const clean=g=>({id:Number(g.appid),name:String(g.name||''),minutes:Number(g.playtime_forever)||0,stats:g.has_community_visible_stats===true,progress:progress[g.appid],capsule:g.capsule_filename});
+ const clean=g=>({id:Number(g.appid),name:String(g.name||''),minutes:Number(g.playtime_forever)||0,lastPlayed:Number(g.rtime_last_played)||0,stats:g.has_community_visible_stats===true,progress:progress[g.appid],capsule:g.capsule_filename});
  const extra=(list.mapFollowedUnownedGames?.v||[]).map(x=>x[1]);
  return {all:owned.map(clean),recent:(list.rgRecentlyPlayedGames||[]).map(clean),followed:[...owned,...extra].filter(g=>followed.includes(g.appid)).map(clean)};
 }
@@ -23,7 +23,7 @@ function gameHubProfileAchievements(parsed,appid){
   return {id:String(a.internal_key),name:a.hidden&&!unlocked?'Hidden achievement':String(a.name||a.api_name||'Achievement'),description:a.hidden&&!unlocked?'Unlock this achievement to reveal its details.':String(a.description||''),unlocked,time:unlocked?Number(earned.unlock_time)||0:0,percent:typeof pct==='number'&&pct>=0&&pct<=100?pct:null,icon:a.hidden&&!unlocked?'':(unlocked?a.icon_achieved:a.icon_unachieved)||''};
  });
 }
-function connectGameHubProfileTabs({doc,win,shell,nav,tabs,base,make,focusable,options}){
+function connectGameHubProfileTabs({axis,doc,win,shell,nav,tabs,base,make,focusable,options}){
  const names=['Overview','Games','Achievements','Friends','Groups','Inventory','Reviews'],links=[...tabs.children].filter(n=>n.matches('a')),overview=[...shell.children].filter(n=>n!==nav&&!n.classList.contains('ghp-hero')),remaining=doc.querySelector('[data-ghp-remaining]');
  const content=make('div','ghp-scroll-content'),remainingMarker=remaining?doc.createComment('profile remaining'):null;
  if(remaining)remaining.before(remainingMarker);shell.append(content);overview.forEach(n=>content.append(n));if(remaining)content.append(remaining);
@@ -118,7 +118,7 @@ function connectGameHubProfileTabs({doc,win,shell,nav,tabs,base,make,focusable,o
  const status=message=>{pane.replaceChildren();text(pane,'p','ghp-empty',message);};
  function remember(){const items=[...shell.querySelectorAll('[data-ghp-focus]')];mem.set(active,{index:items.indexOf(doc.activeElement),scroll:content.scrollTop||0});}
  function focus(el){if(!el)return;shell.querySelectorAll('.ghp-focus').forEach(n=>n.classList.remove('ghp-focus'));el.classList.add('ghp-focus');el.focus({preventScroll:true});if(typeof win.GPNavFocusChild==='function'){const target=win.$J?win.$J(el):[el];win.InstrumentFocusElements?.(target);win.GPNavFocusChild(target);}}
- function route(name,app){if(name===active&&Boolean(app)===detail&&(!app||String(app)===lastApp)){focus(links[names.indexOf(name)]);return;}restoreGame=detail&&name===active&&!app?lastApp:null;if(app)lastApp=String(app);const h='#ghp-'+name.toLowerCase()+(app?'-'+app:'');if(location.hash!==h)history.replaceState(null,'',h);show(name,app);}
+ function route(name,app){axis?.stop();if(name===active&&Boolean(app)===detail&&(!app||String(app)===lastApp)){focus(links[names.indexOf(name)]);return;}restoreGame=detail&&name===active&&!app?lastApp:null;if(app)lastApp=String(app);const h='#ghp-'+name.toLowerCase()+(app?'-'+app:'');if(location.hash!==h)history.replaceState(null,'',h);show(name,app);}
  function gridGames(data,achievements=false){
   pane.replaceChildren();const toolbar=make('div','ghp-pane-toolbar');pane.append(toolbar);text(toolbar,'h1','',achievements?'Achievements':'Games');
   const filters=make('div','ghp-filters');pane.append(filters);let mode='all',query='',sort='playtime',limit=36;
@@ -133,25 +133,46 @@ function connectGameHubProfileTabs({doc,win,shell,nav,tabs,base,make,focusable,o
   for(const [key,label] of [['all','All Games'],['recent','Recently Played'],['followed','Followed']]){const b=button(filters,label,()=>{mode=key;limit=36;[...filters.querySelectorAll('[aria-pressed]')].forEach(n=>n.setAttribute('aria-pressed',String(n===b)));render();});b.setAttribute('aria-pressed',String(key===mode));}
   button(toolbar,'Sort: Playtime / Name',()=>{sort=sort==='name'?'playtime':'name';render();});search.addEventListener('input',()=>{query=search.value.toLowerCase();limit=36;render();});render();
  }
- function completionTrophy(parent){
-  const trophy=make('span','ghp-completion-trophy');trophy.setAttribute('role','img');trophy.setAttribute('aria-label','100% complete — platinum trophy');
+ function completionTrophy(parent,label){
+  const trophy=make('span','ghp-completion-trophy');trophy.setAttribute('role','img');trophy.setAttribute('aria-label',label||'100% complete — platinum trophy');
   const sphere=make('span','ghp-trophy-snow');sphere.setAttribute('aria-hidden','true');trophy.append(sphere);
   for(let i=0;i<18;i++){const flake=make('i');flake.style.setProperty('--x',`${8+(i*37)%84}%`);flake.style.setProperty('--y',`${7+(i*23)%84}%`);flake.style.setProperty('--drift',`${(i%3-1)*10}px`);flake.style.setProperty('--delay',`${-i*.71}s`);flake.style.setProperty('--duration',`${4+i%5}s`);sphere.append(flake);}
   parent.append(trophy);trophy.dataset.visible=String(!doc.hidden&&options().motion);gems?.observe(trophy);return trophy;
  }
  function trophyIcon(parent){const svg=doc.createElementNS('http://www.w3.org/2000/svg','svg');svg.setAttribute('viewBox','0 0 24 24');svg.setAttribute('aria-hidden','true');const path=doc.createElementNS(svg.namespaceURI,'path');path.setAttribute('d','M7 3h10v6a5 5 0 0 1-10 0ZM7 5H3v3a5 5 0 0 0 5 5M17 5h4v3a5 5 0 0 1-5 5M12 14v6m-5 1h10');svg.append(path);parent.append(svg);}
+ let metalId=0;
+ function gameTrophy(parent,unlocked,total){
+  if(!Number.isInteger(unlocked)||!Number.isInteger(total)||total<=0||unlocked<0||unlocked>total)return false;
+  const pct=Math.floor(100*unlocked/total);
+  if(pct>=90){completionTrophy(parent,pct===100?undefined:pct+'% complete — platinum in progress');return true;}
+  if(pct<1)return false;
+  const tier=pct>=60?'gold':pct>=30?'silver':'bronze',id='ghp-metal-'+(++metalId);
+  const svg=doc.createElementNS('http://www.w3.org/2000/svg','svg');
+  svg.setAttribute('viewBox','0 0 64 76');svg.setAttribute('class','ghp-metal-trophy');
+  svg.dataset.tier=tier;svg.setAttribute('role','img');svg.setAttribute('aria-label',pct+'% complete — '+tier+' trophy');
+  // A common silhouette keeps the cups aligned as their metal finish changes.
+  svg.innerHTML=`<defs><linearGradient id="${id}"><stop stop-color="var(--shade)"/><stop offset=".24" stop-color="var(--shine)"/><stop offset=".53" stop-color="var(--metal)"/><stop offset=".81" stop-color="var(--shade)"/><stop offset="1" stop-color="var(--metal)"/></linearGradient></defs>
+   <path d="M15 11H5c-1 12 3 22 15 27m29-27h10c1 12-3 22-15 27" fill="none" stroke="url(#${id})" stroke-width="4" stroke-linejoin="round"/>
+   <path d="M12 7Q32 4 52 7l-2 17c-1 11-7 19-15 23-2 8 1 14 6 18l5 2v4H18v-4l5-2c5-4 8-10 6-18-8-4-14-12-15-23Z" fill="url(#${id})" stroke="var(--shade)" stroke-width="1.1"/>
+   <path d="M14 8q18-2 36 0M20 68h24" fill="none" stroke="var(--shine)" stroke-width="1.3"/>
+   <g stroke="var(--shade)" stroke-width="1.5" fill="none"><path d="M22 14h7v7h-7zM38 14l4 7h-8zM22 25l7 7m0-7-7 7"/><circle cx="38" cy="28.5" r="3.7"/></g>`;
+  parent.append(svg);return true;
+ }
  function trophyGames(data){
   pane.replaceChildren();const toolbar=make('div','ghp-pane-toolbar');pane.append(toolbar);text(toolbar,'h1','','Trophies');
-  const games=data.all.filter(g=>g.progress?.achievable>0||g.stats),known=games.filter(g=>g.progress?.achievable>0),earned=known.reduce((n,g)=>n+g.progress.unlocked,0),total=known.reduce((n,g)=>n+g.progress.achievable,0),complete=known.filter(g=>g.progress.unlocked===g.progress.achievable).length;
-  const summary=make('div','ghp-trophy-summary');toolbar.append(summary);for(const [label,value] of [['Earned',earned],['Available',total],['Completed games',complete]]){const n=make('div');summary.append(n);text(n,'small','',label);text(n,'strong','',String(value));}
-  const filters=make('div','ghp-filters');pane.append(filters);let sort='playtime',query='';const search=searchInput('Find a game');filters.append(search);
+  const games=data.all.filter(g=>g.progress?.achievable>0||g.stats),known=games.filter(g=>g.progress?.achievable>0),earned=known.reduce((n,g)=>n+g.progress.unlocked,0),total=known.reduce((n,g)=>n+g.progress.achievable,0),complete=known.filter(g=>gameHubCompleted(g.progress)).length;
+  const summary=make('div','ghp-trophy-summary');toolbar.append(summary);
+  const platinum=make('div','ghp-platinum-total');summary.append(platinum);completionTrophy(platinum,'Platinum trophies earned');const caption=make('div');platinum.append(caption);text(caption,'small','','Platinum');text(caption,'strong','',String(complete));
+  for(const [label,value] of [['Earned',earned],['Available',total]]){const n=make('div');summary.append(n);text(n,'small','',label);text(n,'strong','',String(value));}
+  const filters=make('div','ghp-filters');pane.append(filters);let sort='Recent',query='',nearOnly=false;const recent=new Map((data.recent||[]).map((g,i)=>[g.id,i]));const search=searchInput('Find a game');filters.append(search);
   const list=make('div','ghp-trophy-library');pane.append(list);
-  const render=()=>{gems?.disconnect();list.replaceChildren();const items=games.filter(g=>g.name.toLowerCase().includes(query)).sort(sort==='name'?(a,b)=>a.name.localeCompare(b.name):(a,b)=>b.minutes-a.minutes);for(const g of items){const row=button(list,'',()=>route('Achievements',g.id),'ghp-trophy-game');row.dataset.appid=String(g.id);picture(row,`https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/${g.id}/library_600x900.jpg`);const label=text(row,'span','ghp-trophy-name',g.name);platformBadge(label,g);const pct=g.progress?.achievable>0?Math.floor(g.progress.unlocked/g.progress.achievable*100):null,progress=text(row,'span','ghp-trophy-progress',pct===null?'—':pct+'%');if(pct!==null){const meter=make('progress');meter.max=100;meter.value=pct;meter.setAttribute('aria-label',g.name+' completion');progress.append(meter);}const counts=make('span','ghp-trophy-earned');row.append(counts);if(gameHubCompleted(g.progress)){row.dataset.complete='true';completionTrophy(counts);}else trophyIcon(counts);text(counts,'span','',g.progress?.achievable>0?`${g.progress.unlocked} / ${g.progress.achievable}`:'Not shared');}
+  const render=()=>{gems?.disconnect();list.replaceChildren();const items=games.filter(g=>g.name.toLowerCase().includes(query)).filter(g=>!nearOnly||g.progress?.achievable>0&&g.progress.unlocked/g.progress.achievable>=0.9&&g.progress.unlocked<=g.progress.achievable).sort((a,b)=>{if(sort==='Name')return a.name.localeCompare(b.name);if(sort==='Playtime')return b.minutes-a.minutes;const fallback=(recent.get(a.id)??Infinity)-(recent.get(b.id)??Infinity);return fallback||b.lastPlayed-a.lastPlayed||a.name.localeCompare(b.name);});for(const g of items){const row=button(list,'',()=>route('Achievements',g.id),'ghp-trophy-game');row.dataset.appid=String(g.id);picture(row,`https://shared.fastly.steamstatic.com/store_item_assets/steam/apps/${g.id}/library_600x900.jpg`);const label=text(row,'span','ghp-trophy-name',g.name);platformBadge(label,g);const pct=g.progress?.achievable>0?Math.floor(100*g.progress.unlocked/g.progress.achievable):null,progress=text(row,'span','ghp-trophy-progress',pct===null?'—':pct+'%');if(pct!==null){const meter=make('progress');meter.max=100;meter.value=pct;meter.setAttribute('aria-label',g.name+' completion');progress.append(meter);}const counts=make('span','ghp-trophy-earned');row.append(counts);if(gameHubCompleted(g.progress))row.dataset.complete='true';if(!gameTrophy(counts,g.progress?.unlocked,g.progress?.achievable))trophyIcon(counts);text(counts,'span','',g.progress?.achievable>0?`${g.progress.unlocked} / ${g.progress.achievable}`:'Not shared');}
    if(!items.length)text(list,'p','ghp-empty','No shared achievement games match this view.');};
-  button(filters,'Sort: Playtime / Name',()=>{sort=sort==='name'?'playtime':'name';render();});search.addEventListener('input',()=>{query=search.value.toLowerCase();render();});text(pane,'p','ghp-muted','Select a game to view trophies, compare with friends, and see global percentages.');render();
+  const sortButton=button(filters,'Sort: Recent',()=>{sort=sort==='Recent'?'Playtime':sort==='Playtime'?'Name':'Recent';sortButton.textContent='Sort: '+sort;render();});
+  const platinumFilter=button(filters,'Platinum progress · 90–100%',()=>{nearOnly=!nearOnly;platinumFilter.setAttribute('aria-pressed',String(nearOnly));render();});platinumFilter.setAttribute('aria-pressed','false');search.addEventListener('input',()=>{query=search.value.toLowerCase();render();});text(pane,'p','ghp-muted','Select a game to view trophies, compare with friends, and see global percentages.');render();
  }
  function achievementRows(rows,app,name){
-  pane.replaceChildren();detail=true;const toolbar=make('div','ghp-pane-toolbar');pane.append(toolbar);button(toolbar,'‹ All games',()=>route('Achievements'));text(toolbar,'h1','',name||'Achievements');const earned=rows.filter(a=>a.unlocked).length;if(gameHubCompleted({unlocked:earned,achievable:rows.length}))completionTrophy(toolbar);text(toolbar,'strong','',`${earned} / ${rows.length} · ${rows.length?Math.floor(100*earned/rows.length):0}%`);
+  pane.replaceChildren();detail=true;const toolbar=make('div','ghp-pane-toolbar');pane.append(toolbar);button(toolbar,'‹ All games',()=>route('Achievements'));text(toolbar,'h1','',name||'Achievements');const earned=rows.filter(a=>a.unlocked).length;gameTrophy(toolbar,earned,rows.length);text(toolbar,'strong','',`${earned} / ${rows.length} · ${rows.length?Math.floor(100*earned/rows.length):0}%`);
   let filter='all',sort='default',comparison=null,comparisonName='';const comparisonStatus=text(pane,'p','ghp-compare-status','');const filters=make('div','ghp-filters');pane.append(filters);const list=make('div','gha-list ghp-trophies');pane.append(list);
   const render=()=>{gems?.disconnect();list.replaceChildren();let items=rows.filter(a=>filter==='all'||a.unlocked===(filter==='earned'));if(sort==='rarity')items.sort((a,b)=>(a.percent??101)-(b.percent??101));
    for(const a of items){const row=focusable(make('div','gha-row'));row.tabIndex=0;row.setAttribute('aria-label',a.name+', '+(a.unlocked?'Unlocked':'Locked'));list.append(row);const icon=make('span','gha-icon'),gem=make('span','gha-gem');row.append(icon);icon.append(gem);const rare=a.unlocked&&a.percent!==null&&a.percent<10;
@@ -191,7 +212,7 @@ function connectGameHubProfileTabs({doc,win,shell,nav,tabs,base,make,focusable,o
    else if(name==='Friends'||name==='Groups'){const parsed=await read(name==='Friends'?'/friends/':'/groups/');if(disposed||revision!==generation)return;people(parsed,name==='Groups');}
    else if(name==='Reviews'){const parsed=await read('/recommended/');if(disposed||revision!==generation)return;reviews(parsed);}
    else {pane.replaceChildren();text(pane,'h1','','Inventory');text(pane,'p','ghp-empty','Browse this player’s Steam inventory. Item actions and trading are handled by Steam.');anchor(pane,'Open Steam inventory',base.href+'/inventory/');}
-   content.scrollTo?.(0,0);if(restoreGame){const el=[...pane.querySelectorAll('[data-appid]')].find(n=>n.dataset.appid===restoreGame);focus(el);el?.scrollIntoView({block:'nearest'});restoreGame=null;}
+   content.scrollTo?.(0,0);if(restoreGame){const el=[...pane.querySelectorAll('[data-appid]')].find(n=>n.dataset.appid===restoreGame);focus(el);if(el&&axis)followVertical(axis,content,el);else el?.scrollIntoView({block:'nearest'});restoreGame=null;}
   }catch(e){if(disposed||revision!==generation)return;status(e.name==='AbortError'?'Steam took too long to respond. Please retry.':e.message||'Steam data is unavailable.');button(pane,'Retry',()=>show(name,app));anchor(pane,'Open in Steam',base.href+(name==='Games'?'/games/?tab=all':name==='Achievements'&&app?'/achievements/'+app:name==='Reviews'?'/recommended/':'/'+name.toLowerCase()+'/'));}
  }
  const click=e=>{const a=e.target.closest?.('a');if(!a||!shell.contains(a)||e.ctrlKey||e.metaKey)return;const message=a.href.match(/^steam:\/\/friends\/message\/(7656119\d{10})$/);

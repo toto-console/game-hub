@@ -43,9 +43,32 @@ it('does not rebuild a tab when its current label is activated again',async()=>{
 
 it('returns from content to the selected tab before returning to Overview',async()=>{const x=setup();x.click(1);await vi.waitFor(()=>expect(document.querySelector('.ghp-game-card')).not.toBeNull());(document.querySelector('.ghp-game-card') as HTMLElement).focus();window.dispatchEvent(new CustomEvent('vgp_oncancel',{cancelable:true}));expect(x.shell.getAttribute('data-tab')).toBe('Games');expect(document.activeElement?.textContent).toBe('Games');await new Promise(resolve=>setTimeout(resolve,270));window.dispatchEvent(new CustomEvent('vgp_oncancel',{cancelable:true}));expect(x.shell.getAttribute('data-tab')).toBe('Overview');});
 
-it.each([[10,10,true],[99,100,false],[0,0,false],[11,10,false],[null,null,false]])('shows the supplied completion trophy only for exact earned completion %s/%s',async(unlocked,total,complete)=>{
+it.each([[10,10,true],[89,100,false],[90,100,true],[99,100,true],[0,0,false],[11,10,false],[null,null,false]])('shows the supplied completion trophy from ninety percent through completion %s/%s',async(unlocked,total,complete)=>{
  const parsed=games(),node=parsed.querySelector('#valve-ssr-data')!,data=JSON.parse(node.textContent!),query=JSON.parse(data.renderContext.queryData);query.queries.find((q:any)=>q.queryKey[0]==='AchievementGroupsProgress').state.data={1:{unlocked,achievable:total}};data.renderContext.queryData=JSON.stringify(query);node.textContent=JSON.stringify(data);
  const x=setup(vi.fn(async()=>({ok:true,url:base+'/games/',text:async()=>new XMLSerializer().serializeToString(parsed)})));x.click(2);await vi.waitFor(()=>expect(document.querySelector('.ghp-trophy-game')).not.toBeNull());
  const row=document.querySelector('.ghp-trophy-game')!;expect(!!row.querySelector('.ghp-completion-trophy')).toBe(complete);expect(!!row.querySelector('.ghp-trophy-earned svg')).toBe(!complete);
- if(complete){expect(row.querySelectorAll('.ghp-trophy-snow i')).toHaveLength(18);expect(row.querySelector('.ghp-completion-trophy')?.getAttribute('aria-label')).toContain('100%');expect(row.querySelector('[tabindex]')).toBeNull();}
+ if(complete){expect(row.querySelectorAll('.ghp-trophy-snow i')).toHaveLength(18);expect(row.querySelector('.ghp-completion-trophy')?.getAttribute('aria-label')).toContain(unlocked===total?'100%':'in progress');expect(row.querySelector('[tabindex]')).toBeNull();}
+});
+it('opens with the most recently played game and filters platinum progress inclusively',async()=>{
+ const owned=[89,90,99,100].map(n=>({appid:n,name:'Game '+n,rtime_last_played:n,playtime_forever:101-n}));
+ const parsed=page([q(['OwnedGames',owner],owned),q(['AchievementGroupsProgress',owner],Object.fromEntries(owned.map(g=>[g.appid,{unlocked:g.appid,achievable:100}])) )],{steamid:owner});
+ const x=setup(async()=>({ok:true,url:base+'/games/',text:async()=>new XMLSerializer().serializeToString(parsed)}));x.click(2);
+ const ids=()=>Array.from(document.querySelectorAll<HTMLElement>('.ghp-trophy-game'),n=>n.dataset.appid);
+ await vi.waitFor(()=>expect(ids()).toEqual(['100','99','90','89']));
+ expect(document.querySelector('.ghp-trophy-summary > :first-child strong')?.textContent).toBe('1');
+ const toggle=Array.from(document.querySelectorAll('button')).find(n=>n.textContent?.includes('90–100%'))!;toggle.click();expect(ids()).toEqual(['100','99','90']);toggle.click();expect(ids()).toHaveLength(4);
+});
+
+it('assigns a single progress tier at each threshold and counts only fully completed games',async()=>{
+ const percentages=[0,1,20,21,29,30,50,51,59,60,80,81,89,90,99,100];
+ const owned=percentages.map(p=>({appid:p+1,name:'Progress '+p}));
+ const data=page([q(['OwnedGames',owner],owned),q(['AchievementGroupsProgress',owner],Object.fromEntries(percentages.map(p=>[p+1,{unlocked:p,achievable:100}])))],{steamid:owner});
+ const ui=setup(async()=>({ok:true,url:base+'/games/',text:async()=>new XMLSerializer().serializeToString(data)}));ui.click(2);
+ await vi.waitFor(()=>expect(document.querySelectorAll('.ghp-trophy-game')).toHaveLength(percentages.length));
+ for(const pct of percentages){
+  const row=document.querySelector('[data-appid="'+(pct+1)+'"].ghp-trophy-game')!;
+  const expected=pct>=90?'platinum':pct>=60?'gold':pct>=30?'silver':pct>=1?'bronze':undefined;
+  expect(row.querySelector('.ghp-metal-trophy')?.getAttribute('data-tier')??(row.querySelector('.ghp-completion-trophy')?'platinum':undefined)).toBe(expected);
+ }
+ expect(document.querySelector('.ghp-platinum-total strong')?.textContent).toBe('1');
 });

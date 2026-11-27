@@ -64,7 +64,7 @@ export const PS5_CSS = `
 .ghd-icon-button.ghd-focused .ghd-icon-label { opacity: 1; }
 
 /* ---------- background art ---------- */
-.ghd-backdrop { position: absolute; inset: 0; }
+.ghd-backdrop { position: absolute; inset: 0; pointer-events: none; overflow: hidden; }
 /* Dimming with a black layer's opacity is composited; a blur filter on a full-screen image is not. */
 .ghd-backdrop::after {
   content: ""; position: absolute; inset: 0;
@@ -74,13 +74,12 @@ export const PS5_CSS = `
 .ghd-backdrop.ghd-dim::after { opacity: 1; }
 .ghd-backdrop-art { position: absolute; inset: 0; transition: opacity 400ms ease; }
 .ghd-backdrop-empty .ghd-backdrop-art { opacity: 0; }
-.ghd-backdrop-layer { position: absolute; inset: 0; }
-/* PS5 crossfade: the new art fades in over the old one while settling from a slight zoom. */
-.ghd-backdrop-new { animation: ghd-art-in 700ms cubic-bezier(0.2, 0.7, 0.2, 1) both; }
-.ghd-backdrop-img {
-  position: absolute; inset: 0; width: 100%; height: 100%;
-  object-fit: cover; object-position: center top;
+.ghd-backdrop-wallpaper {
+  position: absolute; inset: 0;
+  background-size: cover; background-position: center top; background-repeat: no-repeat;
 }
+/* Trailer hosts set position: relative !important. A wallpaper has no intrinsic height. */
+.ghd-backdrop-art > .ghd-backdrop-wallpaper { position: absolute !important; inset: 0; width: 100%; height: 100%; }
 .ghd-backdrop-none { background: #04060c; }
 .ghd-backdrop-shade {
   position: absolute; inset: 0;
@@ -88,9 +87,9 @@ export const PS5_CSS = `
     linear-gradient(to bottom, rgba(0,0,0,0.5) 0%, rgba(0,0,0,0.1) 22%, rgba(0,0,0,0) 45%, rgba(4,6,12,0.55) 75%, #04060c 100%),
     linear-gradient(to right, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.12) 38%, rgba(0,0,0,0) 58%);
 }
-@keyframes ghd-art-in { from { opacity: 0; transform: scale(1.04); } to { opacity: 1; transform: none; } }
+@keyframes ghd-art-in { from { opacity: 0; transform: scale(1.012); } to { opacity: 1; transform: none; } }
 @keyframes ghd-rise { from { opacity: 0; transform: translateY(1.2vh); } to { opacity: 1; transform: none; } }
-@keyframes ghd-intro { from { opacity: 0; transform: translateX(8vh); } to { opacity: 1; transform: none; } }
+@keyframes ghd-intro { from { opacity: 0; transform: translateX(2.2vh); } to { opacity: 1; transform: none; } }
 
 /* ---------- home ---------- */
 .ghd-scroller { position: absolute; inset: 0; z-index: 2; overflow: hidden; }
@@ -117,12 +116,12 @@ export const PS5_CSS = `
 .ghd-home-row {
   --ghd-slot: 12vh; --ghd-big: 18vh; --ghd-gap: 1.8vh;
   margin-top: 0; padding: 3vh 0 3.6vh; overflow: hidden; overflow: clip;
-  animation: ghd-intro 600ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
+  animation: ghd-intro 360ms cubic-bezier(0.2, 0.8, 0.2, 1) backwards;
 }
 .ghd-row-anchor {
   overflow: visible; align-items: flex-start; gap: var(--ghd-gap);
   height: var(--ghd-big); padding: 0 4vw;
-  transition: transform 340ms cubic-bezier(0.22, 0.8, 0.24, 1); will-change: transform;
+  transition: transform 265ms cubic-bezier(.18,.78,.22,1); will-change: transform;
 }
 /* Bottom padding keeps the cards clear of Steam's button-hint footer. */
 .ghd-hero {
@@ -209,7 +208,7 @@ export const PS5_CSS = `
 .ghd-button svg { display: block; font-size: 3.2vh; }
 .ghd-button-main { min-width: 31vh; padding: 0 3.6vh; border-radius: 99px; }
 .ghd-button-round { width: 6.6vh; border-radius: 50%; }
-.ghd-button.ghd-focused { background: #fff; color: #000; transform: scale(1.04); }
+.ghd-button.ghd-focused { background: #fff; color: #000; transform: scale(1.012); }
 .ghd-button.ghd-focused::after { opacity: 1; }
 .ghd-bottom-space { height: 40vh; }
 
@@ -248,13 +247,13 @@ export const PS5_CSS = `
    selected, so the picture stays sharp when it grows. */
 .ghd-tile-home {
   width: var(--ghd-slot); height: var(--ghd-slot); border-radius: 0;
-  transition: transform 340ms cubic-bezier(0.22, 0.8, 0.24, 1), opacity 220ms ease;
+  transition: transform 265ms cubic-bezier(.18,.78,.22,1), opacity 220ms ease;
 }
 .ghd-tile-home .ghd-tile-box {
   right: auto; bottom: auto; width: var(--ghd-big); height: var(--ghd-big);
   border-radius: calc(var(--ghd-cr) * 1.3);
   transform: scale(0.64516); transform-origin: 0 0;
-  transition: transform 340ms cubic-bezier(0.22, 0.8, 0.24, 1);
+  transition: transform 265ms cubic-bezier(.18,.78,.22,1);
 }
 .ghd-tile-home.ghd-selected .ghd-tile-box { transform: none; }
 /* Focused: the tile lifts a little, like the PS5. */
@@ -305,6 +304,15 @@ export const PS5_CSS = `
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   text-shadow: 0 1px 6px rgba(0,0,0,0.85);
   transform: translate3d(0, -0.8vh, 0); transition: opacity 200ms ease, transform 260ms ease;
+}
+.ghd-tile-home .ghd-steam-era {
+  display: inline-block; vertical-align: .12em; margin-inline-end: .5em;
+  padding: .09em .55em; border: 1px solid transparent; border-radius: .25em;
+  background: #fff; color: #101115; font-size: .64em; line-height: 1.25;
+  font-weight: 600; letter-spacing: .09em; text-shadow: none;
+}
+.ghd-tile-home .ghd-steam-era[data-era="classic"] {
+  background: #08090b; color: #fff; border-color: #ffffff50; font-weight: 400;
 }
 .ghd-tile-home.ghd-selected .ghd-tile-name, .ghd-tile-home.ghd-focused .ghd-tile-name {
   opacity: 1; transform: none;

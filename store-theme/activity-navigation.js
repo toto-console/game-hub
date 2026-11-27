@@ -21,11 +21,21 @@ function connectActivityNavigation(doc, enabled, config={}) {
     selected?.classList.remove(focusClass);selected=el;
     el.classList.add(focusClass);
     if(!el.hasAttribute('tabindex')&&!el.matches('a[href],button,input,textarea,select')){changedTabs.set(el,null);el.tabIndex=-1;}
+    const pane=el.closest('.ghp-scroll-content'),before=pane?.scrollTop;
     el.focus({preventScroll:true});
     // Keep native Steam focus ownership synchronized with DOM focus.
     if(typeof win.GPNavFocusChild==='function'){const target=win.$J?win.$J(el):[el];win.InstrumentFocusElements?.(target);win.GPNavFocusChild(target);}
     const scroller=el.closest('.ghp-scroll-content');
-    if(scroller){const r=el.getBoundingClientRect(),b=scroller.getBoundingClientRect();if(r.top<b.top+8)scroller.scrollTop-=b.top+8-r.top;else if(r.bottom>b.bottom-8)scroller.scrollTop+=r.bottom-b.bottom+8;}
+    // The totals precede the first focusable filter. Reveal that heading as well
+    // when travelling back to the top of the achievement list.
+    if(scroller&&config.axis){
+      if(scroller.scrollTop!==before)scroller.scrollTo({top:before,behavior:'instant'});
+      if(scroller.querySelector('.ghp-trophy-summary')&&(el.closest('.ghp-filters')||el.matches('.ghp-trophy-game:first-child')))config.axis.to(scroller,0);
+      else followVertical(config.axis,scroller,el);
+      return;
+    }
+    if(scroller?.querySelector('.ghp-trophy-summary') && (el.closest('.ghp-filters') || el.matches('.ghp-trophy-game:first-child'))){scroller.scrollTop=0;}
+    else if(scroller){const r=el.getBoundingClientRect(),b=scroller.getBoundingClientRect();if(r.top<b.top+8)scroller.scrollTop-=b.top+8-r.top;else if(r.bottom>b.bottom-8)scroller.scrollTop+=r.bottom-b.bottom+8;}
     else el.scrollIntoView({block:'nearest',inline:'nearest',behavior:'instant'});
   }
   function handle(e) {

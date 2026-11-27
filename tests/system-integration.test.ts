@@ -65,3 +65,17 @@ it('keeps tray previews and avatars when merging a real unread conversation',()=
  f.setGroups([{notifications:[{notificationID:'preview',eType:8,rtCreated:123,data:{getClassName:()=> 'CClientNotificationFriendMessage',steamid:()=> '76561197960265740',icon:()=> 'https://avatars.steamstatic.com/test.jpg',body:()=> 'Existing tray preview'}}]}]);
  f.store.refresh();expect(f.store.getSnapshot().rows).toHaveLength(1);expect(f.store.getSnapshot().rows[0]).toMatchObject({detail:'Existing tray preview',avatar:'https://avatars.steamstatic.com/test.jpg',conversation:'friend:12'});f.stop();
 });
+
+it('keeps a delivered Playhub notice while the menu is closed, merges the Steam tray row, and isolates accounts',()=>{
+ const f=fixture();f.setActive(false);
+ window.dispatchEvent(new CustomEvent('game-hub:playhub-notice',{detail:{id:'119',title:'Game Hub test',body:'Earned a trophy',kind:'achievement'}}));
+ f.setActive(true);f.store.refresh();
+ expect(f.store.getSnapshot().rows.map(n=>n.title)).toEqual(['Game Hub test']);
+ f.setGroups([{notifications:[{notificationID:'119',rtCreated:Date.now()/1000,eType:0,data:{}}]}]);
+ f.store.refresh();
+ expect(f.store.getSnapshot().rows).toHaveLength(1);
+ expect(f.store.getSnapshot().rows[0].kind).toBe('Achievement');
+ f.setGroups([]);f.setAccount('2');f.store.refresh();
+ expect(f.store.getSnapshot().rows).toHaveLength(0);
+ f.stop();f.store.dispose();
+});

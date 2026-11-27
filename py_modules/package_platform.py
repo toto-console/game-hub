@@ -17,3 +17,10 @@ def require_package(root):
         require_target(json.loads(path.read_text(encoding='utf8'))['platform'])
     elif not (Path(root)/'src/index.tsx').is_file():
         raise ValueError('Missing Game Hub package target; reinstall a verified platform package.')
+
+# Windows uses capability detection for Steam's stable and beta UI formats.
+DISTRIBUTIONS = {
+    'Windows-Steam-Stable-x64': ('windows-x86_64', 'stable'),
+    'Windows-Steam-Beta-x64': ('windows-x86_64', 'beta'),
+    'SteamOS-Bazzite-x64-EXPERIMENTAL': ('linux-x86_64', 'linux'),
+}

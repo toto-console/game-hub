@@ -5,7 +5,7 @@ import {CenterCompatibility} from './CenterCompatibility';
 import {initializeLanguage} from './i18n';
 import {T} from "./i18n";
 import {connectBackAudio} from './back-audio';
-import {startNavigationAudio,playSound} from './native-navigation-audio';
+import {startNavigationAudio,playSound,readSoundRevision} from './native-navigation-audio';
 import {startUpdateChecks} from './software-updates';
 import {connectWelcome} from './home/welcome-services';
 import {connectDesktopCenterFallback} from './desktop-center-fallback';
@@ -28,6 +28,7 @@ import {createNotificationStore} from './notification-store';
 import {ControlCenter,type CenterActions} from './ControlCenter';
 import {createControlCenter} from './control-center-entry';
 import {type HubTab} from './Panel';
+import {startBundledNotifications} from './bundled-steam-notices';
 import { definePlugin, routerHook } from '@decky/api';
 
 import { DialogButton, SliderField, Focusable, Navigation, Router, TextField, ScrollPanel, classMap, replacePatch, callOriginal } from '@decky/ui';
@@ -108,11 +109,14 @@ const baseBridge:SocialBridge={
 };
 
 export default definePlugin(()=>{
-  if(!packagePlatformAllowed('__GAMEHUB_PACKAGE_TARGET__', navigator.platform)) {
+  // Packaging substitutes this token after bundling. Keep its value opaque to
+  // Rollup so it cannot prune the production OS checks as unreachable.
+  if(!packagePlatformAllowed(JSON.parse('"__GAMEHUB_PACKAGE_TARGET__"'), navigator.platform)) {
     return {name:'Game Base Social',icon:<span>!</span>,content:<div>Incompatible Game Hub package. Install the matching Windows or SteamOS/Bazzite download from GitHub. Native Steam remains available; your settings are unchanged.</div>};
   }
 
 
+  const stopNotices=startBundledNotifications();
   const stopAudio=startNavigationAudio();const stopUpdates=startUpdateChecks();
   const stopHome=startHomeModule();
   const stopSoundtracks=startSoundtracks();
@@ -191,7 +195,7 @@ export default definePlugin(()=>{
     notifications:()=>center.runNative(()=>Navigation.OpenQuickAccessMenu(0)),downloads:()=>Navigation.Navigate('/library/downloads'),
     sound:()=>Navigation.Navigate('/settings/audio'),accessories:()=>Navigation.Navigate('/settings/controller/menu/0'),
     web:url=>{const main=Router.WindowStore?.GamepadUIMainWindowInstance;if(typeof main?.NavigateToSteamWeb!=='function')throw Error('Steam Store navigation is unavailable. Reopen the Control Center and try again.');openGameHubWeb(url,u=>main.NavigateToSteamWeb(u),main);},
-    library:id=>id?Navigation.Navigate(`/library/app/${id}`):openGameHubLibrary(path=>Navigation.Navigate(path)),
+    library:id=>id?Navigation.Navigate(`/game-hub/post-game/${id}`):openGameHubLibrary(path=>Navigation.Navigate(path)),
     profile:async()=>{
       const client=(window as unknown as {SteamClient?:{URL?:{GetSteamURLList?:(keys:string[])=>Promise<Record<string,{url:string}>>}}}).SteamClient;
       const main=Router.WindowStore?.GamepadUIMainWindowInstance as unknown as {NavigateToSteamWeb?:(url:string)=>void};
@@ -203,7 +207,7 @@ export default definePlugin(()=>{
     steamSettings:()=>Navigation.Navigate('/settings'),notificationSettings:()=>Navigation.Navigate('/settings/notifications'),voiceSettings:()=>baseBridge.openVoiceSettings?.(),
     deckyPage:page=>Navigation.Navigate(page==='store'?'/decky/store':'/decky/settings'),power:(anchor,onCancel)=>(Router.OpenPowerMenu as (anchor:HTMLElement,onCancel:()=>void)=>void)(anchor,onCancel),decky:()=>center.runNative(()=>Navigation.OpenQuickAccessMenu(999))
   };
-  const stopWelcome=connectWelcome(bridge,actions);
+  const stopWelcome=connectWelcome(bridge,actions,controls,notifications);
   // Decky mounts this shared component in each Steam GamepadUI window. Resolve
   // the owner from the DOM marker; never assume the desktop main window owns input.
   type OverlayWindow=NonNullable<typeof Router.WindowStore>['SteamUIWindows'][number]&{
@@ -242,7 +246,7 @@ export default definePlugin(()=>{
       sound:()=>navigate('/settings/audio'),accessories:()=>navigate('/settings/controller/menu/0'),
       steamSettings:()=>navigate('/settings'),notificationSettings:()=>navigate('/settings/notifications'),
       decky:()=>store.runNative(()=>instance.MenuStore.OpenQuickAccessMenu(999)),deckyPage:page=>navigate(page==='store'?'/decky/store':'/decky/settings'),
-      web:url=>openGameHubWeb(url,u=>instance.NavigateToSteamWeb(u),instance),library:id=>id?navigate(`/library/app/${id}`):openGameHubLibrary(navigate),
+      web:url=>openGameHubWeb(url,u=>instance.NavigateToSteamWeb(u),instance),library:id=>id?navigate(`/game-hub/post-game/${id}`):openGameHubLibrary(navigate),
       profile:async()=>{const client=(window as any).SteamClient;const url=(await client.URL.GetSteamURLList(['SteamIDMyProfile'])).SteamIDMyProfile?.url;if(!url||new URL(url).origin!=='https://steamcommunity.com')throw Error('Steam profile unavailable.');return()=>openGameHubWeb(url,u=>instance.NavigateToSteamWeb(u),instance);}
     };
     return {store,controls:localControls,bridge:localBridge,actions:localActions,beforeProfile:returning.begin,dispose(){returning.dispose();store.dispose();}};
@@ -263,7 +267,7 @@ export default definePlugin(()=>{
         open:()=>center.showDesktopFallback(),isOpen:()=>center.getSnapshot()
       });
     },[context]);
-    useLayoutEffect(()=>{const doc=marker.current?.ownerDocument;if(doc)return connectBackAudio(doc,()=>settings.enabled,playSound);},[]);
+    useLayoutEffect(()=>{const doc=marker.current?.ownerDocument;if(doc)return connectBackAudio(doc,()=>settings.enabled,playSound,readSoundRevision);},[]);
     useLayoutEffect(()=>{const doc=marker.current?.ownerDocument;if(doc)return connectFocusGloss(doc,()=>settings.enabled&&settings.motion);},[s.motion,s.enabled]);
     useLayoutEffect(()=>bindWhenReady(()=>{const doc=marker.current?.ownerDocument;return Router.WindowStore?.SteamUIWindows.find(w=>w.BrowserWindow?.document===doc) as OverlayWindow|undefined;},instance=>{
       if(instance&&instance===Router.WindowStore?.GamepadUIMainWindowInstance){attachMain();setContext('main');return;}
@@ -320,7 +324,7 @@ export default definePlugin(()=>{
 
       {s.enabled&&s.controlCenter&&globalRegistered&&<Button className="gbs-button" onClick={()=>{setNavigationError(false);if(!owningCenter()?.show())setNavigationError(true);}}>Open Control Center</Button>}
       <Button className="gbs-button" aria-pressed={s.controlCenter} onClick={()=>setSettings({...s,controlCenter:!s.controlCenter})}>Control Center replacement: {s.controlCenter?<T text="On"/>:<T text="Off"/>}</Button>
-      <details><summary><T text="Integrations"/></summary><Button className="gbs-button" onClick={()=>openGameMusic()}>ThemeDeck Game Soundtracks</Button></details><details><summary><T text="Media"/></summary><Button className="gbs-button" onClick={()=>{Navigation.CloseSideMenus?.();openMediaManager();}}><T text="Manage Apps"/></Button></details><details><summary>Store Appearance</summary>
+      <details><summary><T text="Integrations"/></summary><Button className="gbs-button" onClick={()=>openGameMusic()}>ThemeDeck Game Soundtracks</Button><Button className="gbs-button" onClick={()=>{Navigation.CloseSideMenus?.();Navigation.Navigate('/game-hub/trailers');}}>TrailerHero</Button></details><details><summary><T text="Media"/></summary><Button className="gbs-button" onClick={()=>{Navigation.CloseSideMenus?.();openMediaManager();}}><T text="Manage Apps"/></Button></details><details><summary>Store Appearance</summary>
       {([['storeAppearance','PS5-Style Steam Store'],['storeBackgrounds','Navy Background Gradients'],['storeGloss','Animated Store Gloss'],['storeReducedMotion','Reduced Store Motion'],['storeSubtle','Subtle Store Colors']] as const).map(([key,label])=><Button key={key} className="gbs-button" aria-pressed={s[key]} onClick={()=>setSettings({...s,[key]:!s[key]})}>{label}: {s[key]?<T text="On"/>:<T text="Off"/>}</Button>)}
       <p>Store music follows ThemeDeck's own settings. Steam controls trailer playback. Global reduced motion also applies.</p>
       <p role="status">{storeState.reason}</p>
@@ -350,7 +354,7 @@ export default definePlugin(()=>{
 
   }
 
-  return {name:'Game Base Social',titleView:<span>Game Base Social</span>,content:<QuickAccess/>,icon:<span aria-hidden="true">â—‡</span>,onDismount(){stopAudio();stopUpdates();stopWelcome();for(const adapter of storeAdapters)adapter.dispose();storeAdapters.clear();stopWebOwner();for(const adapter of webAdapters)adapter.dispose();webAdapters.clear();window.removeEventListener("game-hub:open-music",closeForMusic);stopSoundtracks();routerHook.removeRoute(GAME_MUSIC_ROUTE);routerHook.removeRoute(GAME_MUSIC_ROUTE+"/:appid");stopHome();for(const ctx of overlayContexts.values())ctx.dispose();overlayContexts.clear();profileReturn.dispose();notifications.dispose();center.dispose();if(globalRegistered)routerHook.removeGlobalComponent('GameBaseControlCenter');entry?.dispose();requestListeners.clear();if(registered)routerHook.removeRoute(ROUTE);listeners.clear();}};
+  return {name:'Game Base Social',titleView:<span>Game Base Social</span>,content:<QuickAccess/>,icon:<span aria-hidden="true">â—‡</span>,onDismount(){stopNotices();stopAudio();stopUpdates();stopWelcome();for(const adapter of storeAdapters)adapter.dispose();storeAdapters.clear();stopWebOwner();for(const adapter of webAdapters)adapter.dispose();webAdapters.clear();window.removeEventListener("game-hub:open-music",closeForMusic);stopSoundtracks();routerHook.removeRoute(GAME_MUSIC_ROUTE);routerHook.removeRoute(GAME_MUSIC_ROUTE+"/:appid");stopHome();for(const ctx of overlayContexts.values())ctx.dispose();overlayContexts.clear();profileReturn.dispose();notifications.dispose();center.dispose();if(globalRegistered)routerHook.removeGlobalComponent('GameBaseControlCenter');entry?.dispose();requestListeners.clear();if(registered)routerHook.removeRoute(ROUTE);listeners.clear();}};
 
 });
 

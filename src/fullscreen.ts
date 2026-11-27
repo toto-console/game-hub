@@ -1,3 +1,4 @@
+import {footerSelector} from './center-footer';
 import {resolveSteamUI,classSelector} from './steam-ui-compat';
 // Mounted with the Game Base route only. The :has guard also removes the effect
 // immediately when the panel unmounts. Resolve Steam's header by its class module.
@@ -6,7 +7,7 @@ function headerClasses(modules:unknown):string[] {
  return header?['DashboardBar','Header'].map(k=>classSelector(header[k])).filter(Boolean):[];
 }
 export function fullscreenCSS(modules:unknown):string {
-  return headerClasses(modules).map(c=>`body:has(.gbs-root.gbs-room) ${c}{display:none!important;visibility:hidden!important;pointer-events:none!important;transition:none!important;animation:none!important;}`).join('\n');
+  return [...headerClasses(modules),footerSelector(modules)].filter(Boolean).map(c=>`body:has(.gbs-root.gbs-room) ${c}{display:none!important;visibility:hidden!important;pointer-events:none!important;transition:none!important;animation:none!important;}`).join('\n');
 }
 /** Top Bar Padding animates all properties, including visibility and native opacity.
  * Keep transition suppression through the close style commit, not a timed delay. */

@@ -4,7 +4,7 @@ type Decky={plugins:RegisteredPlugin[];deckyState:{publicState():{installedPlugi
 export const decky=()=>(window as unknown as {DeckyPluginLoader?:Decky}).DeckyPluginLoader;
 // Reviewed installed source: standalone subscribed settings stores and captured
 // backend API closures; no QAM context or always-render lifecycle dependency.
-export const reviewedVersions:Record<string,string>={'Glance Library':'1.0.0','Game Glance':'3.6.0','SteamGridDB':'1.8.1','PlayCount':'1.7'};
+export const reviewedVersions:Record<string,string>={'Glance Library':'1.0.0','Game Glance':'3.6.0','SteamGridDB':'1.8.1','PlayCount':'1.7','TrailerHero':'1.7.2'};
 export function pluginInventory(){
  const d=decky();const s=d?.deckyState?.publicState();if(!d||!s||!Array.isArray(s.installedPlugins))throw Error('Decky installed-plugin inventory is unavailable.');
  return s.installedPlugins.map(p=>{const loaded=d.plugins.find(v=>v.name===p.name),disabled=s.disabledPlugins.some(v=>v.name===p.name);

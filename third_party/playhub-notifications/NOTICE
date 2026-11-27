@@ -1,0 +1,28 @@
+Playhub Notifications 1.1.0
+
+Copyright (c) 2026 LoZazaMastro
+
+Xbox, PlayStation, GOG, Epic Games, Nintendo and Android names and trademarks
+belong to their respective owners. Theme names identify the platform/launcher
+motion and visual language reproduced by this independent plugin.
+
+Portions of the notification lifecycle and the Xbox/Epic motion choreography
+were adapted from the MIT-licensed "Achievements" project by JokerVerse
+(Copyright (c) 2025 JokerVerse). The required MIT notice is included at:
+third_party/Achievements-MIT-LICENSE.txt
+
+The supplied Achievements archive also contains vendored SteamAchievementNotifier
+runtime material. SAN HTML/CSS/font/image assets are NOT copied into Playhub
+Notifications because their licensing is separate/unclear; they were used only
+as non-code visual/motion references.
+
+Audio note: the user explicitly requested use of the platform notification audio
+files supplied inside the Achievements archive. Xbox, PlayStation, GOG and Epic
+achievement cues therefore preserve those supplied sounds (decoded/resampled to
+standard 48 kHz stereo PCM when needed). Xbox and PlayStation secondary/system
+files are also used as source material for the missing category-specific cues;
+GOG category cues are restrained derivatives of its supplied platform cue.
+Missing Nintendo, Android and Playhub cues are original Playhub Notifications
+assets. Epic non-achievement cues retain the previously approved Playhub family.
+
+Brand marks used by theme renderers (PlayStation and Xbox) are user-supplied reference assets. PlayStation and Xbox names/logos are trademarks of their respective owners; inclusion here is solely for theme rendering.

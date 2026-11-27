@@ -1,5 +1,6 @@
 /** CSS-module keys are a capability contract, not a Steam channel detector.
  * No Beta hash mappings are assumed. Unknown shapes leave native UI available. */
+import {runtimeBetaCSS} from './steam-beta-css';
 export type SteamCSS = Record<string, string>;
 export const steamUIShapes = {
  header: ['DashboardBar', 'CurrentUserAvatar', 'Clock'],
@@ -19,7 +20,7 @@ export function resolveSteamUI(modules: unknown, role: SteamUIRole): SteamCSS | 
  if (!Array.isArray(modules)) return;
  const keys: readonly string[] = steamUIShapes[role];
  const matches = modules.filter((m): m is SteamCSS => !!m && typeof m === 'object' && keys.every(k => classTokens(m[k]).length > 0));
- if (!matches.length) return;
+ if (!matches.length) return runtimeBetaCSS()[role];
  // Duplicate identical exports are harmless; conflicting roles are not evidence.
  const identity = (m: SteamCSS) => JSON.stringify([...keys, ...(role === 'header' ? ['Header'] : [])].map(k => classSelector(m[k])));
  if (new Set(matches.map(identity)).size !== 1) return;

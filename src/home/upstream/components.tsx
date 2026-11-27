@@ -6,7 +6,7 @@ import { Component, ReactNode, RefObject, useEffect, useRef, useState } from "re
 
 import {isInstalled} from "../../library-data";
 import { t } from "./i18n";
-import { APP_TYPE_SHORTCUT, App, heroUrls, launch, openDetails, openGameMenu, portraitUrls, runningAppId } from "./steam";
+import { APP_TYPE_GAME, APP_TYPE_SHORTCUT, App, heroUrls, launch, openDetails, openGameMenu, portraitUrls, runningAppId } from "./steam";
 
 export const FOCUSED_CLASS = "ghd-focused";
 /** Room kept between a focused tile and the edge of its row or grid, in px. */
@@ -75,7 +75,7 @@ export function useFocusReveal(root: RefObject<HTMLElement | null>) {
 
 interface TileProps {
   size?: "home" | "normal" | "small";
-  label: string;
+  label: ReactNode;
   preferredFocus?: boolean;
   onFocus?: (el: HTMLElement) => void;
   onActivate: () => void;
@@ -163,12 +163,14 @@ export function GameTile({
   onActivate?: () => void;
 }) {
  useLanguage();
+  const release = app.rt_steam_release_date;
+  const showEra = size === "home" && app.app_type === APP_TYPE_GAME && release && release > 0;
   const running = runningAppId() === app.appid;
   const playable = isInstalled(app) || app.app_type === APP_TYPE_SHORTCUT;
   return (
     <Tile
       size={size}
-      label={app.display_name}
+      label={showEra ? <><span className="ghd-steam-era" data-era={new Date(release * 1000).getUTCFullYear() <= 2019 ? "classic" : "modern"}>STEAM</span>{app.display_name}</> : app.display_name}
       preferredFocus={preferredFocus}
       onFocus={(el) => {highlightSoundtrack(app.appid,el.closest(".ghl-root")?"library":"home");onFocus?.(app, el);}}
       onActivate={onActivate ?? (() => launch(app))}

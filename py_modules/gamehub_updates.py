@@ -111,11 +111,19 @@ class Updates:
                     from package_platform import host_target
                     host=host_target()
                     matches=[a for a in manifest.get('artifacts',[]) if a.get('platform')==host]
+                    from package_platform import DISTRIBUTIONS
+                    channel=None
+                    if any('steamChannel' in a for a in matches):
+                        package_file=self.root/'platform-target.json'
+                        channel=json.loads(package_file.read_text()).get('steamChannel') if package_file.is_file() else None
+                        matches=[a for a in matches if channel and a.get('steamChannel')==channel]
                     if len(matches)!=1 or not loader or loader not in matches[0].get('certifiedLoaders',[]):
                         self.result={'status':'incompatible','message':'Platform package exists but this Decky/platform combination is not certified. Automatic installation is disabled; choose the matching experimental GitHub download.'}
                         continue
                     item=matches[0];asset=item.get('asset','');digest=item.get('sha256','')
                     label={'windows-x86_64':'Windows-x64','linux-x86_64':'SteamOS-Bazzite-x64-EXPERIMENTAL'}.get(host)
+                    if channel:
+                        label=next((label for label,platform_channel in DISTRIBUTIONS.items() if platform_channel==(host,channel)),None)
                     if not label or asset!=f'Game-Hub-{v}-{label}.zip' or not re.fullmatch('[0-9a-f]{64}',digest):continue
                     if not any(a.get('browser_download_url')==base+asset for a in r.get('assets',[])):continue
                     self.result={'status':'available','message':'Verified platform package available for manual staging only.','version':v,'url':base+asset,'sha256':digest,'platform':host,'changelog':str(r.get('body') or '')[:12000]}

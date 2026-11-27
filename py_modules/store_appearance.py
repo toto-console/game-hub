@@ -38,7 +38,7 @@ class StoreAppearance:
     def __init__(self, plugin_dir):
         assets = Path(plugin_dir) / 'store-theme'
         self.css = (assets / 'native.css').read_text(encoding='utf-8') + '\n' + (assets / 'activity.css').read_text(encoding='utf-8') + '\n' + (assets / 'profile-achievements.css').read_text(encoding='utf-8') + '\n' + (assets / 'profile.css').read_text(encoding='utf-8')
-        self.script = '\n'.join((assets / name).read_text(encoding='utf-8') for name in ('focus-gloss.js','activity-navigation.js','profile-tabs.js','profile.js','document.js'))
+        self.script = '\n'.join((assets / name).read_text(encoding='utf-8') for name in ('scroll-engine.js','focus-gloss.js','activity-navigation.js','profile-tabs.js','profile.js','document.js'))
         self.lock = asyncio.Lock()
         self.revisions = {}
         self.requests = {}

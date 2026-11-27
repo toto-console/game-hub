@@ -1,0 +1,26 @@
+export const consoleMotion = {
+  focusMs: 165,
+  tileMs: 215,
+  settleMs: 105,
+  revealMs: 320,
+  backdropMs: 460,
+  pageMs: 330,
+  scrollRate: {x:19,y:17},
+  easeOut: 'cubic-bezier(.18,.68,.24,1)',
+  crossfade: 'cubic-bezier(.26,.06,.27,1)',
+} as const;
+export const homeSequence = {
+  tile: 185,
+  rail: 245,
+  exit: 140,
+  artAt: 365,
+  dissolve: 310,
+  titleAt: 645,
+  textLag: 45,
+  actionLag: 100,
+  reveal: 300,
+  detail: 320,
+  secondaryAt: 1170,
+  glide: 'cubic-bezier(.22,1,.36,1)',
+  blend: 'cubic-bezier(.4,0,.2,1)',
+} as const;

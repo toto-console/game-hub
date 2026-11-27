@@ -1,7 +1,14 @@
+import {consoleMotion} from './console-motion';
 export const welcomeCSS=`
 .gh-welcome{position:absolute;inset:0;pointer-events:none;color:#f5f5fb;--ghw-panel:#24214fef;--ghw-gap:1.3vw;font-size:1.18vw}
 .ghw-background{position:fixed;inset:0;z-index:-1;overflow:hidden;background:radial-gradient(ellipse at 78% 48%,#7d858a 0%,#454b4f 43%,#171b20 80%)}
 .ghw-background.ghw-home-background{position:absolute;z-index:0;pointer-events:none}
+.ghw-home-background[data-shown=false]{opacity:0}
+@media(prefers-reduced-motion:no-preference){
+ .gh-home-module[data-motion=true] .ghw-home-background[data-motion=true]{transition:opacity ${consoleMotion.backdropMs}ms ${consoleMotion.crossfade}}
+ .gh-home-module[data-motion=true] .gh-welcome[data-motion=true]>.ghw-viewport{animation:gh-welcome-arrive ${consoleMotion.revealMs}ms ${consoleMotion.easeOut} both}
+}
+@keyframes gh-welcome-arrive{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
 .ghw-background:after{content:"";position:absolute;inset:0;background:linear-gradient(0deg,#080c10c9,transparent 72%),linear-gradient(180deg,#11151acc,transparent 35%)}
 .ghw-background>img,.ghw-background>video,.ghw-background>canvas{width:100%;height:100%;object-fit:cover}.ghw-existing{background:transparent}.ghw-existing .ghw-sculpture{display:none}
 .ghw-sculpture{position:absolute;right:-5%;top:40%;width:65vw;height:60vw;border-radius:50%;background:linear-gradient(145deg,#c3cbd1,#66717a 55%,#28313a);box-shadow:inset 0 2vw 4vw #e5ecf04d;transform:rotate(-12deg)}

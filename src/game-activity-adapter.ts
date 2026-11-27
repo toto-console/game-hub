@@ -1,4 +1,5 @@
 import {gameById,loadGame,type Achievement,type Game} from './game-adapter';
+import {heroUrls,portraitUrls,landscapeUrls,logoUrls} from './library-art';
 export type ActivityAchievement=Achievement&{hidden:boolean};
 export type GameActivityData={game:Game;heroes:string[];covers:string[];logos:string[];shots:string[];achievements:ActivityAchievement[];warning?:string};
 export const suspendCapability={supported:false,reason:'Safe game suspension is not available in this Steam integration.'} as const;
@@ -16,7 +17,10 @@ export async function loadGameActivity(id:number):Promise<GameActivityData>{
  const game=gameById(id);if(!game)throw Error('The current game is no longer available.');
  const h=window as any,a=h.appStore.GetAppOverviewByAppID(id),d=h.appDetailsStore;
  const [media,achievements]=await Promise.allSettled([loadGame(game),game.shortcut?Promise.resolve([]):Promise.resolve().then(()=>{if(typeof h.SteamClient?.Apps?.GetMyAchievementsForApp!=='function')throw Error('Achievement interface unavailable.');return h.SteamClient.Apps.GetMyAchievementsForApp(String(id));}).then((r:any)=>{if(r.result!==1)throw Error('Steam achievements are unavailable.');return normalizeAchievements(r.data?.rgAchievements);})]);
- const heroes=assets(d.GetHeroImages(a)?.rgHeroImages),covers=assets([...(h.appStore.GetCustomVerticalCapsuleURLs?.(a)??[]),...(h.appStore.GetCachedVerticalCapsuleURL?.(a)??[]),h.appStore.GetVerticalCapsuleURLForApp?.(a),h.appStore.GetPregeneratedVerticalCapsuleForApp?.(a),...(d.GetHeaderImages(a)??[])]),logos=assets(d.GetLogoImages(a)?.rgLogoImages);
+ const unique=(values:unknown[])=>Array.from(new Set(assets(values)));
+ const heroes=unique([...heroUrls(a),...assets(d?.GetHeroImages?.(a)?.rgHeroImages)]);
+ const covers=unique([...portraitUrls(a),...landscapeUrls(a),...assets(d?.GetHeaderImages?.(a)),...heroes,...(game.artwork??[])]);
+ const logos=unique([...logoUrls(a),...assets(d?.GetLogoImages?.(a)?.rgLogoImages)]);
  const m=media.status==='fulfilled'?media.value:undefined;
  if(!heroes.length&&m?.hero&&asset(m.hero))heroes.push(m.hero);
  return {game,heroes,covers,logos,shots:m?.shots.map(s=>s.thumb).filter(asset)??[],achievements:achievements.status==='fulfilled'?achievements.value:[],warning:achievements.status==='rejected'?'Steam could not load achievements.':game.shortcut?'Steam achievements are unavailable for this shortcut.':undefined};

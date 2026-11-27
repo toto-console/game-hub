@@ -3,7 +3,7 @@ import {it,expect,vi,afterEach} from 'vitest';
 import {render,fireEvent,screen,waitFor,cleanup} from '@testing-library/react';
 vi.mock('../src/downloads-live',()=>({downloadSource:{getSnapshot:()=>({rows:[]})},useDownloadTick:()=>{}}));
 vi.mock('../src/game-action',()=>({gameAction:()=>({kind:'install',label:'Install'}),openGameDownloads:vi.fn()}));
-vi.mock('../src/home/upstream/steam',()=>({runningAppId:()=>0,launch:vi.fn(),openDetails:vi.fn()}));
+vi.mock('../src/home/upstream/steam',()=>({runningAppId:()=>0,launch:vi.fn(),openDetails:vi.fn(),openGameHubDetails:vi.fn()}));
 vi.mock('../src/home/upstream/components',()=>({Button:({children,onActivate}:any)=><button onClick={e=>onActivate(e.currentTarget)}>{children}</button>}));
 import {GameAction} from '../src/GameAction';
 afterEach(cleanup);

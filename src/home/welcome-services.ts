@@ -1,5 +1,7 @@
 import type {SocialBridge} from '../model';
 import type {CenterActions} from '../ControlCenter';
-let services:{bridge:SocialBridge;actions:CenterActions}|undefined;
-export function connectWelcome(bridge:SocialBridge,actions:CenterActions){services={bridge,actions};return()=>{services=undefined;};}
+import type {Controls} from '../Panel';
+import type {NotificationStore} from '../notification-store';
+let services:{bridge:SocialBridge;actions:CenterActions;controls:Controls;notifications:NotificationStore}|undefined;
+export function connectWelcome(bridge:SocialBridge,actions:CenterActions,controls:Controls,notifications:NotificationStore){services={bridge,actions,controls,notifications};return()=>{services=undefined;};}
 export function welcomeServices(){return services;}

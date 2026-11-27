@@ -43,6 +43,9 @@ export function safeAvatar(value: unknown): string | undefined {
   try {
 
     const url = new URL(value);
+    // Steam Beta serves cached persona pictures from its local client origin.
+    if (url.origin === 'https://steamloopback.host' && !url.username && !url.password && !url.search && !url.hash &&
+        /^\/clientassets\/avatars\/[a-f0-9]{40}(?:_medium|_full)?\.jpg$/i.test(url.pathname)) return url.href;
 
     if (url.protocol === 'https:' && ['avatars.steamstatic.com', 'avatars.akamai.steamstatic.com', 'avatars.cloudflare.steamstatic.com'].includes(url.hostname) && !url.username && !url.password) return url.href;
 

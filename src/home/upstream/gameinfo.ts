@@ -19,6 +19,7 @@ export interface Achievements {
   done: number;
   total: number;
   /** The last few unlocked, newest first. */
+  medals: number[];
   recent: { name: string; image: string }[];
 }
 
@@ -52,7 +53,14 @@ async function loadAchievements(appid: number): Promise<Achievements | null> {
   const list: any[] = data?.data?.rgAchievements ?? [];
   if (list.length === 0) return null;
   const unlocked = list.filter((a) => a.bAchieved).sort((a, b) => (b.rtUnlocked ?? 0) - (a.rtUnlocked ?? 0));
+  const platinum=unlocked.length/list.length>=.9?1:0;
+  const medals=[platinum,0,0,0];
+  for(const entry of unlocked){
+    const rarity=entry.flAchieved;
+    medals[typeof rarity==="number"&&rarity<=10?1:typeof rarity==="number"&&rarity<=25?2:3]++;
+  }
   return {
+    medals,
     done: unlocked.length,
     total: list.length,
     recent: unlocked.slice(0, 3).map((a) => ({ name: a.strName ?? "", image: a.strImage ?? "" })),
