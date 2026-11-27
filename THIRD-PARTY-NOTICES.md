@@ -11,7 +11,7 @@ Game Base Social's original application code is MIT licensed (LICENSE).
 
 The other tools in package-lock.json are development dependencies and are not included as node_modules in the source or install ZIP. Their notices are supplied by their npm distributions after `npm ci`.
 
-No Sony proprietary fonts, sounds, logos, screenshots or icons are bundled. System font names request fonts already available on the machine. Initials and simple Unicode symbols are used as original UI placeholders. The supplied Millennium prototype was reviewed as a design reference; its code and screenshots are not redistributed. Steam and PlayStation trademarks belong to their respective owners; this project is unaffiliated.
+The notification renderer uses Playhub notification cues and a PlayStation brand mark. See the included Playhub NOTICE for provenance. System font names request fonts already available on the machine. Initials and simple Unicode symbols are used as original UI placeholders. The supplied Millennium prototype was reviewed as a design reference; its code and screenshots are not redistributed. Steam and PlayStation trademarks belong to their respective owners; this project is unaffiliated.
 
 Embedded controls reuse the user-installed Glance Library 1.0.0 and Game Glance 3.6.0 registered React elements (installed metadata declares MIT). Their code/assets are not copied, forked or distributed in this package. Other installed plugin licenses remain with their owners.
 
@@ -20,3 +20,5 @@ Embedded controls reuse the user-installed Glance Library 1.0.0 and Game Glance 
 Home/Library and HLTB-derived code: decky-ps5-dashboard 1.10.0, commit 44e3979c65f0f50f8e7b347e277496f7ba46c8ce, copyright 2026 kromossomo, MIT. https://github.com/kromossomom-debug/decky-ps5-dashboard . See licenses/ps5-dashboard-MIT.txt. Local adaptations isolate routes, state, styling and Game Hub integration.
 
 react-icons 5.3.0 is MIT; Google Material icons Apache-2.0; Ionic Ionicons MIT; Fonticons Font Awesome icons CC BY 4.0. Full corresponding notices are in licenses/. All artwork and optional music are loaded at runtime from user-installed services; no captured game artwork or preview snapshots are redistributed.
+
+Playhub Notifications adaptations and the upstream Achievements code are credited in the included Playhub notices. HLS.js is Apache-2.0 licensed.
